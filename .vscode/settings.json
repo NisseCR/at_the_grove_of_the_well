@@ -9,8 +9,6 @@
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
 
-  "python.defaultInterpreterPath": "./backend/.venv/Scripts/python.exe",
-
   "svelte.enable-ts-plugin": true,
 
   "files.associations": {
