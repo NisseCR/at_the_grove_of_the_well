@@ -1,4 +1,4 @@
 <script lang="ts">
 </script>
 
-<h1>Controller view</h1>
+<h1>Home view</h1>

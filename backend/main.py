@@ -15,7 +15,7 @@ app.add_middleware(
 @app.get("/ping")
 def ping():
     """Placeholder endpoint — does nothing for now."""
-    return {"status": "tss"}
+    return {"status": "ok"}
 
 
 connected: set[WebSocket] = set()
