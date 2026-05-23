@@ -1,4 +1,4 @@
-import * as audio from "./audioEngine";
+import * as audio from "@/lib/audioEngine";
 
 // This is the only file components talk to.
 // When WebSockets are added, replace the bodies here — nothing else changes.

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import IntensitySlider from "./components/Slider.svelte";
-  import * as transport from "./lib/transport";
+  import IntensitySlider from "@/components/Slider.svelte";
+  import * as transport from "@/lib/transport";
 
   // ── State ──────────────────────────────────────────────────────────────────
 
@@ -80,12 +80,6 @@
     <h2>Audio engine</h2>
 
     {#if status === "idle"}
-      <p class="hint">
-        Place up to 3 <code>.wav</code> files in
-        <code>frontend/public/stems/</code> named
-        <code>stem-1.wav</code>, <code>stem-2.wav</code>,
-        <code>stem-3.wav</code>. Then click Load.
-      </p>
       <button onclick={startAudio}>Load stems</button>
     {:else if status === "loading"}
       <p aria-busy="true">Loading stems…</p>
@@ -115,11 +109,6 @@
 </main>
 
 <style>
-  .hint {
-    color: var(--pico-muted-color);
-    font-size: 0.85rem;
-  }
-
   .controls {
     max-width: 360px;
     margin: 1.5rem 0;
