@@ -1,0 +1,23 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  "[svelte]": {
+    "editor.defaultFormatter": "svelte.svelte-vscode"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+
+  "python.defaultInterpreterPath": "./backend/.venv/Scripts/python.exe",
+
+  "svelte.enable-ts-plugin": true,
+
+  "files.associations": {
+    "*.svelte": "svelte"
+  },
+
+  "emmet.includeLanguages": {
+    "svelte": "html"
+  }
+}
