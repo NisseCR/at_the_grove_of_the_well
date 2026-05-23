@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import IntensitySlider from "@/components/Slider.svelte";
+  import IntensitySlider from "@/components/audio/Slider.svelte";
   import * as transport from "@/lib/transport";
 
   // ── State ──────────────────────────────────────────────────────────────────
