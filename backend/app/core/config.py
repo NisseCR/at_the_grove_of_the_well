@@ -15,6 +15,7 @@ class Settings:
         self.app_name = "Paracosm"
 
         self.static_dir = self.base_dir / "static"
+        self.data_dir = self.base_dir / "data"
 
         # Resolve assets directory from .env.
         env_assets_dir = os.environ.get("ASSETS_DIR")
@@ -30,5 +31,6 @@ class Settings:
         self.video_dir = self.assets_dir / "video"
 
 
+# Initialise .env and settings.
 load_dotenv()
 settings = Settings()
