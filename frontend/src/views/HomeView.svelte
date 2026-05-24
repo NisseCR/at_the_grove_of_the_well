@@ -1,5 +1,4 @@
 <script lang="ts">
-  import SceneDraft from "@/components/scene/SceneDraft.svelte";
 </script>
 
-<SceneDraft />
+<h1>Home view</h1>

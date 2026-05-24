@@ -1,28 +1,27 @@
-from fastapi import APIRouter, WebSocket
-from fastapi.responses import PlainTextResponse, JSONResponse
+import json
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 router = APIRouter(prefix="/control")
-
-
-@router.get("/ping", response_class=JSONResponse)
-def ping():
-    """Placeholder endpoint — does nothing for now."""
-    return {"status": "ok"}
-
-
 connected: set[WebSocket] = set()
 
 
 @router.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket):
-    """Provide websocket connection."""
-    await ws.accept()
-    connected.add(ws)
+async def websocket_endpoint(websocket: WebSocket):
+    # Add connection.
+    await websocket.accept()
+    connected.add(websocket)
+
+    # Notify all current clients that someone joined.
+    for client in connected - {websocket}:
+        await client.send_text(json.dumps({"type": "CLIENT_CONNECTED"}))
+
+    # Propogate incoming messages to other clients.
     try:
         while True:
-            msg = await ws.receive_text()
-            # broadcast to all other connected clients
-            for client in connected - {ws}:
-                await client.send_text(msg)
-    except:
-        connected.remove(ws)
+            message = await websocket.receive_text()
+            for client in connected - {websocket}:
+                await client.send_text(message)
+
+    except WebSocketDisconnect:
+        connected.discard(websocket)

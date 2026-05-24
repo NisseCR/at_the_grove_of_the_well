@@ -1,17 +1,15 @@
 <script lang="ts">
-  import { viewStore } from "@/lib/router";
+  import { router } from "@/stores/router.svelte";
   import ControllerView from "@/views/ControllerView.svelte";
   import PlayerView from "@/views/PlayerView.svelte";
   import HomeView from "@/views/HomeView.svelte";
-
-  $: current = $viewStore;
 </script>
 
-{#if current === "player"}
+{#if router.view === "player"}
   <PlayerView />
-{:else if current === "controller"}
+{:else if router.view === "controller"}
   <ControllerView />
-{:else if current === "home"}
+{:else if router.view === "home"}
   <HomeView />
 {:else}
   <!-- Future view: you can render a dynamic loader or a NotFound component -->

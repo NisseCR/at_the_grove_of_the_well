@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { sceneService } from "@/lib/services/sceneService";
+  import { sceneService } from "@/lib/services/sceneApiClient";
   import type { SceneConfig, LayerConfig } from "@/types/scene";
 
   // ── State ─────────────────────────────────────────────────────────────────

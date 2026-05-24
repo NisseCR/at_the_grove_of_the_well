@@ -1,5 +1,5 @@
 import { STATIC_BASE } from "@/lib/config";
-import { apiClient } from "@/lib/services/apiService";
+import { apiClient } from "@/lib/services/apiClient";
 import type { SceneConfig } from "@/types/scene";
 
 class SceneService {
