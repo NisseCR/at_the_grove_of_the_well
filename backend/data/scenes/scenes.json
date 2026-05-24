@@ -1,0 +1,20 @@
+{
+  "groups": [
+    {
+      "name": "Locations",
+      "items": [
+        "gate",
+        "study"
+      ]
+    },
+    {
+      "name": "Otherworldly",
+      "items": [
+        "abyssus",
+        "netheril"
+      ]
+    }
+  ],
+  "show_unconfigured": true,
+  "unconfigured_group_name": "Other"
+}

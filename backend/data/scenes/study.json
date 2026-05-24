@@ -1,0 +1,27 @@
+{
+  "id": "study",
+  "name": "study",
+  "background": "study.jpg",
+  "layers": [
+    {
+      "type": "video",
+      "opacity": 1.0,
+      "brightness": 1.05,
+      "grayscale": 0.25,
+      "blur": 0.0,
+      "flip": false,
+      "blend_mode": "normal",
+      "src": "house-night.webm"
+    },
+    {
+      "type": "video",
+      "opacity": 1.0,
+      "brightness": 0.55,
+      "grayscale": 0.0,
+      "blur": 0.0,
+      "flip": false,
+      "blend_mode": "normal",
+      "src": "lens-warm.webm"
+    }
+  ]
+}
