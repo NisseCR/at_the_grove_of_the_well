@@ -1,8 +1,9 @@
 import type { TransportMessage } from "@/types/message";
 import { SERVER } from "@/lib/config";
 import { handleMessage } from "@/lib/services/messageHandler";
+import { appState } from "@/stores/appState.svelte";
 
-const WEBSOCKET_URL = `ws://${SERVER}/ws`;
+const WEBSOCKET_URL = `ws://${SERVER}/control/ws`;
 const RECONNECT_DELAY = 3000;
 
 let websocket: WebSocket | null = null;
@@ -11,10 +12,12 @@ function connect(): void {
   websocket = new WebSocket(WEBSOCKET_URL);
 
   websocket.onopen = () => {
+    appState.socketConnected = true;
     console.log("Socket connected.");
   };
 
   websocket.onclose = () => {
+    appState.socketConnected = false;
     console.log("Socket disconnected, reconnecting...");
     setTimeout(connect, RECONNECT_DELAY);
   };

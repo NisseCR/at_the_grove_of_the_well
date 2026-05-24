@@ -3,6 +3,7 @@ import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 router = APIRouter(prefix="/control")
+
 connected: set[WebSocket] = set()
 
 

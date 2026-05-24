@@ -35,6 +35,9 @@ class Settings:
         self.data_dir = self.base_dir / "data"
         self.scene_data_dir = self.data_dir / "scenes"
 
+    def load_origin(self) -> None:
+        self.frontend_origin = os.environ.get("FRONTEND_ORIGIN")
+
 
 # Initialise .env and settings.
 load_dotenv()

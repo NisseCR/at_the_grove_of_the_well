@@ -19,6 +19,7 @@ export interface ActiveHandout {
 }
 
 export interface AppState {
+  socketConnected: boolean;
   scene: ActiveScene | null;
   music: ActiveMusic | null;
   ambiences: ActiveAmbience[] | null;
