@@ -3,21 +3,13 @@
   "name": "Abyssus",
   "background": {
     "src": "assets/images/abyssus.jpg",
-    "type": "image",
-    "opacity": 1.0,
-    "brightness": 1.0,
-    "grayscale": 0.0,
-    "blur": 0.0,
-    "flip": false,
-    "blend_mode": "normal"
+    "type": "image"
   },
   "layers": [
     {
       "id": "wind-calm",
       "src": "assets/video/wind-calm.webm",
       "type": "video",
-      "loop": true,
-      "visible": true,
       "order": 0,
       "opacity": 1.0,
       "brightness": 1.0,
@@ -30,43 +22,20 @@
       "id": "mountain",
       "src": "assets/video/mountain.webm",
       "type": "video",
-      "loop": true,
-      "visible": true,
       "order": 1,
-      "opacity": 1.0,
-      "brightness": 1.0,
-      "grayscale": 0.0,
-      "blur": 0.0,
-      "flip": false,
-      "blend_mode": "normal"
+      "brightness": 0.9
     },
     {
       "id": "wasteland",
       "src": "assets/video/wasteland.webm",
       "type": "video",
-      "loop": true,
-      "visible": true,
-      "order": 2,
-      "opacity": 1.0,
-      "brightness": 1.0,
-      "grayscale": 0.0,
-      "blur": 0.0,
-      "flip": false,
-      "blend_mode": "normal"
+      "order": 2
     },
     {
       "id": "lens-cold",
       "src": "assets/video/lens-cold.webm",
       "type": "video",
-      "loop": true,
-      "visible": true,
-      "order": 3,
-      "opacity": 1.0,
-      "brightness": 1.0,
-      "grayscale": 0.0,
-      "blur": 0.0,
-      "flip": false,
-      "blend_mode": "normal"
+      "order": 3
     }
   ]
 }

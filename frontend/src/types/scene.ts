@@ -18,9 +18,10 @@ type BlendMode =
 
 type FileType = "video" | "image";
 
-export interface BackgroundConfig {
+interface AssetConfig {
   src: string;
   type: FileType;
+  loop: boolean;
   opacity: number;
   brightness: number;
   grayscale: number;
@@ -29,19 +30,12 @@ export interface BackgroundConfig {
   blend_mode: BlendMode;
 }
 
-export interface LayerConfig {
+export interface BackgroundConfig extends AssetConfig {}
+
+export interface LayerConfig extends AssetConfig {
   id: string;
-  src: string;
-  type: FileType;
-  loop?: boolean;
   visible: boolean;
   order: number;
-  opacity: number;
-  brightness: number;
-  grayscale: number;
-  blur: number;
-  flip: boolean;
-  blend_mode: BlendMode;
 }
 
 export interface SceneConfig {

@@ -23,30 +23,26 @@ BlendMode = Literal[
 FileType = Literal["image", "video"]
 
 
-class BackgroundConfig(BaseModel):
-    src: str
-    type: FileType
-    opacity: float = 1.0
-    brightness: float = 1.0
-    grayscale: float = 0.0
-    blur: float = 0.0
-    flip: bool = False
-    blend_mode: BlendMode = "normal"
-
-
-class LayerConfig(BaseModel):
-    id: str
+class AssetConfig(BaseModel):
     src: str
     type: FileType
     loop: bool = True
-    visible: bool = True
-    order: int
     opacity: float = 1.0
     brightness: float = 1.0
     grayscale: float = 0.0
     blur: float = 0.0
     flip: bool = False
     blend_mode: BlendMode = "normal"
+
+
+class BackgroundConfig(AssetConfig):
+    pass
+
+
+class LayerConfig(AssetConfig):
+    id: str
+    order: int
+    visible: bool = True
 
 
 class SceneConfig(BaseModel):

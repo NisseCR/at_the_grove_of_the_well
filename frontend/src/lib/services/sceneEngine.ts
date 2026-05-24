@@ -1,6 +1,7 @@
 import { appState } from "@/stores/appState.svelte";
 import { sceneApiClient } from "@/lib/services/sceneApiClient";
 import { router } from "@/stores/router.svelte";
+import { sceneState } from "@/stores/sceneState.svelte";
 
 class SceneEngine {
   async setScene(sceneId: string) {
@@ -13,7 +14,7 @@ class SceneEngine {
     }
 
     // Fetch the full config for rendering.
-    const config = await sceneApiClient.fetchScene(sceneId);
+    sceneState.config = await sceneApiClient.fetchScene(sceneId);
 
     // Render the scene.
     // TODO implement.
