@@ -17,6 +17,9 @@ class Settings:
         self.static_dir = self.base_dir / "static"
         self.data_dir = self.base_dir / "data"
 
+        self.resolve_assets_directory()
+
+    def resolve_assets_directory(self) -> None:
         # Resolve assets directory from .env.
         env_assets_dir = os.environ.get("ASSETS_DIR")
         if env_assets_dir:

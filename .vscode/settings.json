@@ -17,5 +17,9 @@
 
   "emmet.includeLanguages": {
     "svelte": "html"
-  }
+  },
+
+  "workbench.tree.indent": 16,
+  "workbench.tree.renderIndentGuides": "always",
+  "explorer.compactFolders": false
 }

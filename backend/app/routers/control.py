@@ -1,15 +1,13 @@
 from fastapi import APIRouter, WebSocket
 from fastapi.responses import PlainTextResponse, JSONResponse
 
-from app.core.config import settings
-
-router = APIRouter()
+router = APIRouter(prefix="/control")
 
 
 @router.get("/ping", response_class=JSONResponse)
 def ping():
     """Placeholder endpoint — does nothing for now."""
-    return {"status": settings}
+    return {"status": "ok"}
 
 
 connected: set[WebSocket] = set()
