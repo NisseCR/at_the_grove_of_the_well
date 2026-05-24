@@ -10,13 +10,11 @@ class Settings:
     """
 
     def __init__(self) -> None:
-        # Basic settings.
         self.base_dir = Path(__file__).resolve().parents[2]
         self.app_name = "Paracosm"
-
         self.static_dir = self.base_dir / "static"
-        self.data_dir = self.base_dir / "data"
 
+        self.resolve_data_directory()
         self.resolve_assets_directory()
 
     def resolve_assets_directory(self) -> None:
@@ -29,9 +27,13 @@ class Settings:
             raise KeyError("Could not resolve the assets directory from .env")
 
         # Resolve top-level asset directories.
-        self.audio_dir = self.assets_dir / "audio"
-        self.images_dir = self.assets_dir / "images"
-        self.video_dir = self.assets_dir / "video"
+        self.audio_assets_dir = self.assets_dir / "audio"
+        self.image_assets_dir = self.assets_dir / "images"
+        self.video_assets_dir = self.assets_dir / "video"
+
+    def resolve_data_directory(self) -> None:
+        self.data_dir = self.base_dir / "data"
+        self.scene_data_dir = self.data_dir / "scenes"
 
 
 # Initialise .env and settings.

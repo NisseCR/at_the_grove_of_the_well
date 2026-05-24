@@ -1,12 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from app.models.scene import SceneConfig
 
 router = APIRouter(prefix="/scene")
 
 
-@router.get("")
-def get_scenes():
-    pass
+@router.get("", response_model=list[SceneConfig])
+def get_scenes(request: Request) -> list[SceneConfig]:
+    return request.app.state.scene_service.list_scenes()
 
 
 @router.get("/{scene_id}")
