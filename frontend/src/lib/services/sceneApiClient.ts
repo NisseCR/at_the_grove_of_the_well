@@ -40,4 +40,4 @@ class SceneService {
   }
 }
 
-export const sceneService = new SceneService();
+export const sceneApiClient = new SceneService();

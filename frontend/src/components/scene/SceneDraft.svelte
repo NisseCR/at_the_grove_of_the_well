@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { sceneService } from "@/lib/services/sceneApiClient";
+  import { sceneApiClient } from "@/lib/services/sceneApiClient";
   import type { SceneConfig, LayerConfig } from "@/types/scene";
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@
 
   onMount(async () => {
     try {
-      scene = await sceneService.fetchScene("abyssus");
+      scene = await sceneApiClient.fetchScene("abyssus");
     } catch (e) {
       error = String(e);
     }

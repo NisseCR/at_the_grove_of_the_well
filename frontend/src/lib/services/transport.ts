@@ -9,6 +9,14 @@ const RECONNECT_DELAY = 3000;
 let websocket: WebSocket | null = null;
 
 function connect(): void {
+  // Don't open a new connection if one is already open or connecting
+  if (
+    websocket?.readyState === WebSocket.OPEN ||
+    websocket?.readyState === WebSocket.CONNECTING
+  )
+    return;
+
+  // Create new connection.
   websocket = new WebSocket(WEBSOCKET_URL);
 
   websocket.onopen = () => {
