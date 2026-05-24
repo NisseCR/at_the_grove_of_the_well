@@ -9,9 +9,7 @@ class SceneEngine {
     appState.scene = { scene_id: sceneId };
 
     // Only apply remaining logic for player view.
-    if (router.view != "player") {
-      return;
-    }
+    if (router.view != "player") return;
 
     // Fetch the full config for rendering.
     sceneState.config = await sceneApiClient.fetchScene(sceneId);
