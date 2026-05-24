@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,7 +43,9 @@ def create_app() -> FastAPI:
     # Add exception handles.
     @app.exception_handler(ResourceIdNotFound)
     def not_found_handler(request: Request, exc: ResourceIdNotFound) -> JSONResponse:
-        return JSONResponse(status_code=404, content={"detail": str(exc)})
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content={"detail": str(exc)}
+        )
 
     # Include routers.
     app.include_router(scene_router)
