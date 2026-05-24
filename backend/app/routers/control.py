@@ -21,7 +21,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive_text()
-            for client in connected - {websocket}:
+            for client in connected:  # - {websocket}:
                 await client.send_text(message)
 
     except WebSocketDisconnect:

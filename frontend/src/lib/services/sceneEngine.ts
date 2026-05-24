@@ -1,15 +1,22 @@
 import { appState } from "@/stores/appState.svelte";
 import { sceneApiClient } from "@/lib/services/sceneApiClient";
+import { router } from "@/stores/router.svelte";
 
 class SceneEngine {
   async setScene(sceneId: string) {
     // Update state immediately so the UI reflects the change.
     appState.scene = { scene_id: sceneId };
 
+    // Only apply remaining logic for player view.
+    if (router.view != "player") {
+      return;
+    }
+
     // Fetch the full config for rendering.
     const config = await sceneApiClient.fetchScene(sceneId);
 
     // Render the scene.
+    // TODO implement.
   }
 
   transitionScene(el: HTMLElement, newSrc: string): void {

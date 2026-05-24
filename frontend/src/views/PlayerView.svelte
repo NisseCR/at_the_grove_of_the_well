@@ -1,5 +1,6 @@
 <script lang="ts">
   import { appState } from "@/stores/appState.svelte";
+  import ConnectionIndicator from "@/components/ui/ConnectionIndicator.svelte";
 </script>
 
 <div class="player">
@@ -9,7 +10,7 @@
     <p>Waiting for scene…</p>
   {/if}
 
-  <div class="status" class:connected={appState.socketConnected}></div>
+  <ConnectionIndicator />
 </div>
 
 <style>
@@ -21,35 +22,5 @@
     align-items: center;
     justify-content: center;
     color: white;
-  }
-
-  h1 {
-    font-size: 3rem;
-    font-weight: 200;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-  }
-
-  p {
-    color: #444;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  /* Connection indicator dot */
-  .status {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #333;
-    transition: background 0.3s;
-  }
-
-  .status.connected {
-    background: #4ade80;
   }
 </style>
