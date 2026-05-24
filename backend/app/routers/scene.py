@@ -12,10 +12,7 @@ def get_scenes(request: Request) -> list[SceneConfig]:
 
 @router.get("/{scene_id}")
 def get_scene(request: Request, scene_id: str) -> SceneConfig:
-    return get_or_404(
-        lambda: request.app.state.scene_service.load_scene_from_id(scene_id),
-        detail=f"Scene '{scene_id}' not found",
-    )
+    return request.app.state.scene_service.load_scene_from_id(scene_id)
 
 
 @router.post("")
