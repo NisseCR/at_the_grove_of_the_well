@@ -1,17 +1,21 @@
 from fastapi import APIRouter, Request
 from app.models.scene import SceneConfig
+from app.dependencies import get_or_404
 
 router = APIRouter(prefix="/scene")
 
 
-@router.get("", response_model=list[SceneConfig])
+@router.get("")
 def get_scenes(request: Request) -> list[SceneConfig]:
     return request.app.state.scene_service.list_scenes()
 
 
 @router.get("/{scene_id}")
-def get_scene(scene_id: str):
-    pass
+def get_scene(request: Request, scene_id: str) -> SceneConfig:
+    return get_or_404(
+        lambda: request.app.state.scene_service.load_scene_from_id(scene_id),
+        detail=f"Scene '{scene_id}' not found",
+    )
 
 
 @router.post("")

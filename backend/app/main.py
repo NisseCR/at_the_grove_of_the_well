@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     # Create services.
     scene_service: SceneService = SceneService(settings.scene_data_dir)
 
-    # Bind to app state.
+    # Bind services to app state, so that they are accessible by endpoints throughout the app's lifespan.
     app.state.scene_service = scene_service
 
     yield
@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
     """
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
+    # Setup middleware for front-end.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:5173"],
@@ -37,10 +38,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Include routers.
     app.include_router(scene_router)
     app.include_router(control_router)
 
+    # Mount static files.
     app.mount(
         "/static/assets", StaticFiles(directory=settings.assets_dir), name="assets"
     )
+
     return app
