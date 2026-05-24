@@ -4,7 +4,6 @@
   import PlayerView from "@/views/PlayerView.svelte";
   import HomeView from "@/views/HomeView.svelte";
 
-  // ` $viewStore ` is reactive and will update on history navigation
   $: current = $viewStore;
 </script>
 

@@ -1,4 +1,4 @@
-export type BlendMode =
+type BlendMode =
   | "normal"
   | "multiply"
   | "screen"
@@ -16,9 +16,11 @@ export type BlendMode =
   | "color"
   | "luminosity";
 
+type FileType = "video" | "image";
+
 export interface BackgroundConfig {
   src: string;
-  type: "video" | "image";
+  type: FileType;
   opacity: number;
   brightness: number;
   grayscale: number;
@@ -30,7 +32,7 @@ export interface BackgroundConfig {
 export interface LayerConfig {
   id: string;
   src: string;
-  type: "video" | "image";
+  type: FileType;
   loop?: boolean;
   visible: boolean;
   order: number;
