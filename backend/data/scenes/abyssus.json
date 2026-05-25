@@ -10,13 +10,7 @@
       "id": "wind-calm",
       "src": "assets/video/wind-calm.webm",
       "type": "video",
-      "order": 0,
-      "opacity": 1.0,
-      "brightness": 1.0,
-      "grayscale": 0.0,
-      "blur": 0.0,
-      "flip": false,
-      "blend_mode": "normal"
+      "order": 0
     },
     {
       "id": "mountain",

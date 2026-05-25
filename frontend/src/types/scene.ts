@@ -34,7 +34,6 @@ export interface BackgroundConfig extends AssetConfig {}
 
 export interface LayerConfig extends AssetConfig {
   id: string;
-  visible: boolean;
   order: number;
 }
 

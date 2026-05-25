@@ -12,9 +12,7 @@
   <SceneAsset asset={config.background} zIndex={0} />
 
   {#each sortedLayers as layer (layer.id)}
-    {#if layer.visible}
-      <SceneAsset asset={layer} zIndex={layer.order + 1} />
-    {/if}
+    <SceneAsset asset={layer} zIndex={layer.order + 1} />
   {/each}
 {:else}
   <p class="waiting">Waiting for scene…</p>

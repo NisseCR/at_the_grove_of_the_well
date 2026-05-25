@@ -42,7 +42,6 @@ class BackgroundConfig(AssetConfig):
 class LayerConfig(AssetConfig):
     id: str
     order: int
-    visible: bool = True
 
 
 class SceneConfig(BaseModel):
