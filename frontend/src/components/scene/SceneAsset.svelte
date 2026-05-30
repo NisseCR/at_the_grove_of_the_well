@@ -8,6 +8,9 @@
 
   let { asset, zIndex }: Props = $props();
 
+  // TODO
+  // create obj and reuse, use shorthand notation style:{color}
+
   /**
    * Generate a css filter string based on config.
    */

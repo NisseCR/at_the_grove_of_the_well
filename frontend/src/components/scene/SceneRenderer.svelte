@@ -2,7 +2,7 @@
   import { sceneState } from "@/stores/sceneState.svelte";
   import SceneAsset from "@/components/scene/SceneAsset.svelte";
 
-  const config = $derived(sceneState.config);
+  const config = $derived(sceneState.current);
   const sortedLayers = $derived(
     config ? [...config.layers].sort((a, b) => a.order - b.order) : [],
   );
