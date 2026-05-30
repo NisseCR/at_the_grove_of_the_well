@@ -1,6 +1,6 @@
 <script lang="ts">
   import { sceneState } from "@/stores/sceneState.svelte";
-  import { sceneEngine } from "@/lib/services/sceneEngine";
+  import { sceneEngine } from "@/lib/engines/sceneEngine";
   import SceneAsset from "@/components/scene/SceneAsset.svelte";
   import type { SceneConfig } from "@/types/scene";
 

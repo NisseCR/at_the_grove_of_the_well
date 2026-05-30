@@ -1,6 +1,6 @@
 import type { TransportMessage } from "@/types/message";
-import { sceneEngine } from "@/lib/services/sceneEngine";
-import { ambienceEngine } from "@/lib/services/ambienceEngine";
+import { sceneEngine } from "@/lib/engines/sceneEngine";
+import { ambienceEngine } from "@/lib/engines/ambienceEngine";
 import { router } from "@/stores/router.svelte";
 import { sendSync } from "@/lib/services/transport";
 

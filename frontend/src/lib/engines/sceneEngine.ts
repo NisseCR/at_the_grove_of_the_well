@@ -6,7 +6,7 @@ import type { SceneConfig } from "@/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
 
-const TRANSITION_DUDRATION = 4.0;
+const TRANSITION_DUDRATION = 2.5;
 const PARALLAX_LAYER_INCREASE = 0.15;
 
 class SceneEngine {
@@ -27,28 +27,6 @@ class SceneEngine {
    * Used by GSAP to animate the incoming scene.
    */
   nextSceneContainer: HTMLElement | null = null;
-
-  /**
-   * TODO clear assets when setting new scene!
-   */
-  private Assets = new Map<string, HTMLElement>();
-
-  /**
-   * TODO
-   * @param assetId
-   * @param el
-   */
-  registerAsset(assetId: string, assetElement: HTMLElement): void {
-    this.Assets.set(assetId, assetElement);
-  }
-
-  /**
-   * TODO
-   * @param assetId
-   */
-  deleteAsset(assetId: string): void {
-    this.Assets.delete(assetId);
-  }
 
   /**
    * Select and transition to a new scene.
@@ -215,7 +193,6 @@ class SceneEngine {
   private async transitionOut(): Promise<void> {
     if (!this.currentSceneContainer) return;
 
-    gsap.killTweensOf(this.currentSceneContainer);
     await this.fadeOut();
   }
 
@@ -223,6 +200,8 @@ class SceneEngine {
    * TODO
    */
   private async fadeOut(): Promise<void> {
+    gsap.killTweensOf(this.currentSceneContainer);
+
     const fromOpacity = gsap.getProperty(
       this.currentSceneContainer,
       "opacity",
@@ -230,7 +209,7 @@ class SceneEngine {
 
     await gsap.to(this.currentSceneContainer, {
       opacity: 0,
-      duration: 0.5 * fromOpacity,
+      duration: TRANSITION_DUDRATION * fromOpacity,
       ease: "none",
     });
   }
@@ -241,7 +220,6 @@ class SceneEngine {
   private async transitionIn(): Promise<void> {
     if (!this.currentSceneContainer) return;
 
-    gsap.killTweensOf(this.currentSceneContainer);
     this.fadeIn();
     this.parallaxZoomOut();
   }
@@ -250,7 +228,9 @@ class SceneEngine {
    * TODO
    */
   private async fadeIn(): Promise<void> {
-    await gsap.fromTo(
+    gsap.killTweensOf(this.currentSceneContainer);
+
+    gsap.fromTo(
       this.currentSceneContainer,
       { opacity: 0 },
       { opacity: 1, duration: TRANSITION_DUDRATION, ease: "none" },
@@ -261,16 +241,25 @@ class SceneEngine {
    * TODO
    */
   private async parallaxZoomOut(): Promise<void> {
-    this.Assets.forEach((element) => {
-      const zIndex = Number(element.style.zIndex);
-      const scale = 1 + (1 + zIndex) * PARALLAX_LAYER_INCREASE;
+    if (!this.currentSceneContainer) return;
+    this.currentSceneContainer
+      .querySelectorAll<HTMLElement>(".fill")
+      .forEach((element) => {
+        gsap.killTweensOf(element);
+        const zIndex = Number(element.style.zIndex);
+        const scale = 1 + (1 + zIndex) * PARALLAX_LAYER_INCREASE;
 
-      gsap.fromTo(
-        element,
-        { scale },
-        { scale: 1, duration: TRANSITION_DUDRATION, ease: "power4.out" },
-      );
-    });
+        gsap.fromTo(
+          element,
+          { scale },
+          {
+            scale: 1,
+            duration: TRANSITION_DUDRATION,
+            ease: "power1.out",
+            force3d: true,
+          },
+        );
+      });
   }
 
   /**
