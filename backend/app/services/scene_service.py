@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from app.models.scene import SceneConfig, BackgroundConfig, LayerConfig
+from app.models.scene import SceneConfig
 from app.exceptions import ResourceIdNotFound
 
 

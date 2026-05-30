@@ -23,7 +23,7 @@ BlendMode = Literal[
 FileType = Literal["image", "video"]
 
 
-class AssetConfig(BaseModel):
+class SceneAsset(BaseModel):
     id: str
     src: str
     type: FileType
@@ -36,16 +36,16 @@ class AssetConfig(BaseModel):
     blend_mode: BlendMode = "normal"
 
 
-class BackgroundConfig(AssetConfig):
+class BackgroundAsset(SceneAsset):
     pass
 
 
-class LayerConfig(AssetConfig):
+class LayerAsset(SceneAsset):
     order: int
 
 
 class SceneConfig(BaseModel):
     id: str
     name: str
-    background: BackgroundConfig
-    layers: list[LayerConfig]
+    background: BackgroundAsset
+    layers: list[LayerAsset]

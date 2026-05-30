@@ -1,0 +1,18 @@
+{
+  "id": "storm",
+  "name": "Storm",
+  "ambiences": [
+    {
+      "id": "blizzard",
+      "src": "assets/audio/ambience/blizzard.ogg"
+    },
+    {
+      "id": "distant",
+      "src": "assets/audio/ambience/distant.ogg"
+    },
+    {
+      "id": "thunder",
+      "src": "assets/audio/ambience/thunder.ogg"
+    }
+  ]
+}

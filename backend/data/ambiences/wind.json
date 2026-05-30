@@ -1,0 +1,18 @@
+{
+  "id": "wind",
+  "name": "Wind",
+  "ambiences": [
+    {
+      "id": "distorted",
+      "src": "assets/audio/ambience/distorted.ogg"
+    },
+    {
+      "id": "nessus",
+      "src": "assets/audio/ambience/nessus.ogg"
+    },
+    {
+      "id": "piercing",
+      "src": "assets/audio/ambience/piercing.ogg"
+    }
+  ]
+}

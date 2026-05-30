@@ -1,0 +1,18 @@
+{
+  "id": "precipitation",
+  "name": "Precipitation",
+  "ambiences": [
+    {
+      "id": "rain",
+      "src": "assets/audio/ambience/rain.ogg"
+    },
+    {
+      "id": "snow-1",
+      "src": "assets/audio/ambience/snow-1.ogg"
+    },
+    {
+      "id": "snow-2",
+      "src": "assets/audio/ambience/snow-2.ogg"
+    }
+  ]
+}

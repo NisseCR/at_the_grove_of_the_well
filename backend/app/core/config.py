@@ -34,6 +34,7 @@ class Settings:
     def resolve_data_directory(self) -> None:
         self.data_dir = self.base_dir / "data"
         self.scene_data_dir = self.data_dir / "scenes"
+        self.ambience_data_dir = self.data_dir / "ambiences"
 
     def load_origin(self) -> None:
         self.frontend_origin = os.environ.get("FRONTEND_ORIGIN")

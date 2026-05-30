@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { BackgroundConfig, LayerConfig } from "@/types/scene";
+  import type { BackgroundAsset, LayerAsset } from "@/types/scene";
 
   interface Props {
-    asset: BackgroundConfig | LayerConfig;
+    asset: BackgroundAsset | LayerAsset;
     zIndex: number;
   }
 

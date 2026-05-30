@@ -18,7 +18,7 @@ type BlendMode =
 
 type FileType = "video" | "image";
 
-interface AssetConfig {
+interface SceneAsset {
   id: string;
   src: string;
   type: FileType;
@@ -31,15 +31,15 @@ interface AssetConfig {
   blend_mode: BlendMode;
 }
 
-export interface BackgroundConfig extends AssetConfig {}
+export interface BackgroundAsset extends SceneAsset {}
 
-export interface LayerConfig extends AssetConfig {
+export interface LayerAsset extends SceneAsset {
   order: number;
 }
 
 export interface SceneConfig {
   id: string;
   name: string;
-  background: BackgroundConfig;
-  layers: LayerConfig[];
+  background: BackgroundAsset;
+  layers: LayerAsset[];
 }
