@@ -11,17 +11,14 @@
   $: sceneEngine.nextSceneContainer = nextSceneContainer;
 
   /**
-   * TODO
-   * @param config
+   * Return the scene's layers sorted ascending by order so higher-order
+   * layers render on top. Returns an empty array if config is falsy.
+   *
+   * @param config - The scene config whose layers should be sorted.
    */
   function sortedLayers(config: SceneConfig) {
     return config ? [...config.layers].sort((a, b) => a.order - b.order) : [];
   }
-
-  // Debug
-  // $effect(() => {
-  //   console.log("sceneState", $state.snapshot(sceneState));
-  // });
 </script>
 
 <!-- Current scene -->

@@ -197,7 +197,9 @@ class SceneEngine {
   }
 
   /**
-   * TODO
+   * Fade out the current scene container from its current opacity to zero.
+   * Duration scales with the current opacity so mid-fade interrupts finish
+   * proportionally rather than always running the full duration.
    */
   private async fadeOut(): Promise<void> {
     gsap.killTweensOf(this.currentSceneContainer);
@@ -225,7 +227,9 @@ class SceneEngine {
   }
 
   /**
-   * TODO
+   * Fade in the current scene container from opacity 0 to 1. Kills any
+   * in-progress fade on the container first so rapid scene switches don't
+   * stack tweens. Fire-and-forget — called without await from transitionIn.
    */
   private async fadeIn(): Promise<void> {
     gsap.killTweensOf(this.currentSceneContainer);
@@ -238,7 +242,11 @@ class SceneEngine {
   }
 
   /**
-   * TODO
+   * Animate each layer in the current scene from its parallax start scale
+   * back to natural scale. Layers at higher z-index start at a larger scale
+   * so they appear to move faster, creating a depth effect. Kills any
+   * in-progress tween per element so re-selecting a scene always replays
+   * from the correct starting scale.
    */
   private async parallaxZoomOut(): Promise<void> {
     if (!this.currentSceneContainer) return;
