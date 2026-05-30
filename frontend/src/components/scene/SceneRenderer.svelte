@@ -4,8 +4,7 @@
   import SceneAsset from "@/components/scene/SceneAsset.svelte";
   import type { SceneConfig } from "@/types/scene";
 
-  let currentSceneContainer: HTMLElement | null = null;
-  let nextSceneContainer: HTMLElement | null = null;
+  let currentSceneContainer: HTMLElement | null = $state(null);
 
   $effect(() => {
     const sceneId = sceneState.requestedSceneId;
@@ -35,18 +34,8 @@
   </div>
 {/if}
 
-<!-- Next scene (preloaded, fades in) -->
-{#if sceneState.next}
-  <div class="scene-slot" style:opacity={0} bind:this={nextSceneContainer}>
-    <SceneAsset asset={sceneState.next.background} zIndex={0} />
-    {#each sortedLayers(sceneState.next) as layer (layer.id)}
-      <SceneAsset asset={layer} zIndex={layer.order + 1} />
-    {/each}
-  </div>
-{/if}
-
 <!-- No active scene -->
-{#if !sceneState.current && !sceneState.next}
+{#if !sceneState.current}
   <p class="waiting">Waiting for scene…</p>
 {/if}
 
