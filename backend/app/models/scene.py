@@ -24,6 +24,7 @@ FileType = Literal["image", "video"]
 
 
 class AssetConfig(BaseModel):
+    id: str
     src: str
     type: FileType
     loop: bool = True
@@ -40,7 +41,6 @@ class BackgroundConfig(AssetConfig):
 
 
 class LayerConfig(AssetConfig):
-    id: str
     order: int
 
 

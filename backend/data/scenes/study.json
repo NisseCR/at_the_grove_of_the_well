@@ -2,6 +2,7 @@
   "id": "study",
   "name": "Study",
   "background": {
+    "id": "study",
     "src": "assets/images/study.jpg",
     "type": "image"
   },

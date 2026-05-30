@@ -12,6 +12,6 @@
 {:else if router.view === "home"}
   <HomeView />
 {:else}
-  <!-- Future view: you can render a dynamic loader or a NotFound component -->
+  <!-- Future view: render a dynamic loader or a NotFound component -->
   <HomeView />
 {/if}

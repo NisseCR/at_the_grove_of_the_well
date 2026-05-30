@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount, onDestroy } from "svelte";
+  import { sceneEngine } from "@/lib/services/sceneEngine";
   import type { BackgroundConfig, LayerConfig } from "@/types/scene";
 
   interface Props {
@@ -7,9 +9,15 @@
   }
 
   let { asset, zIndex }: Props = $props();
+  let assetElement: HTMLElement;
 
-  // TODO
-  // create obj and reuse, use shorthand notation style:{color}
+  onMount(() => {
+    sceneEngine.registerAsset(asset.id, assetElement);
+  });
+
+  onDestroy(() => {
+    sceneEngine.deleteAsset(asset.id);
+  });
 
   /**
    * Generate a css filter string based on config.
@@ -25,6 +33,7 @@
 
 {#if asset.type === "image"}
   <img
+    bind:this={assetElement}
     class="fill"
     src={asset.src}
     alt=""
@@ -37,6 +46,7 @@
   />
 {:else}
   <video
+    bind:this={assetElement}
     class="fill"
     src={asset.src}
     autoplay

@@ -19,6 +19,7 @@ type BlendMode =
 type FileType = "video" | "image";
 
 interface AssetConfig {
+  id: string;
   src: string;
   type: FileType;
   loop: boolean;
@@ -33,7 +34,6 @@ interface AssetConfig {
 export interface BackgroundConfig extends AssetConfig {}
 
 export interface LayerConfig extends AssetConfig {
-  id: string;
   order: number;
 }
 

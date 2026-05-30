@@ -4,6 +4,16 @@
   import SceneAsset from "@/components/scene/SceneAsset.svelte";
   import type { SceneConfig } from "@/types/scene";
 
+  let currentSceneContainer: HTMLElement | null = null;
+  let nextSceneContainer: HTMLElement | null = null;
+
+  $: sceneEngine.currentSceneContainer = currentSceneContainer;
+  $: sceneEngine.nextSceneContainer = nextSceneContainer;
+
+  /**
+   * TODO
+   * @param config
+   */
   function sortedLayers(config: SceneConfig) {
     return config ? [...config.layers].sort((a, b) => a.order - b.order) : [];
   }
@@ -16,7 +26,7 @@
 
 <!-- Current scene -->
 {#if sceneState.current}
-  <div class="scene-slot" bind:this={sceneEngine.currentSceneContainer}>
+  <div class="scene-slot" bind:this={currentSceneContainer}>
     <SceneAsset asset={sceneState.current.background} zIndex={0} />
     {#each sortedLayers(sceneState.current) as layer (layer.id)}
       <SceneAsset asset={layer} zIndex={layer.order + 1} />
@@ -26,11 +36,7 @@
 
 <!-- Next scene (preloaded, fades in) -->
 {#if sceneState.next}
-  <div
-    class="scene-slot"
-    style:opacity={0}
-    bind:this={sceneEngine.nextSceneContainer}
-  >
+  <div class="scene-slot" style:opacity={0} bind:this={nextSceneContainer}>
     <SceneAsset asset={sceneState.next.background} zIndex={0} />
     {#each sortedLayers(sceneState.next) as layer (layer.id)}
       <SceneAsset asset={layer} zIndex={layer.order + 1} />
