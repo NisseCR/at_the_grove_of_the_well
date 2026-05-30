@@ -39,7 +39,6 @@ export interface LayerAsset extends SceneAsset {
 
 export interface SceneConfig {
   id: string;
-  name: string;
   background: BackgroundAsset;
   layers: LayerAsset[];
 }

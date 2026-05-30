@@ -1,6 +1,5 @@
 {
   "id": "wind",
-  "name": "Wind",
   "ambiences": [
     {
       "id": "distorted",
@@ -12,7 +11,7 @@
     },
     {
       "id": "piercing",
-      "src": "assets/audio/ambience/piercing.ogg"
+      "src": "assets/audio/ambience/wind.ogg"
     }
   ]
 }

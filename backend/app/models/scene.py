@@ -46,6 +46,5 @@ class LayerAsset(SceneAsset):
 
 class SceneConfig(BaseModel):
     id: str
-    name: str
     background: BackgroundAsset
     layers: list[LayerAsset]

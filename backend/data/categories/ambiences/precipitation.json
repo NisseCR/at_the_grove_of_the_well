@@ -1,6 +1,5 @@
 {
   "id": "precipitation",
-  "name": "Precipitation",
   "ambiences": [
     {
       "id": "rain",

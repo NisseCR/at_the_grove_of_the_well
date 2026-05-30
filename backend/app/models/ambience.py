@@ -8,5 +8,4 @@ class AmbienceAsset(BaseModel):
 
 class AmbienceConfig(BaseModel):
     id: str
-    name: str
     ambiences: list[AmbienceAsset]
