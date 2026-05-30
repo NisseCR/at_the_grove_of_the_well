@@ -4,6 +4,9 @@ import { router } from "@/stores/router.svelte";
 import { sceneState } from "@/stores/sceneState.svelte";
 import type { SceneConfig } from "@/types/scene";
 import { tick } from "svelte";
+import { gsap } from "gsap";
+
+const FADE_DURATION = 4.0;
 
 class SceneEngine {
   /**
@@ -182,24 +185,37 @@ class SceneEngine {
   }
 
   /**
-   * Fade out the current scene container.
-   * TODO: implement GSAP fade out animation.
+   * Fade out the current scene container. Kills any in-progress fade on
+   * the current slot and fade from wherever it currently is, thus
+   * handling mid-fade interrupts cleanly.
    */
   private async transitionOut(): Promise<void> {
-    const delay = (duration: number) =>
-      new Promise((resolve) => setTimeout(resolve, duration));
-    await delay(2000);
+    gsap.killTweensOf(this.currentSceneContainer);
+
+    const fromOpacity = gsap.getProperty(
+      this.currentSceneContainer,
+      "opacity",
+    ) as number;
+
+    await gsap.to(this.currentSceneContainer, {
+      opacity: 0,
+      duration: FADE_DURATION * fromOpacity,
+      ease: "power1.in",
+    });
   }
 
   /**
    * Fade in the incoming scene container with a parallax zoom-out per layer.
-   * TODO: implement GSAP fade in animation.
    * TODO: implement GSAP parallax zoom-out per layer.
    */
   private async transitionIn(): Promise<void> {
-    const delay = (duration: number) =>
-      new Promise((resolve) => setTimeout(resolve, duration));
-    await delay(2000);
+    gsap.killTweensOf(this.currentSceneContainer);
+
+    gsap.fromTo(
+      this.currentSceneContainer,
+      { opacity: 0 },
+      { opacity: 1, duration: FADE_DURATION, ease: "power1.out" },
+    );
   }
 
   /**
