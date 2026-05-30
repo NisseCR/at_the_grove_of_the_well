@@ -190,6 +190,8 @@ class SceneEngine {
    * handling mid-fade interrupts cleanly.
    */
   private async transitionOut(): Promise<void> {
+    if (!this.currentSceneContainer) return;
+
     gsap.killTweensOf(this.currentSceneContainer);
 
     const fromOpacity = gsap.getProperty(
@@ -200,7 +202,7 @@ class SceneEngine {
     await gsap.to(this.currentSceneContainer, {
       opacity: 0,
       duration: FADE_DURATION * fromOpacity,
-      ease: "power1.in",
+      ease: "none",
     });
   }
 
@@ -209,12 +211,14 @@ class SceneEngine {
    * TODO: implement GSAP parallax zoom-out per layer.
    */
   private async transitionIn(): Promise<void> {
+    if (!this.currentSceneContainer) return;
+
     gsap.killTweensOf(this.currentSceneContainer);
 
     gsap.fromTo(
       this.currentSceneContainer,
       { opacity: 0 },
-      { opacity: 1, duration: FADE_DURATION, ease: "power1.out" },
+      { opacity: 1, duration: FADE_DURATION, ease: "none" },
     );
   }
 
