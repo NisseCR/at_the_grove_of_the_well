@@ -1,0 +1,16 @@
+{
+  "id": "crows",
+  "name": "Crows",
+  "background": {
+    "src": "assets/images/stub.jpg",
+    "type": "image"
+  },
+  "layers": [
+    {
+      "id": "trees-with-crows",
+      "src": "assets/video/trees-with-crows.webm",
+      "type": "video",
+      "order": 0
+    }
+  ]
+}

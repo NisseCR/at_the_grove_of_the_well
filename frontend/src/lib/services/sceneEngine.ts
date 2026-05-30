@@ -3,26 +3,86 @@ import { sceneApiClient } from "@/lib/services/sceneApiClient";
 import { router } from "@/stores/router.svelte";
 import { sceneState } from "@/stores/sceneState.svelte";
 import type { SceneConfig } from "@/types/scene";
+import { tick } from "svelte";
 
 class SceneEngine {
-  async setScene(sceneId: string) {
-    // Update state immediately so the UI reflects the change.
-    this.setSelectedScene(sceneId);
+  /**
+   * A token to check against to determine whether to cancel await checkpoints of SceneEngine.
+   */
+  private transitionToken: AbortController | null = null;
 
-    // Only apply remaining logic for player view.
+  /**
+   * DOM reference of the current scene container.
+   */
+  currentSceneContainer: HTMLElement | null = null;
+
+  /**
+   * DOM reference of the next scene container.
+   */
+  nextSceneContainer: HTMLElement | null = null;
+
+  /**
+   *
+   * @param sceneId
+   * @returns
+   */
+  async setScene(sceneId: string) {
+    const token = this.createToken();
+
+    this.setSelectedScene(sceneId);
     if (router.view !== "player") return;
 
-    // Fetch the full config for rendering.
-    const config = await this.fetchNextScene(sceneId);
+    await this.transitionScene(token, sceneId);
+  }
 
-    // Wait for media to load.
-    await this.preload(config);
+  /**
+   *
+   * @returns
+   */
+  private createToken(): AbortController {
+    this.transitionToken?.abort();
+    const token = new AbortController();
+    this.transitionToken = token;
+    return token;
+  }
 
-    // Render the scene.
-    await this.transitionScene();
+  /**
+   *
+   * @param token
+   */
+  private guard(token: AbortController) {
+    if (token.signal.aborted) throw new DOMException("Cancelled", "AbortError");
+  }
 
-    // Swap slots.
-    this.applyScene();
+  /**
+   *
+   * @param token
+   * @param sceneId
+   * @returns
+   */
+  private async transitionScene(
+    token: AbortController,
+    sceneId: string,
+  ): Promise<void> {
+    try {
+      const config = await this.fetchNextScene(sceneId);
+      this.guard(token);
+
+      await this.preload(config);
+      this.guard(token);
+
+      await this.transitionIn();
+      this.guard(token);
+
+      await this.swapSceneSlots();
+      this.guard(token);
+
+      await this.transitionOut();
+    } catch (exception) {
+      if (exception instanceof DOMException && exception.name === "AbortError")
+        return;
+      throw exception;
+    }
   }
 
   /**
@@ -45,32 +105,80 @@ class SceneEngine {
   }
 
   /**
-   * Load media from scene.
+   *
    * @param config
    */
   private async preload(config: SceneConfig): Promise<void> {
-    const sources = [
-      config.background.src,
-      ...config.layers.map((layer) => layer.src),
-    ];
+    const sources = [config.background.src, ...config.layers.map((l) => l.src)];
+    await Promise.all(sources.map((source) => this.preloadAsset(source)));
+  }
 
-    sources.forEach(function (entry) {
-      console.log(entry);
+  /**
+   *
+   * @param source
+   * @returns
+   */
+  private preloadAsset(source: string): Promise<void> {
+    return source.endsWith(".webm") || source.endsWith(".mp4")
+      ? this.preloadVideo(source)
+      : this.preloadImage(source);
+  }
+
+  /**
+   *
+   * @param src
+   * @returns
+   */
+  private preloadVideo(src: string): Promise<void> {
+    return new Promise((resolve) => {
+      const video = document.createElement("video");
+      video.src = src;
+      video.oncanplaythrough = () => resolve();
+      video.onerror = () => resolve();
+      video.load();
     });
   }
 
-  private async transitionScene(): Promise<void> {
-    const delay = (duration: number) =>
-      new Promise((resolve) => setTimeout(resolve, duration));
-    console.log("Waiting for 2 seconds...");
-    await delay(2000);
-    console.log("2 seconds have passed!");
+  /**
+   *
+   * @param src
+   * @returns
+   */
+  private preloadImage(src: string): Promise<void> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
   }
 
-  private applyScene() {
+  /**
+   *
+   */
+  private async transitionOut(): Promise<void> {
+    // TODO fade out.
+    const delay = (duration: number) =>
+      new Promise((resolve) => setTimeout(resolve, duration));
+    await delay(2000);
+  }
+
+  /**
+   *
+   */
+  private async transitionIn(): Promise<void> {
+    // TODO fade in.
+    // TODO parallax zoom out per layer.
+    const delay = (duration: number) =>
+      new Promise((resolve) => setTimeout(resolve, duration));
+    await delay(2000);
+  }
+
+  private async swapSceneSlots() {
     sceneState.current = sceneState.next;
     sceneState.next = null;
     sceneState.isTransitioning = false;
+    await tick();
   }
 }
 

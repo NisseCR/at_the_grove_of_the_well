@@ -6,6 +6,11 @@
   const sortedLayers = $derived(
     config ? [...config.layers].sort((a, b) => a.order - b.order) : [],
   );
+
+  // Debug
+  $effect(() => {
+    console.log("sceneState", $state.snapshot(sceneState));
+  });
 </script>
 
 {#if config}

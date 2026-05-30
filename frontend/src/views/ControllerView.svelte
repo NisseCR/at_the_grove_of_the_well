@@ -5,6 +5,7 @@
   const SCENES = [
     { id: "abyssus", name: "Abyssus" },
     { id: "study", name: "Study" },
+    { id: "crows", name: "Crows" },
   ];
 </script>
 
