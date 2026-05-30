@@ -1,14 +1,13 @@
 import type { TransportMessage } from "@/types/message";
-import { sceneEngine } from "@/lib/engines/sceneEngine";
 import { ambienceEngine } from "@/lib/engines/ambienceEngine";
 import { router } from "@/stores/router.svelte";
 import { sendSync } from "@/lib/services/transport";
+import { sceneState } from "@/stores/sceneState.svelte";
 
 export async function handleMessage(message: TransportMessage): Promise<void> {
   switch (message.type) {
     case "SET_SCENE": {
-      const sceneId = message.payload.sceneId;
-      await sceneEngine.setScene(sceneId);
+      sceneState.requestedSceneId = message.payload.sceneId;
       break;
     }
 

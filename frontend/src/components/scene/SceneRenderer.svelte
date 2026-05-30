@@ -7,8 +7,12 @@
   let currentSceneContainer: HTMLElement | null = null;
   let nextSceneContainer: HTMLElement | null = null;
 
-  $: sceneEngine.currentSceneContainer = currentSceneContainer;
-  $: sceneEngine.nextSceneContainer = nextSceneContainer;
+  $effect(() => {
+    const sceneId = sceneState.requestedSceneId;
+    if (sceneId) {
+      sceneEngine.setScene(sceneId, () => currentSceneContainer);
+    }
+  });
 
   /**
    * Return the scene's layers sorted ascending by order so higher-order

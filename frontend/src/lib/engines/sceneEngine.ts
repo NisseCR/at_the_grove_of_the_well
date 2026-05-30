@@ -6,8 +6,8 @@ import type { SceneConfig } from "@/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
 
-const TRANSITION_DUDRATION = 2.5;
-const PARALLAX_LAYER_INCREASE = 0.15;
+const TRANSITION_DUDRATION = 3;
+const PARALLAX_LAYER_INCREASE = 0.04;
 
 class SceneEngine {
   /**
@@ -17,31 +17,25 @@ class SceneEngine {
   private transitionToken: AbortController | null = null;
 
   /**
-   * DOM reference to the current scene container.
-   * Used by GSAP to animate the outgoing scene.
-   */
-  currentSceneContainer: HTMLElement | null = null;
-
-  /**
-   * DOM reference to the next scene container.
-   * Used by GSAP to animate the incoming scene.
-   */
-  nextSceneContainer: HTMLElement | null = null;
-
-  /**
    * Select and transition to a new scene.
    * Updates app state immediately for all views, then runs the full
    * transition pipeline on the player view only.
    *
    * @param sceneId - The id of the scene to transition to.
+   * @param getCurrent - Getter for the current scene container. Called twice:
+   *   once before the swap (to fade out the outgoing scene) and once after
+   *   (to fade in the incoming scene, which by then occupies the current slot).
    */
-  async setScene(sceneId: string): Promise<void> {
+  async setScene(
+    sceneId: string,
+    getCurrent: () => HTMLElement | null,
+  ): Promise<void> {
     const token = this.createToken();
 
     this.setSelectedScene(sceneId);
     if (router.view !== "player") return;
 
-    await this.transitionScene(token, sceneId);
+    await this.transitionScene(token, sceneId, getCurrent);
   }
 
   /**
@@ -77,10 +71,13 @@ class SceneEngine {
    *
    * @param token - The transition token for this scene selection.
    * @param sceneId - The id of the scene to transition to.
+   * @param getCurrent - Getter for the current scene container, read live at
+   *   each usage point so it reflects the DOM state after slot swaps.
    */
   private async transitionScene(
     token: AbortController,
     sceneId: string,
+    getCurrent: () => HTMLElement | null,
   ): Promise<void> {
     try {
       const config = await this.fetchNextScene(sceneId);
@@ -89,13 +86,13 @@ class SceneEngine {
       await this.preload(config);
       this.guard(token);
 
-      await this.transitionOut();
+      await this.transitionOut(getCurrent());
       this.guard(token);
 
       await this.swapSceneSlots();
       this.guard(token);
 
-      await this.transitionIn();
+      await this.transitionIn(getCurrent());
     } catch (exception) {
       if (exception instanceof DOMException && exception.name === "AbortError")
         return;
@@ -186,30 +183,30 @@ class SceneEngine {
   }
 
   /**
-   * Fade out the current scene container. Kills any in-progress fade on
-   * the current slot and fade from wherever it currently is, thus
-   * handling mid-fade interrupts cleanly.
+   * Fade out the outgoing scene container. No-ops if the container is null,
+   * e.g. when transitioning from no scene.
+   *
+   * @param container - The container to fade out.
    */
-  private async transitionOut(): Promise<void> {
-    if (!this.currentSceneContainer) return;
+  private async transitionOut(container: HTMLElement | null): Promise<void> {
+    if (!container) return;
 
-    await this.fadeOut();
+    await this.fadeOut(container);
   }
 
   /**
-   * Fade out the current scene container from its current opacity to zero.
+   * Fade out the given container from its current opacity to zero.
    * Duration scales with the current opacity so mid-fade interrupts finish
    * proportionally rather than always running the full duration.
+   *
+   * @param container - The container to fade out.
    */
-  private async fadeOut(): Promise<void> {
-    gsap.killTweensOf(this.currentSceneContainer);
+  private async fadeOut(container: HTMLElement): Promise<void> {
+    gsap.killTweensOf(container);
 
-    const fromOpacity = gsap.getProperty(
-      this.currentSceneContainer,
-      "opacity",
-    ) as number;
+    const fromOpacity = gsap.getProperty(container, "opacity") as number;
 
-    await gsap.to(this.currentSceneContainer, {
+    await gsap.to(container, {
       opacity: 0,
       duration: TRANSITION_DUDRATION * fromOpacity,
       ease: "none",
@@ -218,62 +215,63 @@ class SceneEngine {
 
   /**
    * Fade in the incoming scene container with a parallax zoom-out per layer.
+   * Receives the current container after the slot swap, which now holds the
+   * incoming scene. No-ops if the container is null.
+   *
+   * @param container - The container to fade in.
    */
-  private async transitionIn(): Promise<void> {
-    if (!this.currentSceneContainer) return;
+  private async transitionIn(container: HTMLElement | null): Promise<void> {
+    if (!container) return;
 
-    this.fadeIn();
-    this.parallaxZoomOut();
+    this.fadeIn(container);
+    this.parallaxZoomOut(container);
   }
 
   /**
-   * Fade in the current scene container from opacity 0 to 1. Kills any
-   * in-progress fade on the container first so rapid scene switches don't
-   * stack tweens. Fire-and-forget — called without await from transitionIn.
+   * Fade in the given container from opacity 0 to 1. Kills any in-progress
+   * fade first so rapid scene switches don't stack tweens. Fire-and-forget —
+   * called without await from transitionIn.
+   *
+   * @param container - The container to fade in.
    */
-  private async fadeIn(): Promise<void> {
-    gsap.killTweensOf(this.currentSceneContainer);
+  private async fadeIn(container: HTMLElement): Promise<void> {
+    gsap.killTweensOf(container);
 
     gsap.fromTo(
-      this.currentSceneContainer,
+      container,
       { opacity: 0 },
       { opacity: 1, duration: TRANSITION_DUDRATION, ease: "none" },
     );
   }
 
   /**
-   * Animate each layer in the current scene from its parallax start scale
+   * Animate each layer in the given container from its parallax start scale
    * back to natural scale. Layers at higher z-index start at a larger scale
    * so they appear to move faster, creating a depth effect. Kills any
    * in-progress tween per element so re-selecting a scene always replays
    * from the correct starting scale.
+   *
+   * @param container - The container whose `.fill` children are animated.
    */
-  private async parallaxZoomOut(): Promise<void> {
-    if (!this.currentSceneContainer) return;
-    this.currentSceneContainer
-      .querySelectorAll<HTMLElement>(".fill")
-      .forEach((element) => {
-        gsap.killTweensOf(element);
-        const zIndex = Number(element.style.zIndex);
-        const scale = 1 + (1 + zIndex) * PARALLAX_LAYER_INCREASE;
+  private parallaxZoomOut(container: HTMLElement): void {
+    container.querySelectorAll<HTMLElement>(".fill").forEach((element) => {
+      gsap.killTweensOf(element);
 
-        gsap.fromTo(
-          element,
-          { scale },
-          {
-            scale: 1,
-            duration: TRANSITION_DUDRATION,
-            ease: "power1.out",
-            force3d: true,
-          },
-        );
-      });
+      const zIndex = Number(element.style.zIndex);
+      const scale = 1 + (1 + zIndex) * PARALLAX_LAYER_INCREASE;
+      const duration = Math.min(TRANSITION_DUDRATION * 0.5, 1.25);
+
+      gsap.fromTo(
+        element,
+        { scale },
+        { scale: 1, duration, ease: "power1.out" },
+      );
+    });
   }
 
   /**
    * Promote the next scene to current, clear the next slot, and wait
-   * for Svelte to update the DOM before continuing. This ensures
-   * currentSceneContainer points to the new scene when transitionIn runs.
+   * for Svelte to update the DOM before continuing.
    */
   private async swapSceneSlots(): Promise<void> {
     sceneState.current = sceneState.next;
