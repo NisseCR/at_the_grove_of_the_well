@@ -25,6 +25,14 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
       break;
     }
 
+    case "RESET_AUDIO": {
+      if (router.view === "player") {
+        const ids = appState.ambiences?.map((a) => a.id) ?? [];
+        await ambienceEngine.hardReset(ids);
+      }
+      break;
+    }
+
     case "CLIENT_CONNECTED": {
       if (router.view === "controller") {
         sendSync();

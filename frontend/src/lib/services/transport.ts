@@ -54,6 +54,10 @@ export function sendSyncAmbiences(ambienceIds: string[]): void {
   send({ type: "SYNC_AMBIENCES", payload: { ambienceIds } });
 }
 
+export function sendResetAudio(): void {
+  send({ type: "RESET_AUDIO" });
+}
+
 export function sendSync(): void {
   send({ type: "SYNC" });
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSyncAmbiences } from "@/lib/services/transport";
+  import { sendSyncAmbiences, sendResetAudio } from "@/lib/services/transport";
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
   import type { AmbienceAsset } from "@/types/ambience";
 
@@ -37,6 +37,7 @@
       </button>
     {/each}
   </div>
+  <button onclick={sendResetAudio}>Reset audio</button>
 </section>
 
 <style>

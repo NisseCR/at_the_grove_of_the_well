@@ -74,7 +74,7 @@ Assets served via FastAPI `StaticFiles` mount from `ASSETS_DIR` in `.env`.
 ## Notes
 
 - `.svelte.ts` extension required for `$state` outside components
-- `cancelAndHoldAtTime` used before `linearRampToValueAtTime` for interruptible audio fades
+- `cancelAndHoldAtTime` used before `setTargetAtTime` for interruptible, exponential audio fades; time constant is `duration / 3` (~95% reached after full duration)
 - `preloadVideo` uses `oncanplaythrough`, `preloadImage` uses `onload`
 - `tick()` called after `swapSceneSlots` so DOM updates before `transitionIn`
 - `ToneAudioBuffer.load(url)` used directly for preloading — avoids buffer disposal bug with temporary `Tone.Player`

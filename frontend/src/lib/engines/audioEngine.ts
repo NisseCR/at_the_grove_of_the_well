@@ -60,6 +60,18 @@ class AudioEngine {
   dispose(url: string): void {
     this.cache.delete(url);
   }
+
+  /**
+   * Closes the current AudioContext, creates a fresh one, and clears the
+   * buffer cache. All existing nodes become invalid after this call —
+   * callers must dispose their stems before calling reset.
+   */
+  async reset(): Promise<void> {
+    await (Tone.getContext().rawContext as AudioContext).close();
+    Tone.setContext(new Tone.Context());
+    await Tone.start();
+    this.cache.clear();
+  }
 }
 
 export const audioEngine = new AudioEngine();
