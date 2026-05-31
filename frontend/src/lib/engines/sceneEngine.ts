@@ -1,6 +1,4 @@
-import { appState } from "@/stores/appState.svelte";
 import { sceneApiClient } from "@/lib/services/sceneApiClient";
-import { router } from "@/stores/router.svelte";
 import { sceneState } from "@/stores/sceneState.svelte";
 import type { SceneConfig } from "@/types/scene";
 import { tick } from "svelte";
@@ -31,10 +29,6 @@ class SceneEngine {
     getCurrent: () => HTMLElement | null,
   ): Promise<void> {
     const token = this.createToken();
-
-    this.setSelectedScene(sceneId);
-    if (router.view !== "player") return;
-
     await this.transitionScene(token, sceneId, getCurrent);
   }
 
@@ -74,11 +68,12 @@ class SceneEngine {
    * @param getCurrent - Getter for the current scene container, read live at
    *   each usage point so it reflects the DOM state after slot swaps.
    */
-  private async transitionScene(
-    token: AbortController,
+  async transitionScene(
     sceneId: string,
     getCurrent: () => HTMLElement | null,
   ): Promise<void> {
+    const token = this.createToken();
+
     try {
       const config = await this.fetchNextScene(sceneId);
       this.guard(token);
@@ -98,16 +93,6 @@ class SceneEngine {
         return;
       throw exception;
     }
-  }
-
-  /**
-   * Update appState immediately so all views reflect the selected scene
-   * without waiting for the transition to complete.
-   *
-   * @param sceneId - The id of the selected scene.
-   */
-  private setSelectedScene(sceneId: string): void {
-    appState.scene = { id: sceneId };
   }
 
   /**

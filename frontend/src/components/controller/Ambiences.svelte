@@ -10,12 +10,11 @@
 
   function toggle(id: string): void {
     const current = appState.ambiences ?? [];
-
-    appState.ambiences = isActive(id)
+    const next = isActive(id)
       ? current.filter((a) => a.id !== id)
       : [...current, { id, volume: 1.0 }];
 
-    sendSyncAmbiences(appState.ambiences.map((a) => a.id));
+    sendSyncAmbiences(next.map((a) => a.id));
   }
 </script>
 

@@ -9,7 +9,7 @@
   $effect(() => {
     const sceneId = sceneState.requestedSceneId;
     if (sceneId) {
-      sceneEngine.setScene(sceneId, () => currentSceneContainer);
+      sceneEngine.transitionScene(sceneId, () => currentSceneContainer);
     }
   });
 

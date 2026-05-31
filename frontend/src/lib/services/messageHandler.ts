@@ -1,18 +1,27 @@
 import type { TransportMessage } from "@/types/message";
-import { ambienceEngine } from "@/lib/engines/ambienceEngine";
 import { router } from "@/stores/router.svelte";
 import { sendSync } from "@/lib/services/transport";
 import { sceneState } from "@/stores/sceneState.svelte";
+import { appState } from "@/stores/appState.svelte";
+import { ambienceEngine } from "@/lib/engines/ambienceEngine";
 
 export async function handleMessage(message: TransportMessage): Promise<void> {
   switch (message.type) {
     case "SET_SCENE": {
-      sceneState.requestedSceneId = message.payload.sceneId;
+      const { sceneId } = message.payload;
+      appState.scene = { id: sceneId };
+      if (router.view === "player") {
+        sceneState.requestedSceneId = sceneId;
+      }
       break;
     }
 
     case "SYNC_AMBIENCES": {
-      await ambienceEngine.syncActive(message.payload.ambienceIds);
+      const { ambienceIds } = message.payload;
+      appState.ambiences = ambienceIds.map((id) => ({ id, volume: 0.5 }));
+      if (router.view === "player") {
+        // await ambienceEngine.syncActive(ambienceIds);
+      }
       break;
     }
 
@@ -25,7 +34,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
 
     case "SYNC":
       if (router.view === "player") {
-        // TODO implement sync
+        // TODO implement sync later on.
       }
       break;
   }
