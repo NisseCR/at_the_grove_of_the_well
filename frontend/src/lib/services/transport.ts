@@ -50,8 +50,12 @@ export function sendSetScene(sceneId: string): void {
   send({ type: "SET_SCENE", payload: { sceneId } });
 }
 
-export function sendSyncAmbiences(ambienceIds: string[]): void {
-  send({ type: "SYNC_AMBIENCES", payload: { ambienceIds } });
+export function sendSetAmbiences(ambiences: { id: string; volume: number }[]): void {
+  send({ type: "SET_AMBIENCES", payload: { ambiences } });
+}
+
+export function sendSetAmbienceVolume(id: string, volume: number): void {
+  send({ type: "SET_AMBIENCE_VOLUME", payload: { id, volume } });
 }
 
 export function sendResetAudio(): void {

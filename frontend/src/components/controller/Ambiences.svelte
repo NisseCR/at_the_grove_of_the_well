@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSyncAmbiences } from "@/lib/services/transport";
+  import { sendSetAmbiences } from "@/lib/services/transport";
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
   import type { AmbienceCategory } from "@/types/ambience";
 
@@ -59,8 +59,8 @@
     const current = appState.ambiences ?? [];
     const next = isActive(id)
       ? current.filter((a) => a.id !== id)
-      : [...current, { id, volume: 1.0 }];
-    sendSyncAmbiences(next.map((a) => a.id));
+      : [...current, { id, volume: 0.5 }];
+    sendSetAmbiences(next);
   }
 </script>
 

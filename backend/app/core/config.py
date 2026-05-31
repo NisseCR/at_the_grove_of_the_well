@@ -16,6 +16,7 @@ class Settings:
 
         self.resolve_data_directory()
         self.resolve_assets_directory()
+        self.resolve_origins()
 
     def resolve_assets_directory(self) -> None:
         # Resolve assets directory from .env.
@@ -40,8 +41,11 @@ class Settings:
         self.ambience_categories_dir = self.categories_dir / "ambiences"
         self.scene_categories_dir = self.categories_dir / "scenes"
 
-    def load_origin(self) -> None:
-        self.frontend_origin = os.environ.get("FRONTEND_ORIGIN")
+    def resolve_origins(self) -> None:
+        local_ip = os.environ.get("LOCAL_IP")
+        self.allowed_origins = ["http://localhost:5173"]
+        if local_ip:
+            self.allowed_origins.append(f"http://{local_ip}:5173")
 
 
 # Initialise .env and settings.

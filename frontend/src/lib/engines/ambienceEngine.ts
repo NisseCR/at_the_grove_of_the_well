@@ -81,7 +81,7 @@ class AmbienceEngine {
    *
    * @param ids - The ambience ids to activate after the reset.
    */
-  async hardReset(ids: string[]): Promise<void> {
+  async hardReset(entries: { id: string; volume: number }[]): Promise<void> {
     this.syncToken?.abort();
     this.syncToken = null;
 
@@ -93,7 +93,7 @@ class AmbienceEngine {
     this.active.clear();
 
     await audioEngine.reset();
-    await this.syncActive(ids);
+    await this.syncActive(entries);
   }
 
   /**
@@ -110,18 +110,19 @@ class AmbienceEngine {
   }
 
   /**
-   * Reconciles the set of active stems against the given list of ids.
-   * Deactivates any stem not in the list, then activates any id not yet playing.
+   * Reconciles the set of active stems against the given list of entries.
+   * Deactivates any stem not in the list, then activates any entry not yet playing.
+   * Already-active stems are left untouched — volume is managed separately via setVolume.
    * Supersedes any in-progress sync — guards between each async step so a
    * newer call cancels the pipeline cleanly.
    *
-   * @param ids - The complete list of ambience ids that should be active.
+   * @param entries - The complete list of ambiences (id + volume) that should be active.
    */
-  async syncActive(ids: string[]): Promise<void> {
+  async syncActive(entries: { id: string; volume: number }[]): Promise<void> {
     const token = this.createToken();
 
     try {
-      const incoming = new Set(ids);
+      const incoming = new Map(entries.map((e) => [e.id, e.volume]));
 
       // Deactivate any currently active stem whose id is not in the incoming list.
       for (const id of this.active.keys()) {
@@ -129,13 +130,13 @@ class AmbienceEngine {
       }
 
       // Activate any stem in the incoming list that is not already active.
-      for (const id of incoming) {
+      for (const [id, volume] of incoming) {
         if (!this.active.has(id)) {
           const ambience = await guardedAwait(
             ambienceApiClient.fetchAmbience(id),
             token,
           );
-          await guardedAwait(this.activate(id, ambience.src, 1.0), token, () =>
+          await guardedAwait(this.activate(id, ambience.src, volume), token, () =>
             this.deactivate(id),
           );
         }

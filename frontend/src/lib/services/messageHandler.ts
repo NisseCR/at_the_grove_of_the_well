@@ -17,19 +17,31 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
       break;
     }
 
-    case "SYNC_AMBIENCES": {
-      const { ambienceIds } = message.payload;
-      appState.ambiences = ambienceIds.map((id) => ({ id, volume: 0.5 }));
+    case "SET_AMBIENCES": {
+      const { ambiences } = message.payload;
+      appState.ambiences = ambiences;
       if (router.view === "player" && audioEngine.started) {
-        await ambienceEngine.syncActive(ambienceIds);
+        await ambienceEngine.syncActive(ambiences);
+      }
+      break;
+    }
+
+    case "SET_AMBIENCE_VOLUME": {
+      const { id, volume } = message.payload;
+      if (appState.ambiences) {
+        const entry = appState.ambiences.find((a) => a.id === id);
+        if (entry) entry.volume = volume;
+      }
+      if (router.view === "player" && audioEngine.started) {
+        ambienceEngine.setVolume(id, volume);
       }
       break;
     }
 
     case "RESET_AUDIO": {
       if (router.view === "player" && audioEngine.started) {
-        const ids = appState.ambiences?.map((a) => a.id) ?? [];
-        await ambienceEngine.hardReset(ids);
+        const entries = appState.ambiences ?? [];
+        await ambienceEngine.hardReset(entries);
       }
       break;
     }

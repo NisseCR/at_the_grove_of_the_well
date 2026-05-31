@@ -3,7 +3,8 @@ export type SceneMessage =
   | { type: "SYNC_SCENE"; payload: { sceneId: string | null } };
 
 export type AmbienceMessage =
-  | { type: "SYNC_AMBIENCES"; payload: { ambienceIds: string[] } }
+  | { type: "SET_AMBIENCES"; payload: { ambiences: { id: string; volume: number }[] } }
+  | { type: "SET_AMBIENCE_VOLUME"; payload: { id: string; volume: number } }
   | { type: "RESET_AUDIO" };
 
 export type MusicMessage =
