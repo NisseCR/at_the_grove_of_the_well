@@ -3,7 +3,13 @@
   "src": "assets/images/dust-storm.jpg",
   "order": 2,
   "ambiences": [
-    { "id": "wind-distorted", "label": "Distorted" },
-    { "id": "wind-piercing", "label": "Piercing" }
+    {
+      "id": "wind-distorted",
+      "label": "Distorted"
+    },
+    {
+      "id": "wind-piercing",
+      "label": "Piercing"
+    }
   ]
 }

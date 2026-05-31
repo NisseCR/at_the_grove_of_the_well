@@ -3,7 +3,9 @@
   "src": "assets/images/storm.jpg",
   "order": 1,
   "ambiences": [
-    { "id": "thunder", "label": "Thunder" },
-    { "id": "blizzard", "label": "Blizzard" }
+    {
+      "id": "thunder",
+      "label": "Thunder"
+    }
   ]
 }

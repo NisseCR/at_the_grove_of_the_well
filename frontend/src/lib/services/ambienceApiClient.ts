@@ -1,4 +1,4 @@
-import { assetUrl } from "@/lib/config";
+import { API_BASE, assetUrl } from "@/lib/config";
 import { apiClient } from "@/lib/services/apiClient";
 import type { AmbienceAsset, AmbienceCategory } from "@/types/ambience";
 
@@ -20,6 +20,15 @@ class AmbienceApiClient {
   async fetchAmbience(ambienceId: string): Promise<AmbienceAsset> {
     const ambience = await apiClient.get<AmbienceAsset>(`/ambience/${ambienceId}`);
     return this.withUrl(ambience);
+  }
+
+  async uploadAmbience(file: File, id: string): Promise<AmbienceAsset> {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("id", id);
+    const response = await fetch(`${API_BASE}/ambience/upload`, { method: "POST", body });
+    if (!response.ok) throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+    return response.json();
   }
 
   async createAmbience(ambience: AmbienceAsset): Promise<AmbienceAsset> {

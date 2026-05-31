@@ -1,48 +1,76 @@
 <script lang="ts">
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
-  import type { AmbienceCategory, AmbienceCategoryEntry } from "@/types/ambience";
+  import { iconTrash, iconPencil } from "@/lib/icons";
+  import ImagePicker from "@/components/editor/ImagePicker.svelte";
+  import AmbiencePicker from "@/components/editor/AmbiencePicker.svelte";
+  import type { AmbienceAsset, AmbienceCategory } from "@/types/ambience";
 
-  type DraftCategory = {
+  type LinkedAmbience = { id: string; label: string; linked: boolean };
+
+  type Draft = {
     id: string;
     src: string;
     order: number;
-    ambiences: AmbienceCategoryEntry[];
+    ambiences: LinkedAmbience[];
   };
 
   let categories = $state<AmbienceCategory[]>([]);
+  let allAmbiences = $state<AmbienceAsset[]>([]);
   let editingId = $state<string | null>(null);
   let creating = $state(false);
-
-  let draft = $state<DraftCategory>({ id: "", src: "", order: 0, ambiences: [] });
+  let draft = $state<Draft>({ id: "", src: "", order: 0, ambiences: [] });
   let error = $state<string | null>(null);
+  let saving = $state(false);
+  let showPicker = $state(false);
+  let confirmingDeleteId = $state<string | null>(null);
 
   async function load() {
-    categories = await ambienceApiClient.fetchAmbienceCategoriesRaw();
+    [categories, allAmbiences] = await Promise.all([
+      ambienceApiClient.fetchAmbienceCategories(),
+      ambienceApiClient.fetchAmbiences(),
+    ]);
   }
 
   $effect(() => { load(); });
 
-  function emptyDraft(): DraftCategory {
-    return { id: "", src: "", order: 0, ambiences: [] };
+  function buildDraft(category?: AmbienceCategory): Draft {
+    return {
+      id: category?.id ?? "",
+      src: category?.src ?? "",
+      order: category?.order ?? categories.length,
+      ambiences: (category?.ambiences ?? []).map((a) => ({
+        id: a.id,
+        label: a.label,
+        linked: true,
+      })),
+    };
+  }
+
+  function unlinkedAmbiences(): AmbienceAsset[] {
+    const linkedIds = new Set(draft.ambiences.map((a) => a.id));
+    return allAmbiences.filter((a) => !linkedIds.has(a.id));
+  }
+
+  function linkAmbience(id: string) {
+    draft.ambiences = [...draft.ambiences, { id, label: id, linked: true }];
+  }
+
+  function unlinkAmbience(id: string) {
+    draft.ambiences = draft.ambiences.filter((a) => a.id !== id);
   }
 
   function startCreate() {
-    editingId = null;
-    draft = emptyDraft();
-    error = null;
     creating = true;
+    editingId = null;
+    draft = buildDraft();
+    error = null;
   }
 
   function startEdit(category: AmbienceCategory) {
     creating = false;
-    error = null;
-    draft = {
-      id: category.id,
-      src: category.src,
-      order: category.order,
-      ambiences: category.ambiences.map((a) => ({ ...a })),
-    };
     editingId = category.id;
+    draft = buildDraft(category);
+    error = null;
   }
 
   function cancel() {
@@ -51,34 +79,40 @@
     error = null;
   }
 
-  function addEntry() {
-    draft.ambiences = [...draft.ambiences, { id: "", label: "" }];
-  }
-
-  function removeEntry(index: number) {
-    draft.ambiences = draft.ambiences.filter((_, i) => i !== index);
+  function toCategoryPayload(): AmbienceCategory {
+    return {
+      id: draft.id,
+      src: draft.src,
+      order: draft.order,
+      ambiences: draft.ambiences.map((a) => ({ id: a.id, label: a.label })),
+    };
   }
 
   async function save() {
+    saving = true;
     error = null;
     try {
       if (creating) {
-        await ambienceApiClient.createCategory(draft);
+        await ambienceApiClient.createCategory(toCategoryPayload());
       } else if (editingId !== null) {
-        await ambienceApiClient.updateCategory(editingId, draft);
+        await ambienceApiClient.updateCategory(editingId, toCategoryPayload());
       }
       creating = false;
       editingId = null;
       await load();
     } catch (e: unknown) {
       error = e instanceof Error ? e.message : "Save failed";
+    } finally {
+      saving = false;
     }
   }
 
   async function remove(id: string) {
+    confirmingDeleteId = null;
     error = null;
     try {
       await ambienceApiClient.deleteCategory(id);
+      if (editingId === id) { editingId = null; creating = false; }
       await load();
     } catch (e: unknown) {
       error = e instanceof Error ? e.message : "Delete failed";
@@ -86,8 +120,9 @@
   }
 </script>
 
-<div class="section">
-  <div class="section-header">
+<div class="editor">
+
+  <div class="list-header">
     <h2>Categories</h2>
     <button class="btn-add" onclick={startCreate} disabled={creating}>New</button>
   </div>
@@ -97,106 +132,121 @@
   {/if}
 
   {#if creating}
-    <div class="form card">
-      <div class="form-fields">
-        <label>
-          <span>ID</span>
-          <input bind:value={draft.id} placeholder="e.g. precipitation" />
-        </label>
-        <label>
-          <span>Image src</span>
-          <input bind:value={draft.src} placeholder="assets/images/rainclouds.jpg" />
-        </label>
-        <label class="label-narrow">
-          <span>Order</span>
-          <input type="number" bind:value={draft.order} />
-        </label>
-      </div>
-
-      <div class="entries-section">
-        <div class="entries-header">
-          <span>Ambiences</span>
-          <button class="btn-add-entry" onclick={addEntry}>+ Add</button>
-        </div>
-        {#each draft.ambiences as entry, i (i)}
-          <div class="entry-row">
-            <input bind:value={entry.id} placeholder="ambience id" />
-            <input bind:value={entry.label} placeholder="label" />
-            <button class="btn-remove-entry" onclick={() => removeEntry(i)}>×</button>
-          </div>
-        {/each}
-      </div>
-
-      <div class="form-actions">
-        <button class="btn-save" onclick={save}>Save</button>
-        <button class="btn-cancel" onclick={cancel}>Cancel</button>
-      </div>
+    <div class="panel card">
+      {@render editForm(null)}
     </div>
   {/if}
 
   <ul class="list">
     {#each categories as category (category.id)}
-      <li class="item">
-        {#if editingId === category.id}
-          <div class="form">
-            <div class="form-fields">
-              <label>
-                <span>ID</span>
-                <input bind:value={draft.id} />
-              </label>
-              <label>
-                <span>Image src</span>
-                <input bind:value={draft.src} />
-              </label>
-              <label class="label-narrow">
-                <span>Order</span>
-                <input type="number" bind:value={draft.order} />
-              </label>
-            </div>
-
-            <div class="entries-section">
-              <div class="entries-header">
-                <span>Ambiences</span>
-                <button class="btn-add-entry" onclick={addEntry}>+ Add</button>
-              </div>
-              {#each draft.ambiences as entry, i (i)}
-                <div class="entry-row">
-                  <input bind:value={entry.id} placeholder="ambience id" />
-                  <input bind:value={entry.label} placeholder="label" />
-                  <button class="btn-remove-entry" onclick={() => removeEntry(i)}>×</button>
-                </div>
-              {/each}
-            </div>
-
-            <div class="form-actions">
-              <button class="btn-save" onclick={save}>Save</button>
-              <button class="btn-cancel" onclick={cancel}>Cancel</button>
-            </div>
+      <li class="item" class:open={editingId === category.id}>
+        <div class="item-row">
+          <div
+            class="item-thumb"
+            style="background-image: url('{category.url}')"
+          ></div>
+          <span class="item-id">{category.id}</span>
+          <span class="item-order">#{category.order}</span>
+          <div class="item-actions">
+            <button
+              class="btn-icon"
+              title={editingId === category.id ? "Close" : "Edit"}
+              onclick={() => editingId === category.id ? cancel() : startEdit(category)}
+            >
+              {#if editingId === category.id}×{:else}{@html iconPencil}{/if}
+            </button>
           </div>
-        {:else}
-          <div class="item-row">
-            <span class="item-id">{category.id}</span>
-            <span class="item-order">#{category.order}</span>
-            <span class="item-count">{category.ambiences.length} ambiences</span>
-            <div class="item-actions">
-              <button class="btn-edit" onclick={() => startEdit(category)}>Edit</button>
-              <button class="btn-delete" onclick={() => remove(category.id)}>Delete</button>
-            </div>
+        </div>
+
+        {#if editingId === category.id}
+          <div class="panel">
+            {@render editForm(category)}
           </div>
         {/if}
       </li>
     {/each}
   </ul>
+
 </div>
 
+{#if showPicker}
+  <AmbiencePicker
+    ambiences={unlinkedAmbiences()}
+    onselect={linkAmbience}
+    onclose={() => (showPicker = false)}
+  />
+{/if}
+
+{#snippet editForm(category: AmbienceCategory | null)}
+  <div class="form">
+
+    <div class="form-row">
+      <label class="field">
+        <span>ID</span>
+        <input bind:value={draft.id} placeholder="e.g. precipitation" />
+      </label>
+      <label class="field field-narrow">
+        <span>Order</span>
+        <input type="number" bind:value={draft.order} />
+      </label>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Image</span>
+      <ImagePicker
+        src={draft.src}
+        onpick={(src) => (draft.src = src)}
+      />
+    </div>
+
+    <div class="field">
+      <span class="field-label">Ambiences</span>
+      {#if draft.ambiences.length > 0}
+        <ul class="ambience-list">
+          {#each draft.ambiences as entry (entry.id)}
+            <li class="ambience-row">
+              <span class="ambience-id">{entry.id}</span>
+              <input class="label-input" bind:value={entry.label} placeholder="label" />
+              <button class="btn-unlink" onclick={() => unlinkAmbience(entry.id)}>×</button>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="empty">No ambiences linked.</p>
+      {/if}
+      <button class="btn-add-ambience" onclick={() => (showPicker = true)}>+ Add ambience</button>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-save" onclick={save} disabled={saving}>
+        {saving ? "Saving…" : "Save"}
+      </button>
+      <button class="btn-muted" onclick={cancel}>Cancel</button>
+      {#if category !== null}
+        {#if confirmingDeleteId === category.id}
+          <span class="confirm-prompt danger-offset">
+            <button class="btn-confirm-delete" onclick={() => remove(category.id)}>Delete</button>
+            <button class="btn-icon-cancel" aria-label="Cancel" onclick={() => (confirmingDeleteId = null)}>×</button>
+          </span>
+        {:else}
+          <button class="btn-icon btn-icon-danger danger-offset" title="Delete category" onclick={() => (confirmingDeleteId = category.id)}>
+            {@html iconTrash}
+          </button>
+        {/if}
+      {/if}
+    </div>
+
+  </div>
+{/snippet}
+
 <style>
-  .section {
+  .editor {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
   }
 
-  .section-header {
+  .list-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -204,7 +254,7 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  .section-header h2 {
+  .list-header h2 {
     font-size: var(--text-base);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
@@ -220,49 +270,69 @@
     border-radius: var(--radius-sm);
   }
 
+  /* Category list */
   .list {
+    list-style: none;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    list-style: none;
   }
 
   .item {
     background: var(--color-glass);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color var(--ease-fast);
+  }
+
+  .item.open {
+    border-color: var(--color-border-hover);
   }
 
   .item-row {
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .item-thumb {
+    width: 60px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    background-size: cover;
+    background-position: center;
+    filter: saturate(var(--image-saturation));
+    flex-shrink: 0;
   }
 
   .item-id {
     font-family: var(--font-display);
     color: var(--color-text);
-    min-width: 120px;
-    flex-shrink: 0;
+    flex: 1;
   }
 
   .item-order {
     font-size: var(--text-xs);
     color: var(--color-text-faint);
-    min-width: 32px;
-  }
-
-  .item-count {
-    flex: 1;
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
+    min-width: 28px;
   }
 
   .item-actions {
     display: flex;
     gap: var(--space-2);
-    flex-shrink: 0;
+  }
+
+  /* Edit panel */
+  .panel {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .panel.card {
+    background: var(--color-glass);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
   }
 
   /* Form */
@@ -270,40 +340,37 @@
     padding: var(--space-4);
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-6);
   }
 
-  .form.card {
-    background: var(--color-glass);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-  }
-
-  .form-fields {
+  .form-row {
     display: flex;
     gap: var(--space-4);
     align-items: flex-end;
   }
 
-  label {
+  .field {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--space-2);
     flex: 1;
   }
 
-  label.label-narrow {
-    flex: 0 0 80px;
+  .field-narrow {
+    flex: 0 0 72px;
   }
 
-  label span {
+  .field-label,
+  .field span:first-child {
     font-size: var(--text-xs);
     color: var(--color-text-muted);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
   }
 
-  input {
+  input[type="text"],
+  input[type="number"],
+  input:not([type="checkbox"]):not([type="file"]) {
     background: rgba(12, 10, 18, 0.6);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
@@ -311,43 +378,43 @@
     color: var(--color-text);
     font-family: var(--font-body);
     font-size: var(--text-sm);
-    transition: border-color var(--ease-fast);
     width: 100%;
+    transition: border-color var(--ease-fast);
   }
 
-  input:focus {
+  input:not([type="checkbox"]):not([type="file"]):focus {
     outline: none;
     border-color: var(--color-accent-dim);
   }
 
-  /* Entries sub-section */
-  .entries-section {
+  /* Ambience linker */
+  .ambience-list {
+    list-style: none;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    margin-bottom: var(--space-2);
   }
 
-  .entries-header {
+  .ambience-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: var(--text-xs);
+    gap: var(--space-3);
+  }
+
+  .ambience-id {
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
+    min-width: 120px;
+    flex-shrink: 0;
   }
 
-  .entry-row {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .entry-row input {
+  .label-input {
     flex: 1;
+    max-width: 200px;
   }
 
-  .btn-remove-entry {
+  .btn-unlink {
     font-size: var(--text-base);
     color: var(--color-text-faint);
     line-height: 1;
@@ -356,31 +423,57 @@
     flex-shrink: 0;
   }
 
-  .btn-remove-entry:hover {
+  .btn-unlink:hover {
     color: #c87060;
   }
 
-  .btn-add-entry {
+  .btn-add-ambience {
     font-size: var(--text-xs);
     color: var(--color-text-muted);
     transition: color var(--ease-fast);
+    text-align: left;
   }
 
-  .btn-add-entry:hover {
+  .btn-add-ambience:hover {
     color: var(--color-text);
   }
 
+  .confirm-prompt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .btn-confirm-delete {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(200, 112, 96, 0.4);
+    color: #c87060;
+    background: transparent;
+    cursor: pointer;
+    transition: color var(--ease-fast), border-color var(--ease-fast);
+  }
+
+  .btn-confirm-delete:hover {
+    border-color: #c87060;
+  }
+
+  /* Actions */
   .form-actions {
     display: flex;
     gap: var(--space-2);
+    align-items: center;
   }
 
-  /* Buttons */
+  .danger-offset {
+    margin-left: auto;
+  }
+
   .btn-add,
   .btn-save,
-  .btn-cancel,
-  .btn-edit,
-  .btn-delete {
+  .btn-muted {
     font-family: var(--font-body);
     font-size: var(--text-xs);
     padding: var(--space-1) var(--space-3);
@@ -388,13 +481,11 @@
     border: 1px solid var(--color-border);
     color: var(--color-text-muted);
     background: transparent;
-    transition:
-      color var(--ease-fast),
-      border-color var(--ease-fast);
+    transition: color var(--ease-fast), border-color var(--ease-fast);
   }
 
   .btn-add:hover,
-  .btn-edit:hover {
+  .btn-muted:hover {
     color: var(--color-text);
     border-color: var(--color-border-hover);
   }
@@ -404,18 +495,62 @@
     color: var(--color-accent);
   }
 
-  .btn-save:hover {
+  .btn-save:hover:not(:disabled) {
     border-color: var(--color-accent);
-    color: var(--color-accent);
   }
 
-  .btn-delete:hover {
-    color: #c87060;
-    border-color: rgba(200, 112, 96, 0.4);
+  .btn-save:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 
   .btn-add:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+
+  .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    color: var(--color-text-faint);
+    font-size: var(--text-sm);
+    transition: color var(--ease-fast), border-color var(--ease-fast);
+  }
+
+  .btn-icon:hover {
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+  }
+
+  .btn-icon-danger:hover {
+    color: #c87060;
+    border-color: rgba(200, 112, 96, 0.3);
+  }
+
+  .btn-icon-cancel {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-size: var(--text-sm);
+    color: var(--color-text-faint);
+    transition: color var(--ease-fast);
+  }
+
+  .btn-icon-cancel:hover {
+    color: var(--color-text-muted);
+  }
+
+  .empty {
+    font-size: var(--text-sm);
+    color: var(--color-text-faint);
   }
 </style>

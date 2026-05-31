@@ -31,6 +31,7 @@ class Settings:
         self.audio_assets_dir = self.assets_dir / "audio"
         self.image_assets_dir = self.assets_dir / "images"
         self.video_assets_dir = self.assets_dir / "video"
+        self.ambience_audio_dir = self.audio_assets_dir / "ambience"
 
     def resolve_data_directory(self) -> None:
         self.data_dir = self.base_dir / "data"

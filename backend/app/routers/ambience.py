@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Form, Request, UploadFile
 from app.models.ambience import AmbienceAsset, AmbienceCategory
 
 router = APIRouter(prefix="/ambience")
@@ -27,6 +27,12 @@ def delete_category(request: Request, category_id: str) -> AmbienceCategory:
 @router.get("")
 def get_ambiences(request: Request) -> list[AmbienceAsset]:
     return request.app.state.ambience_service.list_ambiences()
+
+
+@router.post("/upload")
+async def upload_ambience(request: Request, file: UploadFile, id: str = Form(...)) -> AmbienceAsset:
+    content = await file.read()
+    return await request.app.state.ambience_service.upload_ambience(id, file.filename, content)
 
 
 @router.post("")
