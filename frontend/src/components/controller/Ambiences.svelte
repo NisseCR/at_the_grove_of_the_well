@@ -123,11 +123,11 @@
 
   .banner-label {
     position: relative; /* sits above ::before scrim */
-    font-family: var(--font-display);
-    font-size: var(--text-lg);
-    letter-spacing: var(--tracking-wide);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wider);
     color: var(--color-text);
-    text-transform: capitalize;
+    text-transform: uppercase;
   }
 
   .chevron {
@@ -180,7 +180,6 @@
   }
 
   .tile.active {
-    background: var(--color-glass-active);
     border-color: var(--color-border-active);
     color: var(--color-accent);
   }
