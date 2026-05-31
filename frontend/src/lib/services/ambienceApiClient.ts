@@ -1,6 +1,6 @@
 import { STATIC_BASE } from "@/lib/config";
 import { apiClient } from "@/lib/services/apiClient";
-import type { AmbienceAsset } from "@/types/ambience";
+import type { AmbienceAsset, AmbienceCategory } from "@/types/ambience";
 
 class AmbienceApiClient {
   private prependAssetBase(ambience: AmbienceAsset): AmbienceAsset {
@@ -8,6 +8,14 @@ class AmbienceApiClient {
       ...ambience,
       src: `${STATIC_BASE}/${ambience.src}`,
     };
+  }
+
+  async fetchAmbienceCategories(): Promise<AmbienceCategory[]> {
+    const categories = await apiClient.get<AmbienceCategory[]>("/ambience/categories");
+    return categories.map((category) => ({
+      ...category,
+      src: `${STATIC_BASE}/${category.src}`,
+    }));
   }
 
   async fetchAmbiences(): Promise<AmbienceAsset[]> {

@@ -3,12 +3,12 @@
   import { appState } from "@/stores/appState.svelte";
   import { sendSyncAmbiences, sendResetAudio } from "@/lib/services/transport";
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
-  import type { AmbienceAsset } from "@/types/ambience";
+  import type { AmbienceCategory } from "@/types/ambience";
 
-  let ambiences = $state<AmbienceAsset[]>([]);
+  let categories = $state<AmbienceCategory[]>([]);
 
   onMount(async () => {
-    ambiences = await ambienceApiClient.fetchAmbiences();
+    categories = await ambienceApiClient.fetchAmbienceCategories();
   });
 
   function isActive(id: string): boolean {
@@ -27,16 +27,19 @@
 
 <section>
   <h2>Ambience</h2>
-  <div class="buttons">
-    {#each ambiences as ambience}
-      <button
-        class={isActive(ambience.id) ? "active" : ""}
-        onclick={() => toggle(ambience.id)}
-      >
-        {ambience.id}
-      </button>
-    {/each}
-  </div>
+  {#each categories as category}
+    <h3>{category.id}</h3>
+    <div class="buttons">
+      {#each category.ambience_ids as id}
+        <button
+          class={isActive(id) ? "active" : ""}
+          onclick={() => toggle(id)}
+        >
+          {id}
+        </button>
+      {/each}
+    </div>
+  {/each}
   <button onclick={sendResetAudio}>Reset audio</button>
 </section>
 
