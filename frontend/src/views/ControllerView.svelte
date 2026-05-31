@@ -1,6 +1,7 @@
 <script lang="ts">
   import Scenes from "@/components/controller/Scenes.svelte";
   import Ambiences from "@/components/controller/Ambiences.svelte";
+  import AudioPanel from "@/components/controller/AudioPanel.svelte";
 
   type Tab = "scenes" | "ambiences";
   let activeTab = $state<Tab>("scenes");
@@ -27,12 +28,15 @@
     </button>
   </nav>
 
-  <div class="content">
-    {#if activeTab === "scenes"}
-      <Scenes />
-    {:else if activeTab === "ambiences"}
-      <Ambiences />
-    {/if}
+  <div class="main">
+    <div class="content">
+      {#if activeTab === "scenes"}
+        <Scenes />
+      {:else if activeTab === "ambiences"}
+        <Ambiences />
+      {/if}
+    </div>
+    <AudioPanel />
   </div>
 </div>
 
@@ -96,10 +100,17 @@
     border-bottom-color: var(--color-accent);
   }
 
-  /* Scrollable content area below the tabs */
-  .content {
+  /* Row below the tab bar — content + side panel */
+  .main {
     position: relative;
     z-index: 1;
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Scrollable tab content */
+  .content {
     flex: 1;
     overflow-y: auto;
     padding: var(--space-6);
