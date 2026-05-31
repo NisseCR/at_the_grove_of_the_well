@@ -1,21 +1,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSyncAmbiences, sendResetAudio } from "@/lib/services/transport";
+  import { sendSyncAmbiences } from "@/lib/services/transport";
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
   import type { AmbienceCategory } from "@/types/ambience";
+  import CategoryHeader from "@/components/controller/CategoryHeader.svelte";
+  import ThumbnailTile from "@/components/controller/ThumbnailTile.svelte";
 
   let categories = $state<AmbienceCategory[]>([]);
-  let expanded = $state(new Set<string>());
 
   onMount(async () => {
     categories = await ambienceApiClient.fetchAmbienceCategories();
-    // Auto-expand any category that already has an active ambience.
-    expanded = new Set(
-      categories
-        .filter((c) => c.ambiences.some((e) => isActive(e.id)))
-        .map((c) => c.id)
-    );
   });
 
   function isActive(id: string): boolean {
@@ -29,184 +24,39 @@
       : [...current, { id, volume: 1.0 }];
     sendSyncAmbiences(next.map((a) => a.id));
   }
-
-  function toggleCategory(category: AmbienceCategory): void {
-    const next = new Set(expanded);
-    if (next.has(category.id)) next.delete(category.id);
-    else next.add(category.id);
-    expanded = next;
-  }
-
 </script>
 
 <div class="categories">
   {#each categories as category}
-    {@const open = expanded.has(category.id)}
-
     <div class="category">
-      <button
-        class="banner"
-        class:open
-        style="background-image: url('{category.src}')"
-        onclick={() => toggleCategory(category)}
-      >
-        <span class="banner-label">{category.id}</span>
-        <!-- Chevron rotates 90° → 270° to indicate open/closed -->
-        <span class="chevron" class:rotated={open}>›</span>
-      </button>
-
-      {#if open}
-        <ul class="list">
-          {#each category.ambiences as entry}
-            <li>
-              <button
-                class="row"
-                class:active={isActive(entry.id)}
-                onclick={() => toggle(entry.id)}
-              >
-                <span class="row-label">{entry.label}</span>
-                <span class="row-dot" class:visible={isActive(entry.id)}></span>
-              </button>
-            </li>
-          {/each}
-        </ul>
-      {/if}
+      <CategoryHeader label={category.id} />
+      <div class="grid">
+        {#each category.ambiences as entry}
+          <ThumbnailTile
+            label={entry.label}
+            src={category.src}
+            active={isActive(entry.id)}
+            onclick={() => toggle(entry.id)}
+            aspectRatio="4 / 3"
+            minWidth="90px"
+            labelSize="var(--text-xs)"
+          />
+        {/each}
+      </div>
     </div>
   {/each}
-
-  <button class="reset" onclick={sendResetAudio}>Reset audio</button>
 </div>
 
 <style>
   .categories {
     display: flex;
     flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     gap: var(--space-2);
-  }
-
-  /* ─── Category banner ──────────────────────────────────────────────────────
-     Full-width image strip. A gradient scrim ensures legibility over any
-     image. When open, a bottom inset shadow acts as an accent highlight.    */
-  .banner {
-    position: relative;
-    width: 100%;
-    height: 88px;
-    background-size: cover;
-    background-position: center;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    filter: saturate(var(--image-saturation));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 var(--space-4);
-  }
-
-  /* Dark gradient scrim so label text is always legible */
-  .banner::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to right,
-      rgba(8, 6, 14, 0.80) 0%,
-      rgba(8, 6, 14, 0.35) 100%
-    );
-    transition: background var(--ease-base);
-  }
-
-  .banner.open::before {
-    background: linear-gradient(
-      to right,
-      rgba(8, 6, 14, 0.60) 0%,
-      rgba(8, 6, 14, 0.20) 100%
-    );
-  }
-
-  .banner-label {
-    position: relative; /* sits above ::before scrim */
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    letter-spacing: var(--tracking-wider);
-    color: var(--color-text);
-    text-transform: uppercase;
-  }
-
-  .chevron {
-    position: absolute;
-    right: var(--space-4);
-    font-size: 20px;
-    color: var(--color-text-muted);
-    display: inline-block;
-    transform: rotate(90deg);
-    transition:
-      transform var(--ease-base),
-      color var(--ease-fast);
-  }
-
-  .chevron.rotated {
-    transform: rotate(270deg);
-    color: var(--color-accent);
-  }
-
-  /* ─── List ─────────────────────────────────────────────────────────────────
-     Track-listing style: one ambience per row with a divider between items. */
-  .list {
-    list-style: none;
-    padding: var(--space-1) 0;
-  }
-
-  .row {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--color-border);
-    font-size: var(--text-sm);
-    letter-spacing: var(--tracking-wide);
-    color: var(--color-text-muted);
-    transition: color var(--ease-fast);
-  }
-
-  .list li:last-child .row {
-    border-bottom: none;
-  }
-
-  .row:hover {
-    color: var(--color-text);
-  }
-
-  .row.active {
-    color: var(--color-accent);
-  }
-
-  /* Small dot indicator on the right when active */
-  .row-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--color-accent);
-    opacity: 0;
-    transition: opacity var(--ease-fast);
-  }
-
-  .row-dot.visible {
-    opacity: 1;
-  }
-
-  /* ─── Reset button ──────────────────────────────────────────────────────── */
-  .reset {
-    align-self: flex-start;
-    margin-top: var(--space-4);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
-    color: var(--color-text-faint);
-    transition: color var(--ease-fast);
-  }
-
-  .reset:hover {
-    color: var(--color-text-muted);
   }
 </style>
