@@ -77,12 +77,8 @@
 
   /* ─── Scene tile ────────────────────────────────────────────────────────── */
   .tile {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    background: var(--color-glass);
-    backdrop-filter: blur(var(--blur-sm));
-    -webkit-backdrop-filter: blur(var(--blur-sm));
+    position: relative;
+    aspect-ratio: 16 / 10;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     overflow: hidden;
@@ -97,10 +93,9 @@
     border-color: var(--color-border-active);
   }
 
-  /* Thumbnail fills the top of the tile at a 16:9-ish ratio */
   .thumbnail {
-    width: 100%;
-    aspect-ratio: 16 / 10;
+    position: absolute;
+    inset: 0;
     background-size: cover;
     background-position: center;
     filter: saturate(var(--image-saturation));
@@ -110,11 +105,28 @@
     background: var(--color-glass);
   }
 
+  /* Gradient scrim at the bottom for label legibility */
+  .tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(8, 6, 14, 0.80) 0%,
+      transparent 55%
+    );
+    z-index: 1;
+  }
+
   .tile-label {
-    font-size: var(--text-xs);
+    position: absolute;
+    bottom: var(--space-2);
+    left: var(--space-3);
+    right: var(--space-3);
+    z-index: 2;
+    font-size: var(--text-sm);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
-    padding: 0 var(--space-2) var(--space-2);
     transition: color var(--ease-fast);
   }
 

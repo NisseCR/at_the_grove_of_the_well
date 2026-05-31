@@ -3,7 +3,7 @@
   import Ambiences from "@/components/controller/Ambiences.svelte";
 
   type Tab = "scenes" | "ambiences";
-  let activeTab = $state<Tab>("ambiences");
+  let activeTab = $state<Tab>("scenes");
 </script>
 
 <div class="controller">
@@ -66,6 +66,9 @@
     justify-content: center;
     gap: var(--space-1);
     padding: var(--space-4) var(--space-6) 0;
+    background: rgba(8, 6, 14, 0.75);
+    backdrop-filter: blur(var(--blur-md));
+    -webkit-backdrop-filter: blur(var(--blur-md));
     border-bottom: 1px solid var(--color-border);
   }
 
