@@ -2,7 +2,13 @@
   import { appState } from "@/stores/appState.svelte";
   import { sendSyncAmbiences } from "@/lib/services/transport";
 
-  const AMBIENCE_IDS = ["blizzard", "thunder", "wind-distorted", "wind-piercing"];
+  const AMBIENCE_IDS = [
+    "metronome",
+    "blizzard",
+    "thunder",
+    "wind-distorted",
+    "wind-piercing",
+  ];
 
   function isActive(id: string): boolean {
     return appState.ambiences?.some((a) => a.id === id) ?? false;

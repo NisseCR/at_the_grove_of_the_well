@@ -20,7 +20,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
       const { ambienceIds } = message.payload;
       appState.ambiences = ambienceIds.map((id) => ({ id, volume: 0.5 }));
       if (router.view === "player") {
-        // await ambienceEngine.syncActive(ambienceIds);
+        await ambienceEngine.syncActive(ambienceIds);
       }
       break;
     }

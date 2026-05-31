@@ -14,10 +14,8 @@ class AudioEngine {
    */
   async preload(url: string): Promise<void> {
     if (this.cache.has(url)) return;
-    const player = new Tone.Player(url);
-    await Tone.loaded();
-    this.cache.set(url, player.buffer);
-    player.dispose();
+    const audioBuffer = await Tone.ToneAudioBuffer.load(url);
+    this.cache.set(url, new Tone.ToneAudioBuffer(audioBuffer));
   }
 
   /**

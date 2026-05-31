@@ -15,50 +15,6 @@ class SceneEngine {
   private transitionToken: AbortController | null = null;
 
   /**
-   * Select and transition to a new scene.
-   * Updates app state immediately for all views, then runs the full
-   * transition pipeline on the player view only.
-   *
-   * @param sceneId - The id of the scene to transition to.
-   * @param getCurrent - Getter for the current scene container. Called twice:
-   *   once before the swap (to fade out the outgoing scene) and once after
-   *   (to fade in the incoming scene, which by then occupies the current slot).
-   */
-  async setScene(
-    sceneId: string,
-    getCurrent: () => HTMLElement | null,
-  ): Promise<void> {
-    const token = this.createToken();
-    await this.transitionScene(token, sceneId, getCurrent);
-  }
-
-  /**
-   * Cancel any in-progress transition and create a new token for the
-   * current transition. Each call to setScene gets its own token so
-   * guards check against the correct transition.
-   *
-   * @returns A fresh AbortController for the new transition.
-   */
-  private createToken(): AbortController {
-    this.transitionToken?.abort();
-    const token = new AbortController();
-    this.transitionToken = token;
-    return token;
-  }
-
-  /**
-   * Check whether the current transition has been superseded by a newer
-   * scene selection. Throws an AbortError if so, which is caught and
-   * silently swallowed in transitionScene.
-   *
-   * @param token - The token belonging to the current transition.
-   * @throws DOMException with name "AbortError" if cancelled.
-   */
-  private guard(token: AbortController): void {
-    if (token.signal.aborted) throw new DOMException("Cancelled", "AbortError");
-  }
-
-  /**
    * Run the full transition pipeline: fetch, preload, fade out, swap
    * slots, fade in. Guards are checked between each async step so a
    * newer scene selection cancels the pipeline cleanly.
@@ -93,6 +49,32 @@ class SceneEngine {
         return;
       throw exception;
     }
+  }
+
+  /**
+   * Cancel any in-progress transition and create a new token for the
+   * current transition. Each call to setScene gets its own token so
+   * guards check against the correct transition.
+   *
+   * @returns A fresh AbortController for the new transition.
+   */
+  private createToken(): AbortController {
+    this.transitionToken?.abort();
+    const token = new AbortController();
+    this.transitionToken = token;
+    return token;
+  }
+
+  /**
+   * Check whether the current transition has been superseded by a newer
+   * scene selection. Throws an AbortError if so, which is caught and
+   * silently swallowed in transitionScene.
+   *
+   * @param token - The token belonging to the current transition.
+   * @throws DOMException with name "AbortError" if cancelled.
+   */
+  private guard(token: AbortController): void {
+    if (token.signal.aborted) throw new DOMException("Cancelled", "AbortError");
   }
 
   /**
