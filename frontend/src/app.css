@@ -1,1 +1,38 @@
-@import "@picocss/pico/css/pico.min.css";
+@import './theme.css';
+
+/* ─── Reset ──────────────────────────────────────────────────────────────────
+   Minimal reset: remove browser margin/padding, consistent box model.      */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────────
+   html/body/#app fill the viewport so views can use height: 100%.          */
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Strip default button styles globally — components add their own. */
+button {
+  all: unset;
+  cursor: pointer;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: normal;
+  line-height: 1.2;
+}

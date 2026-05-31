@@ -1,0 +1,90 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   THEME — CSS custom properties only.
+   No selectors or classes live here. Every component references these tokens
+   via var(--token). Hardcoded values belong here and nowhere else.
+
+   Sections:
+     Typography  — font stacks, sizes, letter-spacing
+     Color       — palette, text, glass surfaces, borders, accent
+     Glass       — backdrop blur values for glassmorphism surfaces
+     Spacing     — 4 px base unit scale
+     Radius      — border-radius scale
+     Transitions — duration + easing presets
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ─── Typography ──────────────────────────────────────────────────────────
+     font-display: serif stack for headings and category labels.
+     font-body: clean sans-serif for UI controls and tile text.              */
+  --font-display: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  --font-body: system-ui, -apple-system, sans-serif;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-lg:   19px;
+
+  /* Letter-spacing: use wide for uppercase labels, wider for all-caps banners */
+  --tracking-wide:  0.07em;
+  --tracking-wider: 0.13em;
+
+  /* ─── Color ───────────────────────────────────────────────────────────────
+     Built around a near-black base with warm off-white text.
+     Glass surfaces use rgba so backdrop-filter shows through correctly.
+     Text colors are opacity-based so they read well over both dark and
+     image backgrounds without separate overrides.                           */
+  --color-bg:           #0c0b0f;
+
+  --color-text:         rgba(235, 228, 215, 0.90);
+  --color-text-muted:   rgba(235, 228, 215, 0.50);
+  --color-text-faint:   rgba(235, 228, 215, 0.25);
+
+  /* Warm gold accent — used for active states and highlights */
+  --color-accent:       rgba(200, 175, 120, 0.90);
+  --color-accent-dim:   rgba(200, 175, 120, 0.40);
+
+  /* Glassmorphism surface fills — dark tinted, semi-transparent */
+  --color-glass:        rgba(12, 10, 18, 0.50);
+  --color-glass-hover:  rgba(12, 10, 18, 0.65);
+  --color-glass-active: rgba(25, 20, 40, 0.70);
+
+  /* Borders at rest, on hover, and when active/selected */
+  --color-border:        rgba(235, 228, 215, 0.10);
+  --color-border-hover:  rgba(235, 228, 215, 0.22);
+  --color-border-active: rgba(200, 175, 120, 0.55);
+
+  /* ─── Glass / Backdrop ────────────────────────────────────────────────────
+     blur-sm: subtle panels; blur-md: tiles and cards; blur-lg: full overlays.
+     blur-bg: the controller art background specifically.                    */
+  --blur-sm:  6px;
+  --blur-md:  14px;
+  --blur-lg:  28px;
+  --blur-bg:  5px;
+
+  /* ─── Spacing ─────────────────────────────────────────────────────────────
+     4 px base unit. Names are multiples: --space-2 = 8 px, --space-4 = 16 px */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+
+  /* ─── Layout ─────────────────────────────────────────────────────────────
+     Max width for tab content panels.                                       */
+  --content-max-width: 700px;
+
+  /* ─── Radius ──────────────────────────────────────────────────────────────  */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  /* ─── Transitions ─────────────────────────────────────────────────────────
+     ease-fast: micro-interactions (hover color, border).
+     ease-base: state changes (open/close, active toggle).
+     ease-slow: entrance animations or layout shifts.                        */
+  --ease-fast: 140ms ease;
+  --ease-base: 240ms ease;
+  --ease-slow: 400ms ease;
+}
