@@ -69,7 +69,37 @@ backend/data/
 ```
 
 Scene config fields: `id`, `src`, `type`, `loop`, `opacity`, `brightness`, `grayscale`, `blur`, `flip`, `blend_mode`, `order`.
-Assets served via FastAPI `StaticFiles` mount from `ASSETS_DIR` in `.env`.
+
+Assets live outside the repo in a directory referenced by `ASSETS_DIR` in `.env`:
+
+```
+assets/
+├── raw/                    # original source files — never served directly
+│   ├── audio/ambience/
+│   ├── images/
+│   └── video/
+└── processed/              # pipeline output — what the backend serves
+    ├── audio/ambience/
+    ├── images/
+    └── video/
+```
+
+`ASSETS_DIR` points to `processed/`. Raw files are the source of truth; processed files are derived and can be regenerated.
+
+## Scripts
+
+```
+scripts/
+└── resample.py     # resample audio files to a target sample rate via ffmpeg
+```
+
+```
+python scripts/resample.py assets/raw/audio/ambience assets/processed/audio/ambience
+```
+
+Options: `--rate` (default 48000), `--dry-run`.
+
+Tone.js runs the Web Audio API at the OS default sample rate (48000 Hz on Windows). All audio assets must be resampled to 48000 Hz before serving — the browser's implicit resampling produces audible artefacts. Run the script once per new audio file added to `raw/`.
 
 ## Notes
 

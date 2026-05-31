@@ -2,8 +2,8 @@ import * as Tone from "tone";
 import type { Stem } from "@/types/audio";
 
 class AudioEngine {
-  /** Decoded audio buffers keyed by URL, retained after a stem is deactivated. */
   private cache = new Map<string, Tone.ToneAudioBuffer>();
+  started = false;
 
   /**
    * Fetches and decodes audio at the given URL, storing the buffer in the
@@ -71,6 +71,7 @@ class AudioEngine {
     Tone.setContext(new Tone.Context());
     await Tone.start();
     this.cache.clear();
+    this.started = true;
   }
 }
 
