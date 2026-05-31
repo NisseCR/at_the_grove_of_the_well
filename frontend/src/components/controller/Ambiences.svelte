@@ -10,6 +10,12 @@
 
   onMount(async () => {
     categories = await ambienceApiClient.fetchAmbienceCategories();
+    // Auto-expand any category that already has an active ambience.
+    expanded = new Set(
+      categories
+        .filter((c) => c.ambience_ids.some((id) => isActive(id)))
+        .map((c) => c.id)
+    );
   });
 
   function isActive(id: string): boolean {
@@ -24,10 +30,10 @@
     sendSyncAmbiences(next.map((a) => a.id));
   }
 
-  function toggleCategory(id: string): void {
+  function toggleCategory(category: AmbienceCategory): void {
     const next = new Set(expanded);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
+    if (next.has(category.id)) next.delete(category.id);
+    else next.add(category.id);
     expanded = next;
   }
 
@@ -46,7 +52,7 @@
         class="banner"
         class:open
         style="background-image: url('{category.src}')"
-        onclick={() => toggleCategory(category.id)}
+        onclick={() => toggleCategory(category)}
       >
         <span class="banner-label">{category.id}</span>
         <!-- Chevron rotates 90° → 270° to indicate open/closed -->
