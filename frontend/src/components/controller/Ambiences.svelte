@@ -1,14 +1,15 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { appState } from "@/stores/appState.svelte";
   import { sendSyncAmbiences } from "@/lib/services/transport";
+  import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
+  import type { AmbienceAsset } from "@/types/ambience";
 
-  const AMBIENCE_IDS = [
-    "metronome",
-    "blizzard",
-    "thunder",
-    "wind-distorted",
-    "wind-piercing",
-  ];
+  let ambiences = $state<AmbienceAsset[]>([]);
+
+  onMount(async () => {
+    ambiences = await ambienceApiClient.fetchAmbiences();
+  });
 
   function isActive(id: string): boolean {
     return appState.ambiences?.some((a) => a.id === id) ?? false;
@@ -27,12 +28,12 @@
 <section>
   <h2>Ambience</h2>
   <div class="buttons">
-    {#each AMBIENCE_IDS as ambience_id}
+    {#each ambiences as ambience}
       <button
-        class={isActive(ambience_id) ? "active" : ""}
-        onclick={() => toggle(ambience_id)}
+        class={isActive(ambience.id) ? "active" : ""}
+        onclick={() => toggle(ambience.id)}
       >
-        {ambience_id}
+        {ambience.id}
       </button>
     {/each}
   </div>

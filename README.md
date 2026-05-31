@@ -16,47 +16,64 @@ Music dimensions:
 
 ## Architecture
 
-- `transport.ts` — WebSocket connection, exposes typed public actions (loadScene, setIntensity etc.)
-- `messageHandler.ts` — routes incoming messages to the correct engine
-- `sceneEngine.ts` — fetches, preloads, transitions scenes (GSAP)
-- `audioEngine.ts` — Tone.js stem playback, gain nodes, linear ramping
-- `router.svelte.ts` — view state (?view=controller|player|home)
-- `appState.svelte.ts` — shared reactive state (scene, music, ambience)
-- `sceneState.svelte.ts` — current/next scene config for renderer
+- `transport.ts` — WebSocket connection, exposes typed send helpers (`sendSetScene`, `sendSyncAmbiences`, `sendSync`)
+- `messageHandler.ts` — routes incoming messages to engines and updates `appState`
+- `sceneEngine.ts` — fetches, preloads, and transitions scenes (GSAP)
+- `ambienceEngine.ts` — fetches ambience assets, manages stem lifecycle (activate/deactivate with fades)
+- `audioEngine.ts` — Tone.js stem creation, buffer caching, gain nodes, linear ramping
+- `router.svelte.ts` — view state (`?view=controller|player|home`)
+- `appState.svelte.ts` — shared reactive state (scene, music, ambiences); updated by message handler on all clients
+- `sceneState.svelte.ts` — player-local transition state (current/next scene config, isTransitioning)
 
 ## Key Decisions
 
-- Backend is a dumb WebSocket relay — no app state stored server-side
-- Controller sends scene_id only — player fetches full config itself
-- Slider inputs use local $state, not appState, to avoid network lag
-- All stems use Tone.Gain nodes with linearRampToValueAtTime (Firefox fix)
+- Backend is a dumb WebSocket relay — no app state stored server-side; messages are broadcast back to sender
+- Controller sends ids only — player fetches full config itself (scenes via `sceneEngine`, ambiences via `ambienceEngine`)
+- `appState` is updated in `messageHandler` on receive, not at the call site — ensures all connected controllers stay in sync
+- `sceneState.requestedSceneId` is the reactive bridge between `messageHandler` and `SceneRenderer` — the handler sets it, a `$effect` in `SceneRenderer` watches it and calls `sceneEngine.transitionScene`; this indirection exists because the engine needs a live DOM container getter that only the component can provide
 - Scene transitions use AbortController tokens to cancel mid-transition
 - Two scene slots (current/next) for crossfading via GSAP
-- Mood pad: X = calm→tense, Y = sparse→full, third axis = tense
+- `SceneRenderer` passes a DOM container getter to `sceneEngine` — engine never owns DOM references directly
+- Ambience stems keyed by id in `ambienceEngine.active`; URL stored on the `Stem` object
+- Audio buffer cache in `audioEngine` persists across deactivations to avoid re-downloading
+- Player requires a user gesture before rendering — `StoryGate` component calls `Tone.start()` on click, then mounts the player
+- Ambience volume is hardcoded to 0.5 — per-ambience volume control not yet implemented
+- `DebugOverlay` in `PlayerView` is temporary — displays live `appState` and `sceneState` for development
+- Mood pad: X = calm→tense, Y = sparse→full (planned)
 
 ## Folder Structure
 
+```
 frontend/src/
 ├── lib/
-│ ├── engines/ # sceneEngine, musicEngine, ambienceEngine
-│ └── services/ # sceneApiClient, ambienceApiClient, # messageHandler
-├── stores/ # appState, sceneState, router
-├── types/ # scene.ts, message.ts, state.ts
+│   ├── engines/        # sceneEngine, ambienceEngine, audioEngine
+│   └── services/       # sceneApiClient, ambienceApiClient, messageHandler, transport
+├── stores/             # appState, sceneState, router
+├── types/              # scene.ts, ambience.ts, message.ts, state.ts, audio.ts
 ├── components/
-│ ├── scene/ # SceneRenderer, SceneAsset
-│ ├── player/
-│ └── ui/ # ConnectionIndicator
-└── views/ # ControllerView, PlayerView, HomeView
+│   ├── controller/     # Scenes, Ambiences
+│   └── player/         # SceneRenderer, SceneAsset, ConnectionIndicator, StoryGate, DebugOverlay
+└── views/              # ControllerView, PlayerView, HomeView
+```
 
-## Scene Config (JSON)
+## Data (Backend)
 
-Each scene has a background (image/video) and ordered layers (video/image).
-Assets served via FastAPI StaticFiles mount from ASSETS_DIR in .env.
-Config fields: src, type, loop, opacity, brightness, grayscale, blur, flip, blend_mode, order, id.
+```
+backend/data/
+├── entities/
+│   ├── scenes/         # one JSON per scene (background + ordered layers)
+│   └── ambiences/      # one JSON per ambience (id + src)
+└── categories/
+    └── ambiences/      # grouped ambience collections (planned)
+```
+
+Scene config fields: `id`, `src`, `type`, `loop`, `opacity`, `brightness`, `grayscale`, `blur`, `flip`, `blend_mode`, `order`.
+Assets served via FastAPI `StaticFiles` mount from `ASSETS_DIR` in `.env`.
 
 ## Notes
 
-- .svelte.ts extension required for $state outside components
-- cancelAndHoldAtTime used for interruptible audio fades
-- preloadVideo uses oncanplaythrough, preloadImage uses onload
-- tick() called after swapSceneSlots so DOM updates before transitionIn
+- `.svelte.ts` extension required for `$state` outside components
+- `cancelAndHoldAtTime` used before `linearRampToValueAtTime` for interruptible audio fades
+- `preloadVideo` uses `oncanplaythrough`, `preloadImage` uses `onload`
+- `tick()` called after `swapSceneSlots` so DOM updates before `transitionIn`
+- `ToneAudioBuffer.load(url)` used directly for preloading — avoids buffer disposal bug with temporary `Tone.Player`

@@ -1,19 +1,26 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { appState } from "@/stores/appState.svelte";
   import { sendSetScene } from "@/lib/services/transport";
+  import { sceneApiClient } from "@/lib/services/sceneApiClient";
+  import type { SceneConfig } from "@/types/scene";
 
-  const SCENE_IDS = ["abyssus", "study", "crows"];
+  let scenes = $state<SceneConfig[]>([]);
+
+  onMount(async () => {
+    scenes = await sceneApiClient.fetchScenes();
+  });
 </script>
 
 <section>
   <h2>Scene</h2>
   <div class="buttons">
-    {#each SCENE_IDS as scene_id}
+    {#each scenes as scene}
       <button
-        class={appState.scene?.id === scene_id ? "active" : ""}
-        onclick={() => sendSetScene(scene_id)}
+        class={appState.scene?.id === scene.id ? "active" : ""}
+        onclick={() => sendSetScene(scene.id)}
       >
-        {scene_id}
+        {scene.id}
       </button>
     {/each}
   </div>
