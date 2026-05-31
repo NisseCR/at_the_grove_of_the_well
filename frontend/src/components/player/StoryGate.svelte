@@ -34,11 +34,11 @@
   }
 
   span {
-    font-family: var(--font-body);
-    font-size: 4rem;
-    font-weight: 300;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: capitalize;
     color: var(--color-accent);
     animation: breathe 3s ease-in-out infinite;
   }

@@ -2,5 +2,10 @@
   "id": "forest",
   "src": "assets/images/forest.jpg",
   "order": 3,
-  "ambiences": []
+  "ambiences": [
+    {
+      "id": "forest-day",
+      "label": "Day"
+    }
+  ]
 }

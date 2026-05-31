@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.exceptions import ResourceIdNotFound
+from app.exceptions import ResourceIdNotFound, ResourceIdConflict
 from app.services.scene_service import SceneService
 from app.services.ambience_service import AmbienceService
 from app.routers.scene import router as scene_router
@@ -49,6 +49,12 @@ def create_app() -> FastAPI:
     def not_found_handler(request: Request, exc: ResourceIdNotFound) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content={"detail": str(exc)}
+        )
+
+    @app.exception_handler(ResourceIdConflict)
+    def conflict_handler(request: Request, exc: ResourceIdConflict) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT, content={"detail": str(exc)}
         )
 
     # Include routers.

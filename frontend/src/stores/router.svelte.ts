@@ -1,11 +1,11 @@
-export type KnownView = "home" | "controller" | "player";
+export type KnownView = "home" | "controller" | "player" | "editor";
 
 /**
  * Get the current view from the live page URL.
  */
 function getCurrentView(): KnownView {
   const raw = new URLSearchParams(window.location.search).get("view");
-  if (raw === "controller" || raw === "player" || raw === "home") return raw;
+  if (raw === "controller" || raw === "player" || raw === "home" || raw === "editor") return raw;
   return "home";
 }
 

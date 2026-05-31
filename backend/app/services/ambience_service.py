@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from app.models.ambience import AmbienceAsset, AmbienceCategory
-from app.exceptions import ResourceIdNotFound
+from app.exceptions import ResourceIdNotFound, ResourceIdConflict
 
 
 class AmbienceService:
@@ -66,3 +66,63 @@ class AmbienceService:
             categories.append(AmbienceCategory.model_validate(data))
 
         return sorted(categories, key=lambda c: c.order)
+
+    def load_category_from_id(self, id: str) -> AmbienceCategory:
+        filepath = self.ambience_categories_dir / f"{id}.json"
+        if not filepath.exists():
+            raise ResourceIdNotFound("AmbienceCategory", id)
+        return AmbienceCategory.model_validate(json.loads(filepath.read_text()))
+
+    def create_ambience(self, ambience: AmbienceAsset) -> AmbienceAsset:
+        filepath = self.ambience_data_dir / f"{ambience.id}.json"
+        if filepath.exists():
+            raise ResourceIdConflict("Ambience", ambience.id)
+        filepath.write_text(ambience.model_dump_json(indent=2))
+        return ambience
+
+    def update_ambience(self, id: str, ambience: AmbienceAsset) -> AmbienceAsset:
+        old_filepath = self.ambience_data_dir / f"{id}.json"
+        if not old_filepath.exists():
+            raise ResourceIdNotFound("Ambience", id)
+        new_filepath = self.ambience_data_dir / f"{ambience.id}.json"
+        if ambience.id != id and new_filepath.exists():
+            raise ResourceIdConflict("Ambience", ambience.id)
+        if ambience.id != id:
+            old_filepath.unlink()
+        new_filepath.write_text(ambience.model_dump_json(indent=2))
+        return ambience
+
+    def delete_ambience(self, id: str) -> AmbienceAsset:
+        filepath = self.ambience_data_dir / f"{id}.json"
+        if not filepath.exists():
+            raise ResourceIdNotFound("Ambience", id)
+        ambience = self.load_ambience_from_filepath(filepath)
+        filepath.unlink()
+        return ambience
+
+    def create_category(self, category: AmbienceCategory) -> AmbienceCategory:
+        filepath = self.ambience_categories_dir / f"{category.id}.json"
+        if filepath.exists():
+            raise ResourceIdConflict("AmbienceCategory", category.id)
+        filepath.write_text(category.model_dump_json(indent=2))
+        return category
+
+    def update_category(self, id: str, category: AmbienceCategory) -> AmbienceCategory:
+        old_filepath = self.ambience_categories_dir / f"{id}.json"
+        if not old_filepath.exists():
+            raise ResourceIdNotFound("AmbienceCategory", id)
+        new_filepath = self.ambience_categories_dir / f"{category.id}.json"
+        if category.id != id and new_filepath.exists():
+            raise ResourceIdConflict("AmbienceCategory", category.id)
+        if category.id != id:
+            old_filepath.unlink()
+        new_filepath.write_text(category.model_dump_json(indent=2))
+        return category
+
+    def delete_category(self, id: str) -> AmbienceCategory:
+        filepath = self.ambience_categories_dir / f"{id}.json"
+        if not filepath.exists():
+            raise ResourceIdNotFound("AmbienceCategory", id)
+        category = AmbienceCategory.model_validate(json.loads(filepath.read_text()))
+        filepath.unlink()
+        return category

@@ -40,6 +40,7 @@
     <section class="section">
       <span class="section-label">Ambiences</span>
       {#each appState.ambiences! as ambience (ambience.id)}
+        {@const VolumeIcon = volumeIcon(ambience.volume)}
         <div class="row">
           <div class="row-header">
             <AudioLines class="icon name-icon" size={13} />
@@ -49,7 +50,7 @@
             </button>
           </div>
           <div class="volume-row" onwheel={(e) => onVolumeWheel(e, ambience.id)}>
-            <svelte:component this={volumeIcon(ambience.volume)} class="icon vol-icon" size={13} />
+            <VolumeIcon class="icon vol-icon" size={13} />
             <input
               class="volume-slider"
               type="range"
