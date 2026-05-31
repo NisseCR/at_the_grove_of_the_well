@@ -1,6 +1,7 @@
 export interface AmbienceAsset {
   id: string;
   src: string;
+  url?: string;
 }
 
 export interface AmbienceConfig {
@@ -16,6 +17,7 @@ export interface AmbienceCategoryEntry {
 export interface AmbienceCategory {
   id: string;
   src: string;
+  url?: string;
   order: number;
   ambiences: AmbienceCategoryEntry[];
 }

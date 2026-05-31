@@ -21,6 +21,7 @@ type FileType = "video" | "image";
 interface SceneAsset {
   id: string;
   src: string;
+  url?: string;
   type: FileType;
   loop: boolean;
   opacity: number;

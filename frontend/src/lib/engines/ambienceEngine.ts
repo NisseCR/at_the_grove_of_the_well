@@ -136,7 +136,7 @@ class AmbienceEngine {
             ambienceApiClient.fetchAmbience(id),
             token,
           );
-          await guardedAwait(this.activate(id, ambience.src, volume), token, () =>
+          await guardedAwait(this.activate(id, ambience.url!, volume), token, () =>
             this.deactivate(id),
           );
         }

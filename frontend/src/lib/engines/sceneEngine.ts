@@ -84,7 +84,7 @@ class SceneEngine {
    * @param config - The scene config whose assets should be preloaded.
    */
   private async preload(config: SceneConfig): Promise<void> {
-    const sources = [config.background.src, ...config.layers.map((l) => l.src)];
+    const sources = [config.background.url!, ...config.layers.map((l) => l.url!)];
     await Promise.all(sources.map((source) => this.preloadAsset(source)));
   }
 

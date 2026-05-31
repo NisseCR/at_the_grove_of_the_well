@@ -76,7 +76,7 @@
           style="--i: {i}"
           onclick={() => { selected = category; scrollToCard(i); }}
         >
-          <div class="rail-thumb" style="background-image: url('{category.src}')"></div>
+          <div class="rail-thumb" style="background-image: url('{category.url}')"></div>
           <span class="rail-label">{category.id}</span>
         </button>
       {/each}

@@ -1,19 +1,13 @@
-import { STATIC_BASE } from "@/lib/config";
+import { assetUrl } from "@/lib/config";
 import { apiClient } from "@/lib/services/apiClient";
 import type { SceneConfig, SceneCategory } from "@/types/scene";
 
 class SceneApiClient {
-  private prependAssetBase(scene: SceneConfig): SceneConfig {
+  private withUrl(scene: SceneConfig): SceneConfig {
     return {
       ...scene,
-      background: {
-        ...scene.background,
-        src: `${STATIC_BASE}/${scene.background.src}`,
-      },
-      layers: scene.layers.map((layer) => ({
-        ...layer,
-        src: `${STATIC_BASE}/${layer.src}`,
-      })),
+      background: { ...scene.background, url: assetUrl(scene.background.src) },
+      layers: scene.layers.map((layer) => ({ ...layer, url: assetUrl(layer.src) })),
     };
   }
 
@@ -23,12 +17,12 @@ class SceneApiClient {
 
   async fetchScenes(): Promise<SceneConfig[]> {
     const scenes = await apiClient.get<SceneConfig[]>("/scene");
-    return scenes.map((scene) => this.prependAssetBase(scene));
+    return scenes.map((scene) => this.withUrl(scene));
   }
 
   async fetchScene(sceneId: string): Promise<SceneConfig> {
     const scene = await apiClient.get<SceneConfig>(`/scene/${sceneId}`);
-    return this.prependAssetBase(scene);
+    return this.withUrl(scene);
   }
 
   async createScene(scene: SceneConfig): Promise<SceneConfig> {
@@ -39,8 +33,8 @@ class SceneApiClient {
     return apiClient.put<SceneConfig>(`/scene/${sceneId}`, scene);
   }
 
-  async deleteScene(sceneId: string): Promise<void> {
-    return apiClient.delete<void>(`/scene/${sceneId}`);
+  async deleteScene(sceneId: string): Promise<SceneConfig> {
+    return apiClient.delete<SceneConfig>(`/scene/${sceneId}`);
   }
 }
 

@@ -28,7 +28,7 @@
   >
     <img
       class="media"
-      src={asset.src}
+      src={asset.url}
       alt=""
       aria-hidden="true"
       style:opacity={asset.opacity}
@@ -44,7 +44,7 @@
   >
     <video
       class="media"
-      src={asset.src}
+      src={asset.url}
       autoplay
       loop={asset.loop}
       muted

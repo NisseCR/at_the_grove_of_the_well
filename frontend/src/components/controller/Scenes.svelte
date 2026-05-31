@@ -18,7 +18,7 @@
   });
 
   function thumbnailFor(id: string): string | undefined {
-    return scenes.find((s) => s.id === id)?.background.src;
+    return scenes.find((s) => s.id === id)?.background.url;
   }
 
   function isActive(id: string): boolean {
