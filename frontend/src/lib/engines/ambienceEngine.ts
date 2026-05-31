@@ -1,14 +1,17 @@
 import type { Stem } from "@/types/audio";
 import { audioEngine } from "@/lib/engines/audioEngine";
 import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
+import { guardedAwait } from "@/lib/utils/guardedAwait";
 
-const FADE_IN = 3.0;
-const FADE_OUT = 3.0;
+const FADE_IN = 5.0;
+const FADE_OUT = 5.0;
 const FADE_VOLUME = 0.1;
 
 class AmbienceEngine {
   /** Currently playing ambience stems keyed by ambience id. */
   private active = new Map<string, Stem>();
+  /** Token for the current syncActive call; aborted when a new sync supersedes it. */
+  private syncToken: AbortController | null = null;
 
   /**
    * Starts playing the ambience stem at the given URL, looping continuously
@@ -71,18 +74,53 @@ class AmbienceEngine {
     if (stem) audioEngine.fadeTo(stem.gain, volume, FADE_VOLUME);
   }
 
+  /**
+   * Cancels any in-progress sync and creates a new token for the current one.
+   * Each syncActive call gets its own token so guards check against the correct sync.
+   *
+   * @returns A fresh AbortController for the new sync.
+   */
+  private createToken(): AbortController {
+    this.syncToken?.abort();
+    const token = new AbortController();
+    this.syncToken = token;
+    return token;
+  }
+
+  /**
+   * Reconciles the set of active stems against the given list of ids.
+   * Deactivates any stem not in the list, then activates any id not yet playing.
+   * Supersedes any in-progress sync — guards between each async step so a
+   * newer call cancels the pipeline cleanly.
+   *
+   * @param ids - The complete list of ambience ids that should be active.
+   */
   async syncActive(ids: string[]): Promise<void> {
-    const incoming = new Set(ids);
+    const token = this.createToken();
 
-    for (const id of this.active.keys()) {
-      if (!incoming.has(id)) this.deactivate(id);
-    }
+    try {
+      const incoming = new Set(ids);
 
-    for (const id of incoming) {
-      if (!this.active.has(id)) {
-        const ambience = await ambienceApiClient.fetchAmbience(id);
-        await this.activate(id, ambience.src, 1.0);
+      // Deactivate any currently active stem whose id is not in the incoming list.
+      for (const id of this.active.keys()) {
+        if (!incoming.has(id)) this.deactivate(id);
       }
+
+      // Activate any stem in the incoming list that is not already active.
+      for (const id of incoming) {
+        if (!this.active.has(id)) {
+          const ambience = await guardedAwait(
+            ambienceApiClient.fetchAmbience(id),
+            token,
+          );
+          await guardedAwait(this.activate(id, ambience.src, 1.0), token, () =>
+            this.deactivate(id),
+          );
+        }
+      }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      throw e;
     }
   }
 }

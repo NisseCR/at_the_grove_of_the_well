@@ -1,5 +1,6 @@
 import { sceneApiClient } from "@/lib/services/sceneApiClient";
 import { sceneState } from "@/stores/sceneState.svelte";
+import { guardedAwait } from "@/lib/utils/guardedAwait";
 import type { SceneConfig } from "@/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
@@ -31,18 +32,10 @@ class SceneEngine {
     const token = this.createToken();
 
     try {
-      const config = await this.fetchNextScene(sceneId);
-      this.guard(token);
-
-      await this.preload(config);
-      this.guard(token);
-
-      await this.transitionOut(getCurrent());
-      this.guard(token);
-
-      await this.swapSceneSlots();
-      this.guard(token);
-
+      const config = await guardedAwait(this.fetchNextScene(sceneId), token);
+      await guardedAwait(this.preload(config), token);
+      await guardedAwait(this.transitionOut(getCurrent()), token);
+      await guardedAwait(this.swapSceneSlots(), token);
       await this.transitionIn(getCurrent());
     } catch (exception) {
       if (exception instanceof DOMException && exception.name === "AbortError")
@@ -70,14 +63,6 @@ class SceneEngine {
    * scene selection. Throws an AbortError if so, which is caught and
    * silently swallowed in transitionScene.
    *
-   * @param token - The token belonging to the current transition.
-   * @throws DOMException with name "AbortError" if cancelled.
-   */
-  private guard(token: AbortController): void {
-    if (token.signal.aborted) throw new DOMException("Cancelled", "AbortError");
-  }
-
-  /**
    * Fetch the full scene config from the backend and stage it as the
    * next scene in sceneState.
    *

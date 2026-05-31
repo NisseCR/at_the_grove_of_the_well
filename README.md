@@ -35,6 +35,7 @@ Music dimensions:
 - Two scene slots (current/next) for crossfading via GSAP
 - `SceneRenderer` passes a DOM container getter to `sceneEngine` — engine never owns DOM references directly
 - Ambience stems keyed by id in `ambienceEngine.active`; URL stored on the `Stem` object
+- `syncActive` uses an AbortController token (same pattern as `sceneEngine`) to cancel in-flight fetches/activations when a new sync supersedes the current one
 - Audio buffer cache in `audioEngine` persists across deactivations to avoid re-downloading
 - Player requires a user gesture before rendering — `StoryGate` component calls `Tone.start()` on click, then mounts the player
 - Ambience volume is hardcoded to 0.5 — per-ambience volume control not yet implemented
