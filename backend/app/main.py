@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     """
     # Create services.
     scene_service: SceneService = SceneService(settings.scene_data_dir)
-    ambience_service: AmbienceService = AmbienceService(settings.ambience_data_dir)
+    ambience_service: AmbienceService = AmbienceService(settings.ambience_data_dir, settings.ambience_categories_dir)
 
     # Bind services to app state, so that they are accessible by endpoints throughout the app's lifespan.
     app.state.scene_service = scene_service

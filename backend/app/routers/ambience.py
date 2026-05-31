@@ -1,8 +1,13 @@
 from fastapi import APIRouter, Request
-from app.models.ambience import AmbienceAsset
+from app.models.ambience import AmbienceAsset, AmbienceCategory
 from app.dependencies import get_or_404
 
 router = APIRouter(prefix="/ambience")
+
+
+@router.get("/categories")
+def get_ambience_categories(request: Request) -> list[AmbienceCategory]:
+    return request.app.state.ambience_service.list_ambience_categories()
 
 
 @router.get("")

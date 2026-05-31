@@ -1,17 +1,6 @@
 {
   "id": "wind",
-  "ambiences": [
-    {
-      "id": "distorted",
-      "src": "assets/audio/ambience/distorted.ogg"
-    },
-    {
-      "id": "nessus",
-      "src": "assets/audio/ambience/nessus.ogg"
-    },
-    {
-      "id": "piercing",
-      "src": "assets/audio/ambience/wind.ogg"
-    }
-  ]
+  "src": "assets/images/dust-storm.jpg",
+  "order": 2,
+  "ambience_ids": ["wind-distorted", "wind-piercing"]
 }

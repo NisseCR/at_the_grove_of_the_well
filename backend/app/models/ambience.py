@@ -9,3 +9,10 @@ class AmbienceAsset(BaseModel):
 class AmbienceConfig(BaseModel):
     id: str
     ambiences: list[AmbienceAsset]
+
+
+class AmbienceCategory(BaseModel):
+    id: str
+    src: str
+    order: int
+    ambience_ids: list[str]

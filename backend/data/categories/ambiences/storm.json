@@ -1,17 +1,6 @@
 {
   "id": "storm",
-  "ambiences": [
-    {
-      "id": "blizzard",
-      "src": "assets/audio/ambience/blizzard.ogg"
-    },
-    {
-      "id": "distant",
-      "src": "assets/audio/ambience/distant.ogg"
-    },
-    {
-      "id": "thunder",
-      "src": "assets/audio/ambience/thunder.ogg"
-    }
-  ]
+  "src": "assets/images/storm.jpg",
+  "order": 1,
+  "ambience_ids": ["thunder", "blizzard"]
 }

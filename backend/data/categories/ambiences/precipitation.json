@@ -1,17 +1,6 @@
 {
   "id": "precipitation",
-  "ambiences": [
-    {
-      "id": "rain",
-      "src": "assets/audio/ambience/rain.ogg"
-    },
-    {
-      "id": "snow-1",
-      "src": "assets/audio/ambience/snow-1.ogg"
-    },
-    {
-      "id": "snow-2",
-      "src": "assets/audio/ambience/snow-2.ogg"
-    }
-  ]
+  "src": "assets/images/rainclouds.jpg",
+  "order": 0,
+  "ambience_ids": ["rain", "snow-1", "snow-2"]
 }
