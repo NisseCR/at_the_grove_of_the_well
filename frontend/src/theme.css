@@ -64,7 +64,7 @@
   --blur-sm: 6px;
   --blur-md: 14px;
   --blur-lg: 28px;
-  --blur-bg: 5px;
+  --blur-bg: 8px;
 
   /* ─── Spacing ─────────────────────────────────────────────────────────────
      4 px base unit. Names are multiples: --space-2 = 8 px, --space-4 = 16 px */

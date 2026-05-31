@@ -10,7 +10,7 @@ Music dimensions:
 
 ## Stack
 
-- **Frontend**: Vite + Svelte 5 + TypeScript + Pico CSS + Tone.js + GSAP
+- **Frontend**: Vite + Svelte 5 + TypeScript + Tone.js + GSAP (custom CSS, no framework)
 - **Backend**: FastAPI (Python) with Pydantic models
 - **Communication**: WebSocket relay (dumb backend, frontend owns state)
 
@@ -41,6 +41,10 @@ Music dimensions:
 - Ambience volume is hardcoded to 0.5 — per-ambience volume control not yet implemented
 - `DebugOverlay` in `PlayerView` is temporary — displays live `appState` and `sceneState` for development
 - Mood pad: X = calm→tense, Y = sparse→full (planned)
+- CSS is framework-free: `src/theme.css` defines all design tokens (colors, spacing, blur, typography) as CSS custom properties; `app.css` holds global resets; component styles live in each `.svelte` file and reference tokens via `var(--token)`
+- Controller view uses a blurred background art image (`public/controller-background.jpg`) with a glassmorphism UI overlay
+- Scene thumbnails are derived from `background.src` of the full `SceneConfig` — the controller fetches both categories and all scene configs and joins them by id; no separate thumbnail field needed
+- Ambience categories auto-expand on mount if they contain an active ambience, so active state is immediately visible when switching to the ambiences tab
 
 ## Folder Structure
 
@@ -65,10 +69,13 @@ backend/data/
 │   ├── scenes/         # one JSON per scene (background + ordered layers)
 │   └── ambiences/      # one JSON per ambience (id + src)
 └── categories/
-    └── ambiences/      # grouped ambience collections (planned)
+    ├── scenes/         # grouped scene collections (id, order, scenes: [{id, label}])
+    └── ambiences/      # grouped ambience collections (id, src, order, ambiences: [{id, label}])
 ```
 
 Scene config fields: `id`, `src`, `type`, `loop`, `opacity`, `brightness`, `grayscale`, `blur`, `flip`, `blend_mode`, `order`.
+
+Category entries carry an explicit `label` field — the display string shown in the controller UI. This decouples file/asset ids from human-readable names (e.g. `wind-piercing` → `"Piercing"`).
 
 Assets live outside the repo in a directory referenced by `ASSETS_DIR` in `.env`:
 
@@ -104,7 +111,6 @@ Tone.js runs the Web Audio API at the OS default sample rate (48000 Hz on Window
 ## Notes
 
 - `.svelte.ts` extension required for `$state` outside components
-- `cancelAndHoldAtTime` used before `setTargetAtTime` for interruptible, exponential audio fades; time constant is `duration / 3` (~95% reached after full duration)
 - `preloadVideo` uses `oncanplaythrough`, `preloadImage` uses `onload`
 - `tick()` called after `swapSceneSlots` so DOM updates before `transitionIn`
 - `ToneAudioBuffer.load(url)` used directly for preloading — avoids buffer disposal bug with temporary `Tone.Player`

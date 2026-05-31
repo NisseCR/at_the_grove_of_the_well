@@ -161,7 +161,7 @@ class SceneEngine {
     await gsap.to(container, {
       opacity: 0,
       duration: TRANSITION_DUDRATION * fromOpacity,
-      ease: "none",
+      ease: "power1.out",
     });
   }
 
@@ -192,7 +192,7 @@ class SceneEngine {
     gsap.fromTo(
       container,
       { opacity: 0 },
-      { opacity: 1, duration: TRANSITION_DUDRATION, ease: "none" },
+      { opacity: 1, duration: TRANSITION_DUDRATION, ease: "power1.in" },
     );
   }
 
