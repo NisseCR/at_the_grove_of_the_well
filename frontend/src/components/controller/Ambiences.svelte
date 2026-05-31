@@ -54,17 +54,20 @@
       </button>
 
       {#if open}
-        <div class="tiles">
+        <ul class="list">
           {#each category.ambience_ids as id}
-            <button
-              class="tile"
-              class:active={isActive(id)}
-              onclick={() => toggle(id)}
-            >
-              {label(id)}
-            </button>
+            <li>
+              <button
+                class="row"
+                class:active={isActive(id)}
+                onclick={() => toggle(id)}
+              >
+                <span class="row-label">{label(id)}</span>
+                <span class="row-dot" class:visible={isActive(id)}></span>
+              </button>
+            </li>
           {/each}
-        </div>
+        </ul>
       {/if}
     </div>
   {/each}
@@ -88,7 +91,7 @@
     height: 68px;
     background-size: cover;
     background-position: center;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -107,10 +110,6 @@
       rgba(8, 6, 14, 0.35) 100%
     );
     transition: background var(--ease-base);
-  }
-
-  .banner.open {
-    box-shadow: inset 0 -2px 0 var(--color-accent-dim);
   }
 
   .banner.open::before {
@@ -146,42 +145,51 @@
     color: var(--color-accent);
   }
 
-  .tiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: var(--space-2);
-    padding: var(--space-3) 0;
+  /* ─── List ─────────────────────────────────────────────────────────────────
+     Track-listing style: one ambience per row with a divider between items. */
+  .list {
+    list-style: none;
+    padding: var(--space-1) 0;
   }
 
-  /* ─── Individual ambience tile ─────────────────────────────────────────────
-     Glassmorphism chip. Active state uses accent color for border and text.  */
-  .tile {
-    padding: var(--space-3) var(--space-2);
-    text-align: center;
+  .row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
     font-size: var(--text-sm);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
-    background: var(--color-glass);
-    backdrop-filter: blur(var(--blur-sm));
-    -webkit-backdrop-filter: blur(var(--blur-sm));
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
     text-transform: capitalize;
-    transition:
-      background var(--ease-fast),
-      border-color var(--ease-fast),
-      color var(--ease-fast);
+    transition: color var(--ease-fast);
   }
 
-  .tile:hover {
-    background: var(--color-glass-hover);
-    border-color: var(--color-border-hover);
+  .list li:last-child .row {
+    border-bottom: none;
+  }
+
+  .row:hover {
     color: var(--color-text);
   }
 
-  .tile.active {
-    border-color: var(--color-border-active);
+  .row.active {
     color: var(--color-accent);
+  }
+
+  /* Small dot indicator on the right when active */
+  .row-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    opacity: 0;
+    transition: opacity var(--ease-fast);
+  }
+
+  .row-dot.visible {
+    opacity: 1;
   }
 
   /* ─── Reset button ──────────────────────────────────────────────────────── */
