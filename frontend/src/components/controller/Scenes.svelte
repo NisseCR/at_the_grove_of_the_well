@@ -71,7 +71,7 @@
   /* ─── Scene grid ────────────────────────────────────────────────────────── */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: var(--space-3);
   }
 
@@ -80,7 +80,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    background: none;
+    background: var(--color-glass);
+    backdrop-filter: blur(var(--blur-sm));
+    -webkit-backdrop-filter: blur(var(--blur-sm));
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     overflow: hidden;
@@ -101,7 +103,7 @@
     aspect-ratio: 16 / 10;
     background-size: cover;
     background-position: center;
-    filter: saturate(var(--banner-saturation));
+    filter: saturate(var(--image-saturation));
   }
 
   .thumbnail.placeholder {

@@ -63,6 +63,7 @@
     position: relative;
     z-index: 1;
     display: flex;
+    justify-content: center;
     gap: var(--space-1);
     padding: var(--space-4) var(--space-6) 0;
     border-bottom: 1px solid var(--color-border);

@@ -19,10 +19,10 @@
   --font-display: "Palatino Linotype", "Book Antiqua", Palatino, serif;
   --font-body: system-ui, -apple-system, sans-serif;
 
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 15px;
-  --text-lg: 19px;
+  --text-xs: 13px;
+  --text-sm: 15px;
+  --text-base: 17px;
+  --text-lg: 22px;
 
   /* Letter-spacing: use wide for uppercase labels, wider for all-caps banners */
   --tracking-wide: 0.07em;
@@ -54,8 +54,9 @@
   --color-border-active: rgba(200, 175, 120, 0.55);
 
   /* ─── Images ─────────────────────────────────────────────────────────────
-     Saturation for category banner images. 0 = greyscale, 1 = full color.  */
-  --banner-saturation: 0.8;
+     Saturation applied to decorative images (banners, thumbnails).
+     0 = greyscale, 1 = full color.                                         */
+  --image-saturation: 0.8;
 
   /* ─── Glass / Backdrop ────────────────────────────────────────────────────
      blur-sm: subtle panels; blur-md: tiles and cards; blur-lg: full overlays.

@@ -90,12 +90,12 @@
   .banner {
     position: relative;
     width: 100%;
-    height: 68px;
+    height: 88px;
     background-size: cover;
     background-position: center;
     border-radius: var(--radius-sm);
     overflow: hidden;
-    filter: saturate(var(--banner-saturation));
+    filter: saturate(var(--image-saturation));
     display: flex;
     align-items: center;
     justify-content: center;
