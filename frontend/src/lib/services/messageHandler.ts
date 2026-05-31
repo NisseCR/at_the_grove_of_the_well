@@ -12,8 +12,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SYNC_AMBIENCES": {
-      const ambienceIds = message.payload.ambienceIds;
-      ambienceEngine.syncActive(ambienceIds);
+      await ambienceEngine.syncActive(message.payload.ambienceIds);
       break;
     }
 

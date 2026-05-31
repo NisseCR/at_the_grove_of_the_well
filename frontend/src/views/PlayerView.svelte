@@ -1,12 +1,25 @@
 <script lang="ts">
-  import SceneRenderer from "@/components/scene/SceneRenderer.svelte";
-  import ConnectionIndicator from "@/components/ui/ConnectionIndicator.svelte";
+  import * as Tone from "tone";
+  import SceneRenderer from "@/components/player/SceneRenderer.svelte";
+  import ConnectionIndicator from "@/components/player/ConnectionIndicator.svelte";
+  import StoryGate from "@/components/player/StoryGate.svelte";
+
+  let started = $state(false);
+
+  async function begin() {
+    await Tone.start();
+    started = true;
+  }
 </script>
 
-<div class="player">
-  <SceneRenderer />
-  <ConnectionIndicator />
-</div>
+{#if started}
+  <div class="player">
+    <SceneRenderer />
+    <ConnectionIndicator />
+  </div>
+{:else}
+  <StoryGate onbegin={begin} />
+{/if}
 
 <style>
   .player {

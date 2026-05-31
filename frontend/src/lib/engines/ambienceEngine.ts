@@ -1,5 +1,6 @@
 import type { Stem } from "@/types/audio";
 import { audioEngine } from "@/lib/engines/audioEngine";
+import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
 
 const FADE_IN = 3.0;
 const FADE_OUT = 3.0;
@@ -70,9 +71,19 @@ class AmbienceEngine {
     if (stem) audioEngine.fadeTo(stem.gain, volume, FADE_VOLUME);
   }
 
-  syncActive(ids: string[]): void {
-    // TODO implement ambience sync/
-    // look at ambienceState and appState to sync.
+  async syncActive(ids: string[]): Promise<void> {
+    const incoming = new Set(ids);
+
+    for (const id of this.active.keys()) {
+      if (!incoming.has(id)) this.deactivate(id);
+    }
+
+    for (const id of incoming) {
+      if (!this.active.has(id)) {
+        const ambience = await ambienceApiClient.fetchAmbience(id);
+        await this.activate(id, ambience.src, 1.0);
+      }
+    }
   }
 }
 

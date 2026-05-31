@@ -1,7 +1,7 @@
 <script lang="ts">
   import { sceneState } from "@/stores/sceneState.svelte";
   import { sceneEngine } from "@/lib/engines/sceneEngine";
-  import SceneAsset from "@/components/scene/SceneAsset.svelte";
+  import SceneAsset from "@/components/player/SceneAsset.svelte";
   import type { SceneConfig } from "@/types/scene";
 
   let currentSceneContainer: HTMLElement | null = $state(null);
@@ -34,28 +34,11 @@
   </div>
 {/if}
 
-<!-- No active scene -->
-{#if !sceneState.current}
-  <p class="waiting">Waiting for scene…</p>
-{/if}
-
 <style>
   .scene-slot {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-  }
-
-  .waiting {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #444;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
   }
 </style>
