@@ -33,7 +33,7 @@
   .player {
     position: fixed;
     inset: 0;
-    background: #0a0a0a;
+    background: var(--color-bg);
     overflow: hidden;
   }
 </style>
