@@ -2,5 +2,9 @@
   "id": "precipitation",
   "src": "assets/images/rainclouds.jpg",
   "order": 0,
-  "ambience_ids": ["rain", "snow-1", "snow-2"]
+  "ambiences": [
+    { "id": "rain", "label": "Rain" },
+    { "id": "snow-1", "label": "Snow I" },
+    { "id": "snow-2", "label": "Snow II" }
+  ]
 }

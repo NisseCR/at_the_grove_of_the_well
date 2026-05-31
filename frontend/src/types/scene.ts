@@ -42,3 +42,14 @@ export interface SceneConfig {
   background: BackgroundAsset;
   layers: LayerAsset[];
 }
+
+export interface SceneCategoryEntry {
+  id: string;
+  label: string;
+}
+
+export interface SceneCategory {
+  id: string;
+  order: number;
+  scenes: SceneCategoryEntry[];
+}

@@ -38,6 +38,7 @@ class Settings:
         self.ambience_data_dir = self.entities_dir / "ambiences"
         self.categories_dir = self.data_dir / "categories"
         self.ambience_categories_dir = self.categories_dir / "ambiences"
+        self.scene_categories_dir = self.categories_dir / "scenes"
 
     def load_origin(self) -> None:
         self.frontend_origin = os.environ.get("FRONTEND_ORIGIN")

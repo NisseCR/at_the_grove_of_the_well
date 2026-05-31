@@ -1,6 +1,6 @@
 import { STATIC_BASE } from "@/lib/config";
 import { apiClient } from "@/lib/services/apiClient";
-import type { SceneConfig } from "@/types/scene";
+import type { SceneConfig, SceneCategory } from "@/types/scene";
 
 class SceneApiClient {
   private prependAssetBase(scene: SceneConfig): SceneConfig {
@@ -15,6 +15,10 @@ class SceneApiClient {
         src: `${STATIC_BASE}/${layer.src}`,
       })),
     };
+  }
+
+  async fetchSceneCategories(): Promise<SceneCategory[]> {
+    return apiClient.get<SceneCategory[]>("/scene/categories");
   }
 
   async fetchScenes(): Promise<SceneConfig[]> {

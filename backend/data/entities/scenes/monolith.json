@@ -1,0 +1,24 @@
+{
+  "id": "monolith",
+  "background": {
+    "id": "gate",
+    "src": "assets/images/gate.jpg",
+    "type": "image"
+  },
+  "layers": [
+    {
+      "id": "wind-calm",
+      "src": "assets/video/wind-calm.webm",
+      "type": "video",
+      "order": 0,
+      "opacity": 0.6
+    },
+    {
+      "id": "mountain",
+      "src": "assets/video/mountain.webm",
+      "type": "video",
+      "order": 1,
+      "brightness": 0.25
+    }
+  ]
+}

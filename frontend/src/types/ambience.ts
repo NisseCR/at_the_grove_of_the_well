@@ -8,9 +8,14 @@ export interface AmbienceConfig {
   ambiences: AmbienceAsset[];
 }
 
+export interface AmbienceCategoryEntry {
+  id: string;
+  label: string;
+}
+
 export interface AmbienceCategory {
   id: string;
   src: string;
   order: number;
-  ambience_ids: string[];
+  ambiences: AmbienceCategoryEntry[];
 }

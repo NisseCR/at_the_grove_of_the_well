@@ -1,8 +1,13 @@
 from fastapi import APIRouter, Request
-from app.models.scene import SceneConfig
+from app.models.scene import SceneConfig, SceneCategory
 from app.dependencies import get_or_404
 
 router = APIRouter(prefix="/scene")
+
+
+@router.get("/categories")
+def get_scene_categories(request: Request) -> list[SceneCategory]:
+    return request.app.state.scene_service.list_scene_categories()
 
 
 @router.get("")

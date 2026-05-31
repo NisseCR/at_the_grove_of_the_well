@@ -3,7 +3,7 @@
   import SceneRenderer from "@/components/player/SceneRenderer.svelte";
   import ConnectionIndicator from "@/components/player/ConnectionIndicator.svelte";
   import StoryGate from "@/components/player/StoryGate.svelte";
-  import DebugOverlay from "@/components/player/DebugOverlay.svelte";
+  // import DebugOverlay from "@/components/player/DebugOverlay.svelte";
   import { audioEngine } from "@/lib/engines/audioEngine";
   import { ambienceEngine } from "@/lib/engines/ambienceEngine";
   import { appState } from "@/stores/appState.svelte";
@@ -23,7 +23,7 @@
   <div class="player">
     <SceneRenderer />
     <ConnectionIndicator />
-    <DebugOverlay />
+    <!-- <DebugOverlay /> -->
   </div>
 {:else}
   <StoryGate onbegin={begin} />

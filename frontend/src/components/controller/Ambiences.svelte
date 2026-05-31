@@ -13,7 +13,7 @@
     // Auto-expand any category that already has an active ambience.
     expanded = new Set(
       categories
-        .filter((c) => c.ambience_ids.some((id) => isActive(id)))
+        .filter((c) => c.ambiences.some((e) => isActive(e.id)))
         .map((c) => c.id)
     );
   });
@@ -37,10 +37,6 @@
     expanded = next;
   }
 
-  /* Prettify raw ids: "heavy_rain" → "heavy rain" */
-  function label(id: string): string {
-    return id.replace(/_/g, " ");
-  }
 </script>
 
 <div class="categories">
@@ -61,15 +57,15 @@
 
       {#if open}
         <ul class="list">
-          {#each category.ambience_ids as id}
+          {#each category.ambiences as entry}
             <li>
               <button
                 class="row"
-                class:active={isActive(id)}
-                onclick={() => toggle(id)}
+                class:active={isActive(entry.id)}
+                onclick={() => toggle(entry.id)}
               >
-                <span class="row-label">{label(id)}</span>
-                <span class="row-dot" class:visible={isActive(id)}></span>
+                <span class="row-label">{entry.label}</span>
+                <span class="row-dot" class:visible={isActive(entry.id)}></span>
               </button>
             </li>
           {/each}
@@ -99,9 +95,10 @@
     background-position: center;
     border-radius: var(--radius-sm);
     overflow: hidden;
+    filter: saturate(var(--banner-saturation));
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 0 var(--space-4);
   }
 
@@ -136,7 +133,8 @@
   }
 
   .chevron {
-    position: relative;
+    position: absolute;
+    right: var(--space-4);
     font-size: 20px;
     color: var(--color-text-muted);
     display: inline-block;
@@ -168,7 +166,6 @@
     font-size: var(--text-sm);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
-    text-transform: capitalize;
     transition: color var(--ease-fast);
   }
 

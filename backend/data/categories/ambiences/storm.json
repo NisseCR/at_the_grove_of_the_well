@@ -2,5 +2,8 @@
   "id": "storm",
   "src": "assets/images/storm.jpg",
   "order": 1,
-  "ambience_ids": ["thunder", "blizzard"]
+  "ambiences": [
+    { "id": "thunder", "label": "Thunder" },
+    { "id": "blizzard", "label": "Blizzard" }
+  ]
 }

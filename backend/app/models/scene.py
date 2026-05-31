@@ -48,3 +48,14 @@ class SceneConfig(BaseModel):
     id: str
     background: BackgroundAsset
     layers: list[LayerAsset]
+
+
+class SceneCategoryEntry(BaseModel):
+    id: str
+    label: str
+
+
+class SceneCategory(BaseModel):
+    id: str
+    order: int
+    scenes: list[SceneCategoryEntry]

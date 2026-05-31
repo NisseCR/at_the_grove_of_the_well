@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from app.models.scene import SceneConfig
+from app.models.scene import SceneConfig, SceneCategory
 from app.exceptions import ResourceIdNotFound
 
 
@@ -11,8 +11,9 @@ class SceneService:
     IMAGE_EXTENSIONS = {".png", ".jpg", ".webp"}
     VIDEO_EXTENSIONS = {".webm"}
 
-    def __init__(self, scene_data_dir: Path) -> None:
+    def __init__(self, scene_data_dir: Path, scene_categories_dir: Path) -> None:
         self.scene_data_dir = scene_data_dir
+        self.scene_categories_dir = scene_categories_dir
 
     def load_scene_from_filepath(self, file_path: Path) -> SceneConfig:
         """
@@ -40,6 +41,18 @@ class SceneService:
             return self.load_scene_from_filepath(filepath)
         except FileNotFoundError:
             raise ResourceIdNotFound("Scene", id)
+
+    def list_scene_categories(self) -> list[SceneCategory]:
+        """
+        Load all scene categories, sorted by order.
+        """
+        categories = []
+
+        for file_path in self.scene_categories_dir.glob("*.json"):
+            data = json.loads(file_path.read_text())
+            categories.append(SceneCategory.model_validate(data))
+
+        return sorted(categories, key=lambda c: c.order)
 
     def list_scenes(self) -> list[SceneConfig]:
         """
