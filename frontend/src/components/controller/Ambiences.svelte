@@ -5,20 +5,51 @@
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
   import type { AmbienceCategory } from "@/types/ambience";
 
+  const CARD_WIDTH = 150;
+  const GAP = 8;
+  const STEP = CARD_WIDTH + GAP;
+
   let categories = $state<AmbienceCategory[]>([]);
   let selected = $state<AmbienceCategory | null>(null);
   let rail: HTMLDivElement | null = $state(null);
-
-  function onwheel(e: WheelEvent) {
-    if (!rail) return;
-    e.preventDefault();
-    rail.scrollLeft += e.deltaY;
-  }
 
   onMount(async () => {
     categories = await ambienceApiClient.fetchAmbienceCategories();
     if (categories.length > 0) selected = categories[0];
   });
+
+  $effect(() => {
+    if (!rail) return;
+    const update = () => {
+      rail!.style.removeProperty("width");
+      rail!.style.removeProperty("flex");
+      const available = rail!.offsetWidth;
+      const n = Math.max(1, Math.floor(available / STEP));
+      rail!.style.width = `${n * CARD_WIDTH + (n - 1) * GAP}px`;
+      rail!.style.flex = "none";
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(rail.parentElement!);
+    return () => ro.disconnect();
+  });
+
+  function scroll(direction: number) {
+    rail?.scrollBy({ left: direction * STEP, behavior: "smooth" });
+  }
+
+  function scrollToCard(i: number) {
+    if (!rail) return;
+    const center = i * STEP + CARD_WIDTH / 2 - rail.offsetWidth / 2;
+    rail.scrollTo({ left: Math.max(0, center), behavior: "smooth" });
+  }
+
+  function onwheel(e: WheelEvent) {
+    if (!rail) return;
+    e.preventDefault();
+    const direction = e.deltaY > 0 ? 1 : -1;
+    scroll(direction);
+  }
 
   function isActive(id: string): boolean {
     return appState.ambiences?.some((a) => a.id === id) ?? false;
@@ -34,17 +65,24 @@
 </script>
 
 <div class="categories">
-  <div class="rail" bind:this={rail} {onwheel}>
-    {#each categories as category}
-      <button
-        class="rail-card"
-        class:selected={selected?.id === category.id}
-        onclick={() => (selected = category)}
-      >
-        <div class="rail-thumb" style="background-image: url('{category.src}')"></div>
-        <span class="rail-label">{category.id}</span>
-      </button>
-    {/each}
+  <div class="rail-wrapper">
+    <button class="nav" onclick={() => scroll(-1)}>‹</button>
+
+    <div class="rail" bind:this={rail} {onwheel}>
+      {#each categories as category, i}
+        <button
+          class="rail-card"
+          class:selected={selected?.id === category.id}
+          style="--i: {i}"
+          onclick={() => { selected = category; scrollToCard(i); }}
+        >
+          <div class="rail-thumb" style="background-image: url('{category.src}')"></div>
+          <span class="rail-label">{category.id}</span>
+        </button>
+      {/each}
+    </div>
+
+    <button class="nav" onclick={() => scroll(1)}>›</button>
   </div>
 
   {#if selected}
@@ -72,17 +110,34 @@
     gap: var(--space-6);
   }
 
-  /* ─── Horizontal rail ───────────────────────────────────────────────────── */
-  .rail {
+  /* ─── Rail wrapper ──────────────────────────────────────────────────────── */
+  .rail-wrapper {
     display: flex;
+    align-items: center;
+    justify-content: center;
     gap: var(--space-2);
-    overflow-x: auto;
-    padding-bottom: var(--space-2);
   }
 
+  .nav {
+    flex-shrink: 0;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--color-text-faint);
+    padding: 0 var(--space-1);
+    transition: color var(--ease-fast);
+  }
+
+  .nav:hover {
+    color: var(--color-text-muted);
+  }
+
+  /* ─── Horizontal rail ───────────────────────────────────────────────────── */
   .rail {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-accent-dim) transparent;
+    flex: 1;
+    display: flex;
+    gap: 8px;
+    overflow: hidden;
+    scroll-snap-type: x mandatory;
   }
 
   .rail-card {
@@ -93,7 +148,21 @@
     border-radius: var(--radius-sm);
     overflow: hidden;
     border: 1px solid transparent;
+    scroll-snap-align: center;
     transition: border-color var(--ease-fast);
+    animation: fly-in 300ms ease both;
+    animation-delay: calc(var(--i) * 40ms);
+  }
+
+  @keyframes fly-in {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   .rail-thumb {
@@ -113,7 +182,7 @@
     z-index: 1;
   }
 
-.rail-card:hover {
+  .rail-card:hover {
     border-color: var(--color-border);
   }
 
@@ -121,7 +190,7 @@
     background: rgba(8, 6, 14, 0.5);
   }
 
-.rail-card.selected {
+  .rail-card.selected {
     border-color: var(--color-border-active);
   }
 
@@ -142,6 +211,7 @@
     text-transform: capitalize;
     text-align: center;
     color: var(--color-text-muted);
+    user-select: none;
     transition: color var(--ease-fast);
   }
 
