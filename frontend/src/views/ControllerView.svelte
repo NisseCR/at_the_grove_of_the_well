@@ -77,10 +77,9 @@
   }
 
   .tab {
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
+    font-family: var(--font-display);
+    font-size: var(--text-base);
     letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
     color: var(--color-text-muted);
     padding: var(--space-2) var(--space-3);
     padding-bottom: var(--space-3);
@@ -114,6 +113,7 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--space-6);
+    padding-top: var(--space-10);
   }
 
   /* Constrain tab content width and center it */

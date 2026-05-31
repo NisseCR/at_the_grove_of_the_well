@@ -10,10 +10,10 @@
 
 <style>
   .category-header {
-    font-family: var(--font-body);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wider);
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    letter-spacing: var(--tracking-wide);
+    text-transform: capitalize;
     color: var(--color-text-muted);
     margin-bottom: var(--space-3);
     padding-bottom: var(--space-2);
