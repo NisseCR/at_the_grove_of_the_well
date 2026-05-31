@@ -6,7 +6,7 @@ const FADE_OUT = 3.0;
 const FADE_VOLUME = 0.1;
 
 class AmbienceEngine {
-  /** Currently playing ambience stems keyed by URL. */
+  /** Currently playing ambience stems keyed by ambience id. */
   private active = new Map<string, Stem>();
 
   /**
@@ -14,11 +14,12 @@ class AmbienceEngine {
    * and fading in to the target volume. If the stem is already active, updates
    * its volume via a fade instead of restarting it — safe to call mid-fade.
    *
+   * @param id     - Ambience id.
    * @param url    - Remote URL of the audio file.
    * @param volume - Target gain value (0–1).
    */
-  async activate(url: string, volume: number): Promise<void> {
-    const existing = this.active.get(url);
+  async activate(id: string, url: string, volume: number): Promise<void> {
+    const existing = this.active.get(id);
     if (existing) {
       audioEngine.fadeTo(existing.gain, volume, FADE_IN);
       return;
@@ -28,23 +29,23 @@ class AmbienceEngine {
     stem.player.loop = true;
     stem.player.start();
 
-    this.active.set(url, stem);
+    this.active.set(id, stem);
     audioEngine.fadeTo(stem.gain, volume, FADE_IN);
   }
 
   /**
-   * Fades out and disposes the active stem for the given URL.
+   * Fades out and disposes the active stem for the given ambience id.
    * The stem is removed from the active map immediately, so a concurrent
    * `activate` call can start a fresh stem while this one fades out.
-   * No-ops if no stem is currently active for the URL.
+   * No-ops if no stem is currently active for the id.
    *
-   * @param url - Remote URL of the stem to deactivate.
+   * @param id - Ambience id of the stem to deactivate.
    */
-  deactivate(url: string): void {
-    const stem = this.active.get(url);
+  deactivate(id: string): void {
+    const stem = this.active.get(id);
     if (!stem) return;
 
-    this.active.delete(url);
+    this.active.delete(id);
     audioEngine.fadeTo(stem.gain, 0, FADE_OUT);
 
     setTimeout(
@@ -61,12 +62,17 @@ class AmbienceEngine {
    * Fades an active stem to a new volume without stopping it.
    * No-ops if the stem is not currently active.
    *
-   * @param url    - Remote URL of the stem to adjust.
+   * @param id     - Ambience id of the stem to adjust.
    * @param volume - Target gain value (0–1).
    */
-  setVolume(url: string, volume: number): void {
-    const stem = this.active.get(url);
+  setVolume(id: string, volume: number): void {
+    const stem = this.active.get(id);
     if (stem) audioEngine.fadeTo(stem.gain, volume, FADE_VOLUME);
+  }
+
+  syncActive(ids: string[]): void {
+    // TODO implement ambience sync/
+    // look at ambienceState and appState to sync.
   }
 }
 

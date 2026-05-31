@@ -2,7 +2,7 @@ import { STATIC_BASE } from "@/lib/config";
 import { apiClient } from "@/lib/services/apiClient";
 import type { SceneConfig } from "@/types/scene";
 
-class SceneService {
+class SceneApiClient {
   private prependAssetBase(scene: SceneConfig): SceneConfig {
     return {
       ...scene,
@@ -40,4 +40,4 @@ class SceneService {
   }
 }
 
-export const sceneApiClient = new SceneService();
+export const sceneApiClient = new SceneApiClient();

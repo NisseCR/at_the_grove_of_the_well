@@ -50,6 +50,10 @@ export function sendSetScene(sceneId: string): void {
   send({ type: "SET_SCENE", payload: { sceneId } });
 }
 
+export function sendSyncAmbiences(ambienceIds: string[]): void {
+  send({ type: "SYNC_AMBIENCES", payload: { ambienceIds } });
+}
+
 export function sendSync(): void {
   send({ type: "SYNC" });
 }

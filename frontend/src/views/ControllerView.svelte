@@ -2,10 +2,12 @@
   import { appState } from "@/stores/appState.svelte";
   import { sendSetScene } from "@/lib/services/transport";
 
-  const SCENES = [
-    { id: "abyssus", name: "Abyssus" },
-    { id: "study", name: "Study" },
-    { id: "crows", name: "Crows" },
+  const SCENE_IDS = ["abyssus", "study", "crows"];
+  const AMBIENCE_IDS = [
+    "blizzard",
+    "thunder",
+    "wind-distorted",
+    "wind-piercing",
   ];
 </script>
 
@@ -17,20 +19,20 @@
   <section>
     <h2>Scene</h2>
     <div class="scene-buttons">
-      {#each SCENES as scene}
+      {#each SCENE_IDS as scene_id}
         <button
-          class={appState.scene?.scene_id === scene.id ? "active" : ""}
-          onclick={() => sendSetScene(scene.id)}
+          class={appState.scene?.id === scene_id ? "active" : ""}
+          onclick={() => sendSetScene(scene_id)}
         >
-          {scene.name}
+          {scene_id}
         </button>
       {/each}
     </div>
 
     <p>
       Active:
-      {#if appState.scene?.scene_id}
-        <strong>{appState.scene.scene_id}</strong>
+      {#if appState.scene?.id}
+        <strong>{appState.scene.id}</strong>
       {:else}
         <span>none</span>
       {/if}

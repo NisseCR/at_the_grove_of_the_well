@@ -33,7 +33,7 @@ class AudioEngine {
     const player = new Tone.Player(this.cache.get(url)!);
     const gain = new Tone.Gain(0).toDestination();
     player.connect(gain);
-    return { player, gain };
+    return { player, gain, url };
   }
 
   /**

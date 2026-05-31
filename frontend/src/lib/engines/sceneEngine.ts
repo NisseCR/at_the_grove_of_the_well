@@ -107,7 +107,7 @@ class SceneEngine {
    * @param sceneId - The id of the selected scene.
    */
   private setSelectedScene(sceneId: string): void {
-    appState.scene = { scene_id: sceneId };
+    appState.scene = { id: sceneId };
   }
 
   /**
