@@ -84,9 +84,7 @@ class MusicEngine {
   }
 
   /**
-   * Immediately stops all playback and disposes masterGain. Called when
-   * RESET_AUDIO is received — audioEngine.reset() will close the
-   * AudioContext, so all nodes must be disposed before that happens.
+   * Immediately stops all playback and disposes masterGain.
    * Increments generation to cancel any in-flight async operations.
    */
   reset(): void {
@@ -98,6 +96,17 @@ class MusicEngine {
     }
     this.playlist = null;
     this.trackIndex = 0;
+  }
+
+  /**
+   * Resets all playback state and restarts from the given playlist id.
+   * Call this after audioEngine.reset() has created a fresh AudioContext.
+   *
+   * @param playlistId - Playlist to restart, or null to leave music silent.
+   */
+  async hardReset(playlistId: string | null): Promise<void> {
+    this.reset();
+    await this.setPlaylist(playlistId);
   }
 
   // ─── Playback ──────────────────────────────────────────────────────────────
@@ -114,7 +123,6 @@ class MusicEngine {
     if (!this.playlist) return;
 
     const track = this.playlist.tracks[this.trackIndex];
-    const masterGain = this.getOrCreateMasterGain();
 
     const stem = await audioEngine.createStem(track.url!);
     if (gen !== this.generation) {
@@ -123,6 +131,10 @@ class MusicEngine {
       return;
     }
 
+    // masterGain is created after the generation check so it is guaranteed
+    // to be on the same AudioContext as the stem — a reset would have
+    // incremented the generation, causing an early return above.
+    const masterGain = this.getOrCreateMasterGain();
     const player = this.wireStemToMaster(stem, masterGain);
     this.player = player;
     this.registerAdvance(gen, player);
@@ -142,22 +154,25 @@ class MusicEngine {
 
   /**
    * Fades masterGain in to the volume stored in appState.
-   *
-   * @param masterGain - The gain node to fade in.
    */
   private fadeInMaster(): void {
-    const volume = appState.music?.volume ?? 0.8;
+    const volume = appState.music?.volume ?? 0.5;
     audioEngine.fadeTo(this.masterGain!, volume, FADE_IN);
   }
 
   // ─── Audio graph ───────────────────────────────────────────────────────────
 
   /**
-   * Returns the existing masterGain, or creates and connects a new one
-   * at gain 0. Called lazily so the AudioContext isn't touched until
-   * the first playlist actually starts.
+   * Returns the existing masterGain, or creates and connects a new one at gain 0.
+   * If the stored masterGain is on a stale AudioContext (e.g. a reset happened
+   * between the context closing and musicEngine.reset() nulling this field),
+   * it is disposed and replaced with a fresh node on the current context.
    */
   private getOrCreateMasterGain(): Tone.Gain {
+    if (this.masterGain && this.masterGain.context !== Tone.getContext()) {
+      this.masterGain.dispose();
+      this.masterGain = null;
+    }
     if (!this.masterGain) {
       this.masterGain = new Tone.Gain(0).toDestination();
     }
@@ -195,7 +210,8 @@ class MusicEngine {
    */
   private registerAdvance(gen: number, player: Tone.Player): void {
     player.onstop = () => {
-      if (gen !== this.generation || !this.playlist || this.player !== player) return;
+      if (gen !== this.generation || !this.playlist || this.player !== player)
+        return;
       this.player = null;
       player.dispose();
       this.trackIndex = (this.trackIndex + 1) % this.playlist.tracks.length;

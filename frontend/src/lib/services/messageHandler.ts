@@ -39,7 +39,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SET_PLAYLIST": {
-      if (!appState.music) appState.music = { playlistId: null, volume: 0.8 };
+      if (!appState.music) appState.music = { playlistId: null, volume: 0.5 };
       appState.music.playlistId = message.payload.playlistId;
       if (router.view === "player")
         await musicEngine.setPlaylist(message.payload.playlistId);
@@ -56,9 +56,8 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
 
     case "RESET_AUDIO": {
       if (router.view === "player") {
-        const entries = appState.ambiences ?? [];
-        await ambienceEngine.hardReset(entries);
-        musicEngine.reset();
+        await ambienceEngine.hardReset(appState.ambiences ?? []);
+        await musicEngine.hardReset(appState.music?.playlistId ?? null);
       }
       break;
     }

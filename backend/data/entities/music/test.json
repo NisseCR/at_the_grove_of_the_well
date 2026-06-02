@@ -1,0 +1,26 @@
+{
+  "id": "test",
+  "src": "assets/images/alone.jpg",
+  "tracks": [
+    {
+      "id": "cinematic-choir",
+      "src": "assets/audio/music/cinematic-choir.mp3"
+    },
+    {
+      "id": "cinematic-drums",
+      "src": "assets/audio/music/cinematic-drums.mp3"
+    },
+    {
+      "id": "cinematic-horns",
+      "src": "assets/audio/music/cinematic-horns.mp3"
+    },
+    {
+      "id": "cinematic-intro",
+      "src": "assets/audio/music/cinematic-intro.mp3"
+    },
+    {
+      "id": "cinematic-piano",
+      "src": "assets/audio/music/cinematic-piano.mp3"
+    }
+  ]
+}

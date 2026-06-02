@@ -66,7 +66,8 @@ class AudioEngine {
    * callers must dispose their stems before calling reset.
    */
   async reset(): Promise<void> {
-    await (Tone.getContext().rawContext as AudioContext).close();
+    const ctx = Tone.getContext().rawContext as AudioContext;
+    if (ctx.state !== "closed") await ctx.close();
     Tone.setContext(new Tone.Context());
     await Tone.start();
     this.cache.clear();

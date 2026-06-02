@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { AudioLines, Music, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
+  import { AudioLines, Music, RotateCcw, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSetAmbiences, sendSetAmbienceVolume, sendSetPlaylist, sendSetMusicVolume } from "@/lib/services/transport";
+  import { sendSetAmbiences, sendSetAmbienceVolume, sendSetPlaylist, sendSetMusicVolume, sendResetAudio } from "@/lib/services/transport";
 
   function removeAmbience(id: string): void {
     const next = (appState.ambiences ?? []).filter((a) => a.id !== id);
@@ -38,7 +38,7 @@
 
   function onMusicVolumeWheel(e: WheelEvent): void {
     e.preventDefault();
-    onMusicVolumeChange((appState.music?.volume ?? 0.8) - e.deltaY * 0.001);
+    onMusicVolumeChange((appState.music?.volume ?? 0.5) - e.deltaY * 0.001);
   }
 
   const hasMusic = $derived(appState.music?.playlistId != null);
@@ -46,7 +46,12 @@
 </script>
 
 <aside class="audio-panel">
-  <h2 class="panel-title">Audio</h2>
+  <div class="panel-header">
+    <h2 class="panel-title">Audio</h2>
+    <button class="reset-btn" onclick={sendResetAudio} aria-label="Reset audio">
+      <RotateCcw size={13} />
+    </button>
+  </div>
 
   {#if hasMusic}
     {@const musicVolume = appState.music!.volume}
@@ -124,12 +129,29 @@
     gap: var(--space-4);
   }
 
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .panel-title {
     font-family: var(--font-body);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-wider);
     text-transform: uppercase;
     color: var(--color-text-faint);
+  }
+
+  .reset-btn {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-faint);
+    transition: color var(--ease-fast);
+  }
+
+  .reset-btn:hover {
+    color: var(--color-text);
   }
 
   .section {
