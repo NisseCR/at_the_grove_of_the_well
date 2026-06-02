@@ -108,6 +108,14 @@ Options: `--rate` (default 48000), `--dry-run`.
 
 Tone.js runs the Web Audio API at the OS default sample rate (48000 Hz on Windows). All audio assets must be resampled to 48000 Hz before serving — the browser's implicit resampling produces audible artefacts. Run the script once per new audio file added to `raw/`.
 
+## Streaming the Player View (Discord)
+
+To share the player view with other players via Discord without the browser pausing when minimised:
+
+1. **OBS** — create a new scene with a Browser source pointing to the player view URL. In the Browser source settings, enable **"Control audio via OBS"**. Interact with the page once to unlock audio.
+2. **OBS preview** — right-click the OBS preview → **Open Preview Projector**. This opens the player view in a dedicated window that keeps rendering regardless of browser state.
+3. **Discord** — start a stream, go to the **Applications** tab, select **Projector - Preview**.
+
 ## Notes
 
 - `.svelte.ts` extension required for `$state` outside components
