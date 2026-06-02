@@ -4,7 +4,6 @@ import { sendSync } from "@/lib/services/transport";
 import { sceneState } from "@/stores/sceneState.svelte";
 import { appState } from "@/stores/appState.svelte";
 import { ambienceEngine } from "@/lib/engines/ambienceEngine";
-import { audioEngine } from "@/lib/engines/audioEngine";
 
 export async function handleMessage(message: TransportMessage): Promise<void> {
   switch (message.type) {
@@ -20,7 +19,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SET_AMBIENCES": {
       const { ambiences } = message.payload;
       appState.ambiences = ambiences;
-      if (router.view === "player" && audioEngine.started) {
+      if (router.view === "player") {
         await ambienceEngine.syncActive(ambiences);
       }
       break;
@@ -32,14 +31,14 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
         const entry = appState.ambiences.find((a) => a.id === id);
         if (entry) entry.volume = volume;
       }
-      if (router.view === "player" && audioEngine.started) {
+      if (router.view === "player") {
         ambienceEngine.setVolume(id, volume);
       }
       break;
     }
 
     case "RESET_AUDIO": {
-      if (router.view === "player" && audioEngine.started) {
+      if (router.view === "player") {
         const entries = appState.ambiences ?? [];
         await ambienceEngine.hardReset(entries);
       }

@@ -3,7 +3,6 @@ import type { Stem } from "@/types/audio";
 
 class AudioEngine {
   private cache = new Map<string, Tone.ToneAudioBuffer>();
-  started = false;
 
   /**
    * Fetches and decodes audio at the given URL, storing the buffer in the
@@ -71,7 +70,6 @@ class AudioEngine {
     Tone.setContext(new Tone.Context());
     await Tone.start();
     this.cache.clear();
-    this.started = true;
   }
 }
 
