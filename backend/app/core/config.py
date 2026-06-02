@@ -45,12 +45,12 @@ class Settings:
         self.music_categories_dir = self.categories_dir / "music"
 
     def resolve_origins(self) -> None:
-        local_ip = os.environ.get("LOCAL_IP")
+        tailscale_host = os.environ.get("VITE_TAILSCALE_HOST")
         self.allowed_origins = ["http://localhost:5173"]
-        if local_ip:
-            self.allowed_origins.append(f"http://{local_ip}:5173")
+        if tailscale_host:
+            self.allowed_origins.append(f"http://{tailscale_host}:5173")
 
 
 # Initialise .env and settings.
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 settings = Settings()
