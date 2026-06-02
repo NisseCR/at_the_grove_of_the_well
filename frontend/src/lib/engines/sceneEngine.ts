@@ -5,7 +5,7 @@ import type { SceneConfig } from "@/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
 
-const TRANSITION_DUDRATION = 3;
+const TRANSITION_DUDRATION = 4;
 const PARALLAX_LAYER_INCREASE = 0.04;
 
 class SceneEngine {
@@ -84,7 +84,10 @@ class SceneEngine {
    * @param config - The scene config whose assets should be preloaded.
    */
   private async preload(config: SceneConfig): Promise<void> {
-    const sources = [config.background.url!, ...config.layers.map((l) => l.url!)];
+    const sources = [
+      config.background.url!,
+      ...config.layers.map((l) => l.url!),
+    ];
     await Promise.all(sources.map((source) => this.preloadAsset(source)));
   }
 
@@ -211,7 +214,7 @@ class SceneEngine {
 
       const zIndex = Number(element.style.zIndex);
       const scale = 1 + (1 + zIndex) * PARALLAX_LAYER_INCREASE;
-      const duration = Math.min(TRANSITION_DUDRATION * 0.5, 1.25);
+      const duration = Math.min(TRANSITION_DUDRATION * 0.5, 2.0);
 
       gsap.fromTo(
         element,
