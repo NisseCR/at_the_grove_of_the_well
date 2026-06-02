@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { AudioLines, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
+  import { AudioLines, Music, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSetAmbiences, sendSetAmbienceVolume } from "@/lib/services/transport";
+  import { sendSetAmbiences, sendSetAmbienceVolume, sendSetPlaylist, sendSetMusicVolume } from "@/lib/services/transport";
 
   function removeAmbience(id: string): void {
     const next = (appState.ambiences ?? []).filter((a) => a.id !== id);
@@ -30,11 +30,52 @@
     return Volume2;
   }
 
+  function onMusicVolumeChange(value: number): void {
+    const clamped = Math.min(1, Math.max(0, value));
+    if (appState.music) appState.music.volume = clamped;
+    sendSetMusicVolume(clamped);
+  }
+
+  function onMusicVolumeWheel(e: WheelEvent): void {
+    e.preventDefault();
+    onMusicVolumeChange((appState.music?.volume ?? 0.8) - e.deltaY * 0.001);
+  }
+
+  const hasMusic = $derived(appState.music?.playlistId != null);
   const hasAmbiences = $derived((appState.ambiences?.length ?? 0) > 0);
 </script>
 
 <aside class="audio-panel">
   <h2 class="panel-title">Audio</h2>
+
+  {#if hasMusic}
+    {@const musicVolume = appState.music!.volume}
+    {@const MusicVolumeIcon = volumeIcon(musicVolume)}
+    <section class="section">
+      <span class="section-label">Music</span>
+      <div class="row">
+        <div class="row-header">
+          <Music class="icon name-icon" size={13} />
+          <span class="audio-name">{appState.music!.playlistId}</span>
+          <button class="dismiss" onclick={() => sendSetPlaylist(null)} aria-label="Stop music">
+            <X size={16} />
+          </button>
+        </div>
+        <div class="volume-row" onwheel={onMusicVolumeWheel}>
+          <MusicVolumeIcon class="icon vol-icon" size={13} />
+          <input
+            class="volume-slider"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={musicVolume}
+            oninput={(e) => onMusicVolumeChange((e.currentTarget as HTMLInputElement).valueAsNumber)}
+          />
+        </div>
+      </div>
+    </section>
+  {/if}
 
   {#if hasAmbiences}
     <section class="section">
@@ -64,7 +105,9 @@
         </div>
       {/each}
     </section>
-  {:else}
+  {/if}
+
+  {#if !hasMusic && !hasAmbiences}
     <p class="empty">Nothing active</p>
   {/if}
 </aside>

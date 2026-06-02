@@ -1,9 +1,10 @@
 <script lang="ts">
   import Scenes from "@/components/controller/Scenes.svelte";
   import Ambiences from "@/components/controller/Ambiences.svelte";
+  import Music from "@/components/controller/Music.svelte";
   import AudioPanel from "@/components/controller/AudioPanel.svelte";
 
-  type Tab = "scenes" | "ambiences";
+  type Tab = "scenes" | "ambiences" | "music";
   let activeTab = $state<Tab>("scenes");
 </script>
 
@@ -26,6 +27,13 @@
     >
       Ambiences
     </button>
+    <button
+      class="tab"
+      class:active={activeTab === "music"}
+      onclick={() => (activeTab = "music")}
+    >
+      Music
+    </button>
   </nav>
 
   <div class="main">
@@ -34,6 +42,8 @@
         <Scenes />
       {:else if activeTab === "ambiences"}
         <Ambiences />
+      {:else if activeTab === "music"}
+        <Music />
       {/if}
     </div>
     <AudioPanel />

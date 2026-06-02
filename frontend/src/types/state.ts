@@ -8,10 +8,8 @@ export interface ActiveAmbience {
 }
 
 export interface ActiveMusic {
-  id: string;
+  playlistId: string | null;
   volume: number;
-  mood: number;
-  intensity: number;
 }
 
 export interface ActiveHandout {

@@ -62,6 +62,14 @@ export function sendResetAudio(): void {
   send({ type: "RESET_AUDIO" });
 }
 
+export function sendSetPlaylist(playlistId: string | null): void {
+  send({ type: "SET_PLAYLIST", payload: { playlistId } });
+}
+
+export function sendSetMusicVolume(volume: number): void {
+  send({ type: "SET_MUSIC_VOLUME", payload: { volume } });
+}
+
 export function sendSync(): void {
   send({ type: "SYNC" });
 }

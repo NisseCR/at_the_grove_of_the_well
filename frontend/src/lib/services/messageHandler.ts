@@ -4,6 +4,7 @@ import { sendSync } from "@/lib/services/transport";
 import { sceneState } from "@/stores/sceneState.svelte";
 import { appState } from "@/stores/appState.svelte";
 import { ambienceEngine } from "@/lib/engines/ambienceEngine";
+import { musicEngine } from "@/lib/engines/musicEngine";
 
 export async function handleMessage(message: TransportMessage): Promise<void> {
   switch (message.type) {
@@ -37,10 +38,27 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
       break;
     }
 
+    case "SET_PLAYLIST": {
+      if (!appState.music) appState.music = { playlistId: null, volume: 0.8 };
+      appState.music.playlistId = message.payload.playlistId;
+      if (router.view === "player")
+        await musicEngine.setPlaylist(message.payload.playlistId);
+      break;
+    }
+
+    case "SET_MUSIC_VOLUME": {
+      if (!appState.music) appState.music = { playlistId: null, volume: message.payload.volume };
+      else appState.music.volume = message.payload.volume;
+      if (router.view === "player")
+        musicEngine.setVolume(message.payload.volume);
+      break;
+    }
+
     case "RESET_AUDIO": {
       if (router.view === "player") {
         const entries = appState.ambiences ?? [];
         await ambienceEngine.hardReset(entries);
+        musicEngine.reset();
       }
       break;
     }

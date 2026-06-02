@@ -8,8 +8,8 @@ export type AmbienceMessage =
   | { type: "RESET_AUDIO" };
 
 export type MusicMessage =
-  | { type: "SET_INTENSITY"; payload: { intensity: number } }
-  | { type: "SET_MOOD"; payload: { mood: number } };
+  | { type: "SET_PLAYLIST"; payload: { playlistId: string | null } }
+  | { type: "SET_MUSIC_VOLUME"; payload: { volume: number } };
 
 export type TransportMessage =
   | SceneMessage
