@@ -10,7 +10,7 @@
   type Tab = "scenes" | "ambiences" | "music";
   let activeTab = $state<Tab>("scenes");
 
-  let panelCollapsed = $state(window.matchMedia("(max-width: 640px)").matches);
+  let panelCollapsed = $state(true);
 </script>
 
 <div class="controller">
@@ -18,6 +18,7 @@
   <div class="bg"></div>
 
   <nav class="tabs">
+    <div class="tabs-inner">
     <h1 class="project-title">{projectName}</h1>
     <div class="tab-row">
       <button
@@ -49,6 +50,7 @@
       >
         <AudioLines size={15} />
       </button>
+    </div>
     </div>
   </nav>
 
@@ -102,14 +104,20 @@
 
   /* Tab bar */
   .tabs {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: var(--space-4) var(--space-6) 0;
     background: rgba(8, 6, 14, 0.75);
     backdrop-filter: blur(var(--blur-md));
     -webkit-backdrop-filter: blur(var(--blur-md));
     border-bottom: 1px solid var(--color-border);
+    padding-inline: var(--space-6);
+  }
+
+  .tabs-inner {
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: var(--space-4);
   }
 
   .project-title {

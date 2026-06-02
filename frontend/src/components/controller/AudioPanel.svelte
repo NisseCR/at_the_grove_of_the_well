@@ -55,7 +55,7 @@
   }
 
   .audio-panel.collapsed {
-    width: 40px;
+    width: 0;
   }
 
   .panel-header {
@@ -95,6 +95,7 @@
 
   .panel-body {
     flex: 1;
+    overflow-x: hidden;
     overflow-y: auto;
     padding: var(--space-4);
     display: flex;
@@ -139,10 +140,6 @@
       background: rgba(8, 6, 14, 0.97);
       backdrop-filter: blur(var(--blur-md));
       -webkit-backdrop-filter: blur(var(--blur-md));
-    }
-
-    .audio-panel.collapsed {
-      width: 0;
     }
 
     .reset-btn {
