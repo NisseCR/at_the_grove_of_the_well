@@ -41,6 +41,8 @@ class Settings:
         self.categories_dir = self.data_dir / "categories"
         self.ambience_categories_dir = self.categories_dir / "ambiences"
         self.scene_categories_dir = self.categories_dir / "scenes"
+        self.music_data_dir = self.entities_dir / "music"
+        self.music_categories_dir = self.categories_dir / "music"
 
     def resolve_origins(self) -> None:
         local_ip = os.environ.get("LOCAL_IP")

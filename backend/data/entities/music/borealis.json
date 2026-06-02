@@ -1,0 +1,46 @@
+{
+  "id": "borealis",
+  "src": "assets/images/pillars.jpg",
+  "tracks": [
+    {
+      "id": "frystfel-i",
+      "src": "assets/music/frystfel-i.mp3"
+    },
+    {
+      "id": "frystfel-ii",
+      "src": "assets/music/frystfel-ii.mp3"
+    },
+    {
+      "id": "hearthhome-i",
+      "src": "assets/music/hearthhome-i.mp3"
+    },
+    {
+      "id": "hearthhome-ii",
+      "src": "assets/music/hearthhome-ii.mp3"
+    },
+    {
+      "id": "highlands-i",
+      "src": "assets/music/highlands-i.mp3"
+    },
+    {
+      "id": "highlands-ii",
+      "src": "assets/music/highlands-ii.mp3"
+    },
+    {
+      "id": "night",
+      "src": "assets/music/night.mp3"
+    },
+    {
+      "id": "the-bounty-of-alfheim",
+      "src": "assets/music/the-bounty-of-alfheim.mp3"
+    },
+    {
+      "id": "the-divinity-stone",
+      "src": "assets/music/the-divinity-stone.mp3"
+    },
+    {
+      "id": "valhalla",
+      "src": "assets/music/valhalla.mp3"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "id": "mood",
+  "order": 1,
+  "playlists": [{ "id": "alone", "label": "Alone" }]
+}

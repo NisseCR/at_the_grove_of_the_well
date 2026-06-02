@@ -10,10 +10,12 @@ from app.exceptions import ResourceIdNotFound, ResourceIdConflict
 from app.services.scene_service import SceneService
 from app.services.ambience_service import AmbienceService
 from app.services.image_service import ImageService
+from app.services.music_service import MusicService
 from app.routers.scene import router as scene_router
 from app.routers.ambience import router as ambience_router
 from app.routers.image import router as image_router
 from app.routers.control import router as control_router
+from app.routers.music import router as music_router
 
 
 @asynccontextmanager
@@ -29,6 +31,7 @@ async def lifespan(app: FastAPI):
     app.state.scene_service = scene_service
     app.state.ambience_service = ambience_service
     app.state.image_service = ImageService(settings.image_assets_dir)
+    app.state.music_service = MusicService(settings.music_data_dir, settings.music_categories_dir)
 
     yield
 
@@ -65,6 +68,7 @@ def create_app() -> FastAPI:
     app.include_router(ambience_router)
     app.include_router(image_router)
     app.include_router(control_router)
+    app.include_router(music_router)
 
     # Mount static files.
     app.mount(

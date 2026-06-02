@@ -1,0 +1,26 @@
+{
+  "id": "alone",
+  "src": "assets/images/alone.jpg",
+  "tracks": [
+    {
+      "id": "ashen",
+      "src": "assets/music/ashen.mp3"
+    },
+    {
+      "id": "eye-of-the-needle",
+      "src": "assets/music/eye-of-the-needle.mp3"
+    },
+    {
+      "id": "refuge",
+      "src": "assets/music/refuge.mp3"
+    },
+    {
+      "id": "refuge-reprise",
+      "src": "assets/music/refuge-reprise.mp3"
+    },
+    {
+      "id": "the-foothills",
+      "src": "assets/music/the-foothills.mp3"
+    }
+  ]
+}

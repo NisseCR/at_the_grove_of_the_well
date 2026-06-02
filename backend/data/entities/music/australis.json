@@ -1,0 +1,46 @@
+{
+  "id": "australis",
+  "src": "assets/images/wanderer.jpg",
+  "tracks": [
+    {
+      "id": "anders",
+      "src": "assets/music/anders.mp3"
+    },
+    {
+      "id": "a-new-day-has-dawned",
+      "src": "assets/music/a-new-day-has-dawned.mp3"
+    },
+    {
+      "id": "awakening",
+      "src": "assets/music/awakening.mp3"
+    },
+    {
+      "id": "in-every-seed",
+      "src": "assets/music/in-every-seed.mp3"
+    },
+    {
+      "id": "mother-nature",
+      "src": "assets/music/mother-nature.mp3"
+    },
+    {
+      "id": "rain-in-salar",
+      "src": "assets/music/rain-in-salar.mp3"
+    },
+    {
+      "id": "regeneration",
+      "src": "assets/music/regeneration.mp3"
+    },
+    {
+      "id": "sajama",
+      "src": "assets/music/sajama.mp3"
+    },
+    {
+      "id": "twilight",
+      "src": "assets/music/twilight.mp3"
+    },
+    {
+      "id": "una-sola-vez",
+      "src": "assets/music/una-sola-vez.mp3"
+    }
+  ]
+}
