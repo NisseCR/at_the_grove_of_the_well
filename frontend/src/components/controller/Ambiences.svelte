@@ -28,7 +28,7 @@
 <div class="categories">
   {#each categories as category}
     <div class="category">
-      <CategoryHeader label={category.id} />
+      <CategoryHeader label={category.id} src={category.url} />
       <div class="item-list">
         {#each category.ambiences as entry}
           <button
