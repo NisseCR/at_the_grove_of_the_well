@@ -139,4 +139,34 @@
   .volume-slider:hover::-moz-range-thumb {
     background: var(--color-text);
   }
+
+  @media (max-width: 640px) {
+    .row {
+      padding: var(--space-4);
+      gap: var(--space-3);
+    }
+
+    .audio-name {
+      font-size: var(--text-sm);
+    }
+
+    .dismiss {
+      padding: var(--space-2);
+      margin: calc(-1 * var(--space-2));
+    }
+
+    .volume-slider {
+      height: 5px;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      width: 14px;
+      height: 14px;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+    }
+  }
 </style>

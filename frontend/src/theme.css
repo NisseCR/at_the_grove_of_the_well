@@ -23,6 +23,7 @@
   --text-sm: 15px;
   --text-base: 17px;
   --text-lg: 22px;
+  --text-xl: 28px;
 
   /* Letter-spacing: use wide for uppercase labels, wider for all-caps banners */
   --tracking-wide: 0.07em;

@@ -6,7 +6,7 @@ import { tick } from "svelte";
 import { gsap } from "gsap";
 
 const TRANSITION_DUDRATION = 4;
-const PARALLAX_LAYER_INCREASE = 0.04;
+const PARALLAX_LAYER_INCREASE = 0.1;
 
 class SceneEngine {
   /**

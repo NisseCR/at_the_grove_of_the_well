@@ -3,9 +3,14 @@
   import Ambiences from "@/components/controller/Ambiences.svelte";
   import Music from "@/components/controller/Music.svelte";
   import AudioPanel from "@/components/controller/AudioPanel.svelte";
+  import { AudioLines } from "@lucide/svelte";
+
+  const projectName = import.meta.env.VITE_PROJECT_NAME as string;
 
   type Tab = "scenes" | "ambiences" | "music";
   let activeTab = $state<Tab>("scenes");
+
+  let panelCollapsed = $state(window.matchMedia("(max-width: 640px)").matches);
 </script>
 
 <div class="controller">
@@ -13,27 +18,38 @@
   <div class="bg"></div>
 
   <nav class="tabs">
-    <button
-      class="tab"
-      class:active={activeTab === "scenes"}
-      onclick={() => (activeTab = "scenes")}
-    >
-      Scenes
-    </button>
-    <button
-      class="tab"
-      class:active={activeTab === "music"}
-      onclick={() => (activeTab = "music")}
-    >
-      Music
-    </button>
-    <button
-      class="tab"
-      class:active={activeTab === "ambiences"}
-      onclick={() => (activeTab = "ambiences")}
-    >
-      Ambiences
-    </button>
+    <h1 class="project-title">{projectName}</h1>
+    <div class="tab-row">
+      <button
+        class="tab"
+        class:active={activeTab === "scenes"}
+        onclick={() => (activeTab = "scenes")}
+      >
+        Scenes
+      </button>
+      <button
+        class="tab"
+        class:active={activeTab === "music"}
+        onclick={() => (activeTab = "music")}
+      >
+        Music
+      </button>
+      <button
+        class="tab"
+        class:active={activeTab === "ambiences"}
+        onclick={() => (activeTab = "ambiences")}
+      >
+        Ambiences
+      </button>
+      <button
+        class="tab audio-toggle"
+        class:active={!panelCollapsed}
+        onclick={() => (panelCollapsed = !panelCollapsed)}
+        aria-label="Toggle audio panel"
+      >
+        <AudioLines size={15} />
+      </button>
+    </div>
   </nav>
 
   <div class="main">
@@ -46,7 +62,10 @@
         <Ambiences />
       {/if}
     </div>
-    <AudioPanel />
+    {#if !panelCollapsed}
+      <button class="panel-backdrop" onclick={() => (panelCollapsed = true)} aria-label="Close audio panel"></button>
+    {/if}
+    <AudioPanel bind:collapsed={panelCollapsed} />
   </div>
 </div>
 
@@ -60,7 +79,7 @@
   }
 
   /* Background image, blurred and darkened to serve as an art backdrop.
-     scale(1.05) prevents the blur from revealing transparent edges.       */
+     scale(1.08) prevents the blur from revealing transparent edges.       */
   .bg {
     position: absolute;
     inset: 0;
@@ -72,18 +91,40 @@
     z-index: 0;
   }
 
-  /* Tab bar */
-  .tabs {
+  /* Main row: left column + audio panel */
+  .main {
     position: relative;
     z-index: 1;
+    flex: 1;
     display: flex;
-    justify-content: center;
-    gap: var(--space-1);
+    overflow: hidden;
+  }
+
+  /* Tab bar */
+  .tabs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: var(--space-4) var(--space-6) 0;
     background: rgba(8, 6, 14, 0.75);
     backdrop-filter: blur(var(--blur-md));
     -webkit-backdrop-filter: blur(var(--blur-md));
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .project-title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: normal;
+    font-style: italic;
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text);
+    padding-bottom: var(--space-3);
+  }
+
+  .tab-row {
+    display: flex;
+    gap: var(--space-1);
   }
 
   .tab {
@@ -109,15 +150,6 @@
     border-bottom-color: var(--color-accent);
   }
 
-  /* Row below the tab bar — content + side panel */
-  .main {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
-
   /* Scrollable tab content */
   .content {
     flex: 1;
@@ -130,5 +162,31 @@
   .content :global(> *) {
     max-width: var(--content-max-width);
     margin-inline: auto;
+  }
+
+  .panel-backdrop {
+    display: none;
+  }
+
+  @media (max-width: 640px) {
+    .panel-backdrop {
+      display: block;
+      position: absolute;
+      inset: 0;
+      z-index: 5; /* above content, below panel (z-index: 10) */
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .project-title {
+      font-size: var(--text-base);
+      font-style: normal;
+      padding-bottom: var(--space-2);
+    }
+
+  }
+
+  .audio-toggle {
+    display: flex;
+    align-items: center;
   }
 </style>
