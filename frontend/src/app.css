@@ -36,3 +36,28 @@ h1, h2, h3, h4 {
   font-weight: normal;
   line-height: 1.2;
 }
+
+/* ─── Scrollbars ──────────────────────────────────────────────────────────────
+   Thin gold thumb, transparent track. Both standard and webkit for coverage. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent-dim) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent-dim);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
