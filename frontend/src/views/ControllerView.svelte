@@ -22,17 +22,17 @@
     </button>
     <button
       class="tab"
-      class:active={activeTab === "ambiences"}
-      onclick={() => (activeTab = "ambiences")}
-    >
-      Ambiences
-    </button>
-    <button
-      class="tab"
       class:active={activeTab === "music"}
       onclick={() => (activeTab = "music")}
     >
       Music
+    </button>
+    <button
+      class="tab"
+      class:active={activeTab === "ambiences"}
+      onclick={() => (activeTab = "ambiences")}
+    >
+      Ambiences
     </button>
   </nav>
 
@@ -40,10 +40,10 @@
     <div class="content">
       {#if activeTab === "scenes"}
         <Scenes />
-      {:else if activeTab === "ambiences"}
-        <Ambiences />
       {:else if activeTab === "music"}
         <Music />
+      {:else if activeTab === "ambiences"}
+        <Ambiences />
       {/if}
     </div>
     <AudioPanel />

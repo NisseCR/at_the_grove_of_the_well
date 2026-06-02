@@ -1,45 +1,9 @@
 <script lang="ts">
-  import { AudioLines, Music, RotateCcw, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
+  import { RotateCcw } from "@lucide/svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSetAmbiences, sendSetAmbienceVolume, sendSetPlaylist, sendSetMusicVolume, sendResetAudio } from "@/lib/services/transport";
-
-  function removeAmbience(id: string): void {
-    const next = (appState.ambiences ?? []).filter((a) => a.id !== id);
-    sendSetAmbiences(next);
-  }
-
-  function onVolumeChange(id: string, value: number): void {
-    const clamped = Math.min(1, Math.max(0, value));
-    if (appState.ambiences) {
-      const entry = appState.ambiences.find((a) => a.id === id);
-      if (entry) entry.volume = clamped;
-    }
-    sendSetAmbienceVolume(id, clamped);
-  }
-
-  function onVolumeWheel(e: WheelEvent, id: string): void {
-    e.preventDefault();
-    const current = appState.ambiences?.find((a) => a.id === id)?.volume ?? 0;
-    onVolumeChange(id, current - e.deltaY * 0.001);
-  }
-
-  function volumeIcon(v: number) {
-    if (v === 0) return VolumeX;
-    if (v < 0.35) return Volume;
-    if (v < 0.65) return Volume1;
-    return Volume2;
-  }
-
-  function onMusicVolumeChange(value: number): void {
-    const clamped = Math.min(1, Math.max(0, value));
-    if (appState.music) appState.music.volume = clamped;
-    sendSetMusicVolume(clamped);
-  }
-
-  function onMusicVolumeWheel(e: WheelEvent): void {
-    e.preventDefault();
-    onMusicVolumeChange((appState.music?.volume ?? 0.5) - e.deltaY * 0.001);
-  }
+  import { sendResetAudio } from "@/lib/services/transport";
+  import MusicRow from "@/components/controller/MusicRow.svelte";
+  import AmbienceRow from "@/components/controller/AmbienceRow.svelte";
 
   const hasMusic = $derived(appState.music?.playlistId != null);
   const hasAmbiences = $derived((appState.ambiences?.length ?? 0) > 0);
@@ -54,31 +18,9 @@
   </div>
 
   {#if hasMusic}
-    {@const musicVolume = appState.music!.volume}
-    {@const MusicVolumeIcon = volumeIcon(musicVolume)}
     <section class="section">
       <span class="section-label">Music</span>
-      <div class="row">
-        <div class="row-header">
-          <Music class="icon name-icon" size={13} />
-          <span class="audio-name">{appState.music!.playlistId}</span>
-          <button class="dismiss" onclick={() => sendSetPlaylist(null)} aria-label="Stop music">
-            <X size={16} />
-          </button>
-        </div>
-        <div class="volume-row" onwheel={onMusicVolumeWheel}>
-          <MusicVolumeIcon class="icon vol-icon" size={13} />
-          <input
-            class="volume-slider"
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={musicVolume}
-            oninput={(e) => onMusicVolumeChange((e.currentTarget as HTMLInputElement).valueAsNumber)}
-          />
-        </div>
-      </div>
+      <MusicRow />
     </section>
   {/if}
 
@@ -86,28 +28,7 @@
     <section class="section">
       <span class="section-label">Ambiences</span>
       {#each appState.ambiences! as ambience (ambience.id)}
-        {@const VolumeIcon = volumeIcon(ambience.volume)}
-        <div class="row">
-          <div class="row-header">
-            <AudioLines class="icon name-icon" size={13} />
-            <span class="audio-name">{ambience.id}</span>
-            <button class="dismiss" onclick={() => removeAmbience(ambience.id)} aria-label="Remove {ambience.id}">
-              <X size={16} />
-            </button>
-          </div>
-          <div class="volume-row" onwheel={(e) => onVolumeWheel(e, ambience.id)}>
-            <VolumeIcon class="icon vol-icon" size={13} />
-            <input
-              class="volume-slider"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={ambience.volume}
-              oninput={(e) => onVolumeChange(ambience.id, (e.currentTarget as HTMLInputElement).valueAsNumber)}
-            />
-          </div>
-        </div>
+        <AmbienceRow {ambience} />
       {/each}
     </section>
   {/if}
@@ -166,100 +87,6 @@
     text-transform: uppercase;
     color: var(--color-text-muted);
     margin-bottom: var(--space-1);
-  }
-
-  .row {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-3);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border);
-    background: var(--color-glass);
-  }
-
-  .row-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .audio-name {
-    flex: 1;
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wide);
-    color: var(--color-accent);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .dismiss {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    color: var(--color-text-faint);
-    transition: color var(--ease-fast);
-  }
-
-  .dismiss:hover {
-    color: var(--color-text);
-  }
-
-  /* ─── Volume row ────────────────────────────────────────────────────────── */
-  .volume-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  :global(.vol-icon) {
-    flex-shrink: 0;
-    color: var(--color-text-faint);
-  }
-
-  :global(.name-icon) {
-    flex-shrink: 0;
-    color: var(--color-accent-dim);
-  }
-
-  /* ─── Slider ────────────────────────────────────────────────────────────── */
-  .volume-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    flex: 1;
-    height: 3px;
-    border-radius: 2px;
-    background: var(--color-border);
-    outline: none;
-    cursor: pointer;
-  }
-
-  .volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--color-accent);
-    transition: background var(--ease-fast);
-  }
-
-  .volume-slider:hover::-webkit-slider-thumb {
-    background: var(--color-text);
-  }
-
-  .volume-slider::-moz-range-thumb {
-    width: 10px;
-    height: 10px;
-    border: none;
-    border-radius: 50%;
-    background: var(--color-accent);
-    transition: background var(--ease-fast);
-  }
-
-  .volume-slider:hover::-moz-range-thumb {
-    background: var(--color-text);
   }
 
   .empty {
