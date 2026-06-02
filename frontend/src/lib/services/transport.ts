@@ -73,5 +73,12 @@ export function sendResetAudio(): void {
 }
 
 export function sendSync(): void {
-  send({ type: "SYNC" });
+  send({
+    type: "SYNC",
+    payload: {
+      scene: appState.scene,
+      ambiences: appState.ambiences,
+      music: appState.music,
+    },
+  });
 }

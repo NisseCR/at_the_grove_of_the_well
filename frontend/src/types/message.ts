@@ -18,5 +18,12 @@ export type TransportMessage =
   | AmbienceMessage
   | MusicMessage
   | { type: "CLIENT_CONNECTED" }
-  | { type: "SYNC" }
+  | {
+      type: "SYNC";
+      payload: {
+        scene: { id: string } | null;
+        ambiences: { id: string; volume: number }[] | null;
+        music: { playlistId: string | null; volume: number } | null;
+      };
+    }
   | { type: "RESET_AUDIO" };

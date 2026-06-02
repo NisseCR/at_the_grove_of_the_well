@@ -20,7 +20,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SET_AMBIENCES": {
       const { ambiences } = message.payload;
       appState.ambiences = ambiences;
-      if (router.view === "player") {
+      if (router.view === "player" && appState.audioReady) {
         await ambienceEngine.syncActive(ambiences);
       }
       break;
@@ -32,7 +32,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
         const entry = appState.ambiences.find((a) => a.id === id);
         if (entry) entry.volume = volume;
       }
-      if (router.view === "player") {
+      if (router.view === "player" && appState.audioReady) {
         ambienceEngine.setVolume(id, volume);
       }
       break;
@@ -41,7 +41,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SET_PLAYLIST": {
       if (!appState.music) appState.music = { playlistId: null, volume: 0.5 };
       appState.music.playlistId = message.payload.playlistId;
-      if (router.view === "player")
+      if (router.view === "player" && appState.audioReady)
         await musicEngine.setPlaylist(message.payload.playlistId);
       break;
     }
@@ -49,13 +49,13 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SET_MUSIC_VOLUME": {
       if (!appState.music) appState.music = { playlistId: null, volume: message.payload.volume };
       else appState.music.volume = message.payload.volume;
-      if (router.view === "player")
+      if (router.view === "player" && appState.audioReady)
         musicEngine.setVolume(message.payload.volume);
       break;
     }
 
     case "RESET_AUDIO": {
-      if (router.view === "player") {
+      if (router.view === "player" && appState.audioReady) {
         await ambienceEngine.hardReset(appState.ambiences ?? []);
         await musicEngine.hardReset(appState.music?.playlistId ?? null);
       }
@@ -69,10 +69,18 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
       break;
     }
 
-    case "SYNC":
-      if (router.view === "player") {
-        // TODO implement sync later on.
+    case "SYNC": {
+      const { scene, ambiences, music } = message.payload;
+      appState.scene = scene;
+      appState.ambiences = ambiences;
+      appState.music = music;
+      if (router.view === "player" && appState.audioReady) {
+        if (scene) sceneState.requestedSceneId = scene.id;
+        await ambienceEngine.syncActive(ambiences ?? []);
+        await musicEngine.setPlaylist(music?.playlistId ?? null);
+        if (music) musicEngine.setVolume(music.volume);
       }
       break;
+    }
   }
 }
