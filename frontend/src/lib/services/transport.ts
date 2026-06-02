@@ -50,16 +50,14 @@ export function sendSetScene(sceneId: string): void {
   send({ type: "SET_SCENE", payload: { sceneId } });
 }
 
-export function sendSetAmbiences(ambiences: { id: string; volume: number }[]): void {
+export function sendSetAmbiences(
+  ambiences: { id: string; volume: number }[],
+): void {
   send({ type: "SET_AMBIENCES", payload: { ambiences } });
 }
 
 export function sendSetAmbienceVolume(id: string, volume: number): void {
   send({ type: "SET_AMBIENCE_VOLUME", payload: { id, volume } });
-}
-
-export function sendResetAudio(): void {
-  send({ type: "RESET_AUDIO" });
 }
 
 export function sendSetPlaylist(playlistId: string | null): void {
@@ -68,6 +66,10 @@ export function sendSetPlaylist(playlistId: string | null): void {
 
 export function sendSetMusicVolume(volume: number): void {
   send({ type: "SET_MUSIC_VOLUME", payload: { volume } });
+}
+
+export function sendResetAudio(): void {
+  send({ type: "RESET_AUDIO" });
 }
 
 export function sendSync(): void {

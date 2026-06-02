@@ -3,9 +3,11 @@ export type SceneMessage =
   | { type: "SYNC_SCENE"; payload: { sceneId: string | null } };
 
 export type AmbienceMessage =
-  | { type: "SET_AMBIENCES"; payload: { ambiences: { id: string; volume: number }[] } }
-  | { type: "SET_AMBIENCE_VOLUME"; payload: { id: string; volume: number } }
-  | { type: "RESET_AUDIO" };
+  | {
+      type: "SET_AMBIENCES";
+      payload: { ambiences: { id: string; volume: number }[] };
+    }
+  | { type: "SET_AMBIENCE_VOLUME"; payload: { id: string; volume: number } };
 
 export type MusicMessage =
   | { type: "SET_PLAYLIST"; payload: { playlistId: string | null } }
@@ -16,4 +18,5 @@ export type TransportMessage =
   | AmbienceMessage
   | MusicMessage
   | { type: "CLIENT_CONNECTED" }
-  | { type: "SYNC" };
+  | { type: "SYNC" }
+  | { type: "RESET_AUDIO" };
