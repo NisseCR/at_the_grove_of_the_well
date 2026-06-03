@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings:
