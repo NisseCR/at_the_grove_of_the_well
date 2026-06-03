@@ -1,5 +1,7 @@
 # At the Grove of the Well
 
+<img width="800" height="450" alt="At the Grove of the Well" src="https://github.com/user-attachments/assets/22b51385-98df-4407-941a-2832bc5c239d" />
+
 A D&D ambient experience tool inspired by the music of [At the Grove of the Well](https://taylormooremusic.bandcamp.com/track/at-the-grove-of-the-well) by Taylor Moore.
 
 The GM controls scenes, music, ambiences and art from a **controller view**, while players experience the result in a fullscreen **player view** — synced in real time over WebSocket. Designed for both local streaming (via OBS + Discord) and remote play (via Tailscale).
