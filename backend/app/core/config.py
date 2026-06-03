@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import logging
-from dotenv import load_dotenv
 
 
 class Settings:
@@ -12,7 +11,6 @@ class Settings:
     def __init__(self) -> None:
         self.base_dir = Path(__file__).resolve().parents[2]
         self.app_name = "Paracosm"
-        self.static_dir = self.base_dir / "static"
 
         self.resolve_data_directory()
         self.resolve_assets_directory()
@@ -32,25 +30,26 @@ class Settings:
         self.image_assets_dir = self.assets_dir / "images"
         self.video_assets_dir = self.assets_dir / "video"
         self.ambience_audio_dir = self.audio_assets_dir / "ambience"
+        # TODO add music to audio assets.
 
     def resolve_data_directory(self) -> None:
         self.data_dir = self.base_dir / "data"
+
+        # Resolve entities.
         self.entities_dir = self.data_dir / "entities"
         self.scene_data_dir = self.entities_dir / "scenes"
-        self.ambience_data_dir = self.entities_dir / "ambiences"
-        self.categories_dir = self.data_dir / "categories"
-        self.ambience_categories_dir = self.categories_dir / "ambiences"
-        self.scene_categories_dir = self.categories_dir / "scenes"
         self.music_data_dir = self.entities_dir / "music"
+        self.ambience_data_dir = self.entities_dir / "ambiences"
+
+        # Resolve categories.
+        self.categories_dir = self.data_dir / "categories"
+        self.scene_categories_dir = self.categories_dir / "scenes"
         self.music_categories_dir = self.categories_dir / "music"
+        self.ambience_categories_dir = self.categories_dir / "ambiences"
 
     def resolve_origins(self) -> None:
-        self.allowed_origins = ["http://localhost:5173"]
-        frontend_origin = os.environ.get("FRONTEND_ORIGIN")
-        if frontend_origin:
-            self.allowed_origins.append(frontend_origin)
+        raw = os.environ.get("ALLOWED_ORIGINS", "")
+        self.allowed_origins = [o.strip() for o in raw.split(",") if o.strip()]
 
 
-# Initialise .env and settings.
-load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 settings = Settings()

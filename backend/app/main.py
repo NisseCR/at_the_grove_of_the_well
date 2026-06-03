@@ -64,11 +64,11 @@ def create_app() -> FastAPI:
         )
 
     # Include routers.
-    app.include_router(scene_router)
-    app.include_router(ambience_router)
-    app.include_router(image_router)
-    app.include_router(control_router)
-    app.include_router(music_router)
+    app.include_router(scene_router, prefix="/api")
+    app.include_router(ambience_router, prefix="/api")
+    app.include_router(image_router, prefix="/api")
+    app.include_router(control_router, prefix="/api")
+    app.include_router(music_router, prefix="/api")
 
     # Mount static files.
     app.mount(

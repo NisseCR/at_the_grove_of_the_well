@@ -3,7 +3,7 @@ import { WS_BASE } from "@/lib/config";
 import { handleMessage } from "@/lib/services/messageHandler";
 import { appState } from "@/stores/appState.svelte";
 
-const WEBSOCKET_URL = `${WS_BASE}/control/ws`;
+const WEBSOCKET_URL = `${WS_BASE}/api/control/ws`;
 const RECONNECT_DELAY = 3000;
 
 let websocket: WebSocket | null = null;

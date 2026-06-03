@@ -9,12 +9,8 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
     proxy: {
-      '/scene': 'http://localhost:8000',
-      '/ambience': 'http://localhost:8000',
-      '/image': 'http://localhost:8000',
-      '/music': 'http://localhost:8000',
+      '/api': { target: 'http://localhost:8000', ws: true },
       '/static': 'http://localhost:8000',
-      '/control': { target: 'http://localhost:8000', ws: true },
     },
   },
   resolve: {
