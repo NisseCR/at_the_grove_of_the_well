@@ -48,6 +48,7 @@ Create `.env` in repo root:
 ASSETS_DIR=<path to assets on server>
 ALLOWED_ORIGINS=https://<your-domain>
 VITE_PROJECT_NAME=At the Grove of the Well
+CONTROLLER_PASSWORD=<your-password>
 ```
 
 Add Cloudflare Origin Certificate files to the server:
@@ -71,3 +72,15 @@ docker compose up -d --build
 ### SSL
 
 Cloudflare Full Strict mode — origin certificate mounted into the nginx container via `docker-compose.yml`. nginx redirects port 80 → 443.
+
+### Updating Audio Assets
+
+Static assets are served by nginx with `Cache-Control: public, immutable` and a 1-year expiry. Cloudflare and browsers will cache files indefinitely at their current URL.
+
+If you reprocess an audio file (resample, normalise) and redeploy it at the same path, **manually purge the Cloudflare cache** after deploying:
+
+1. Cloudflare Dashboard → your domain → **Caching → Purge Cache**
+2. Choose **Custom Purge** and enter the affected file URL(s), e.g. `https://grove.paracosm-vtt.com/static/assets/audio/ambience/rain.ogg`
+3. Or choose **Purge Everything** to clear all cached assets at once
+
+Players will then fetch the updated file on their next request.
