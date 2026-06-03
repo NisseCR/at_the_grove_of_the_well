@@ -1,6 +1,29 @@
 <script lang="ts">
-  import { navigate } from "@/stores/router.svelte";
+  import { Lock } from "@lucide/svelte";
+  import { navigate, type KnownView } from "@/stores/router.svelte";
+  import { auth } from "@/stores/auth.svelte";
+  import LoginModal from "@/components/LoginModal.svelte";
+
+  let pendingView = $state<"controller" | "editor" | null>(null);
+
+  function openView(view: KnownView) {
+    if ((view === "controller" || view === "editor") && !auth.isAuthenticated) {
+      pendingView = view;
+      return;
+    }
+    navigate(view);
+  }
+
+  function onLoginSuccess() {
+    const target = pendingView;
+    pendingView = null;
+    if (target) navigate(target);
+  }
 </script>
+
+{#if pendingView}
+  <LoginModal onclose={() => (pendingView = null)} onsuccess={onLoginSuccess} />
+{/if}
 
 <div class="home">
   <div class="bg"></div>
@@ -9,16 +32,24 @@
     <h1 class="title">At the Grove of the Well</h1>
 
     <nav class="cards">
-      <button class="card" onclick={() => navigate("player")}>
+      <button class="card" onclick={() => openView("player")}>
         <span class="card-label">Player</span>
         <span class="card-desc">The audio-visual experience</span>
       </button>
-      <button class="card" onclick={() => navigate("controller")}>
-        <span class="card-label">Controller</span>
+
+      <button class="card" class:locked={!auth.isAuthenticated} onclick={() => openView("controller")}>
+        <span class="card-label">
+          Controller
+          {#if !auth.isAuthenticated}<span class="lock-icon"><Lock size={13} /></span>{/if}
+        </span>
         <span class="card-desc">Set scenes, ambiences and music</span>
       </button>
-      <button class="card" onclick={() => navigate("editor")}>
-        <span class="card-label">Editor</span>
+
+      <button class="card" class:locked={!auth.isAuthenticated} onclick={() => openView("editor")}>
+        <span class="card-label">
+          Editor
+          {#if !auth.isAuthenticated}<span class="lock-icon"><Lock size={13} /></span>{/if}
+        </span>
         <span class="card-desc">Manage assets and categories</span>
       </button>
     </nav>
@@ -89,11 +120,24 @@
     border-color: var(--color-border-hover);
   }
 
+  .card.locked {
+    opacity: 0.45;
+  }
+
   .card-label {
     font-family: var(--font-display);
     font-size: var(--text-base);
     color: var(--color-text);
     letter-spacing: var(--tracking-wide);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .lock-icon {
+    display: flex;
+    opacity: 0.7;
   }
 
   .card-desc {
