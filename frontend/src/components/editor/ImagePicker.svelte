@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { API_BASE, assetUrl } from "@/lib/config";
+  import { assetUrl } from "@/lib/config";
+  import { apiClient } from "@/lib/services/apiClient";
 
   type Props = {
     src: string;
@@ -22,9 +23,7 @@
     try {
       const body = new FormData();
       body.append("file", file);
-      const response = await fetch(`${API_BASE}/image/upload`, { method: "POST", body });
-      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-      const data = await response.json();
+      const data = await apiClient.upload<{ src: string }>("/image/upload", body);
       onpick(data.src);
     } catch (e: unknown) {
       error = e instanceof Error ? e.message : "Upload failed";
