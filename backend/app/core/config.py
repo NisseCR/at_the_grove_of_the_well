@@ -45,10 +45,10 @@ class Settings:
         self.music_categories_dir = self.categories_dir / "music"
 
     def resolve_origins(self) -> None:
-        tailscale_host = os.environ.get("VITE_TAILSCALE_HOST")
         self.allowed_origins = ["http://localhost:5173"]
-        if tailscale_host:
-            self.allowed_origins.append(f"http://{tailscale_host}:5173")
+        frontend_origin = os.environ.get("FRONTEND_ORIGIN")
+        if frontend_origin:
+            self.allowed_origins.append(frontend_origin)
 
 
 # Initialise .env and settings.

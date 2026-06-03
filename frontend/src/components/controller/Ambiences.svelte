@@ -5,8 +5,10 @@
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
   import type { AmbienceCategory } from "@/types/ambience";
   import CategoryHeader from "@/components/controller/CategoryHeader.svelte";
+  import VerticalNav from "@/components/controller/VerticalNav.svelte";
 
   let categories = $state<AmbienceCategory[]>([]);
+  let categoryEls = $state<HTMLElement[]>([]);
 
   onMount(async () => {
     categories = await ambienceApiClient.fetchAmbienceCategories();
@@ -25,30 +27,42 @@
   }
 </script>
 
-<div class="categories">
-  {#each categories as category}
-    <div class="category">
-      <CategoryHeader label={category.id} src={category.url} />
-      <div class="item-list">
-        {#each category.ambiences as entry}
-          <button
-            class="item-row"
-            class:active={isActive(entry.id)}
-            onclick={() => toggle(entry.id)}
-          >
-            {entry.label}
-          </button>
-        {/each}
+<div class="ambiences-layout">
+  <VerticalNav items={categories.map((c) => c.id)} elements={categoryEls} />
+
+  <div class="categories">
+    {#each categories as category, i}
+      <div class="category" bind:this={categoryEls[i]}>
+        <CategoryHeader label={category.id} src={category.url} />
+        <div class="item-list">
+          {#each category.ambiences as entry}
+            <button
+              class="item-row"
+              class:active={isActive(entry.id)}
+              onclick={() => toggle(entry.id)}
+            >
+              {entry.label}
+            </button>
+          {/each}
+        </div>
       </div>
-    </div>
-  {/each}
+    {/each}
+  </div>
 </div>
 
 <style>
+  .ambiences-layout {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+  }
+
   .categories {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
+    min-width: 0;
   }
 
   .category {
