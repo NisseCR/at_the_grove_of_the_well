@@ -1,9 +1,9 @@
 import { API_BASE } from "@/lib/config";
 
-const STORAGE_KEY = "auth_token";
+export const AUTH_STORAGE_KEY = "auth_token";
 
 function createAuthStore() {
-  let token = $state<string | null>(sessionStorage.getItem(STORAGE_KEY));
+  let token = $state<string | null>(sessionStorage.getItem(AUTH_STORAGE_KEY));
 
   return {
     get token() { return token; },
@@ -22,12 +22,12 @@ function createAuthStore() {
 
       const { token: newToken } = await response.json();
       token = newToken;
-      sessionStorage.setItem(STORAGE_KEY, newToken);
+      sessionStorage.setItem(AUTH_STORAGE_KEY, newToken);
     },
 
     logout() {
       token = null;
-      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(AUTH_STORAGE_KEY);
     },
   };
 }
