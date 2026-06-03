@@ -1,3 +1,4 @@
+import secrets
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -16,6 +17,7 @@ from app.routers.ambience import router as ambience_router
 from app.routers.image import router as image_router
 from app.routers.control import router as control_router
 from app.routers.music import router as music_router
+from app.routers.auth import router as auth_router
 
 
 @asynccontextmanager
@@ -32,6 +34,8 @@ async def lifespan(app: FastAPI):
     app.state.ambience_service = ambience_service
     app.state.image_service = ImageService(settings.image_assets_dir)
     app.state.music_service = MusicService(settings.music_data_dir, settings.music_categories_dir)
+    app.state.auth_token = secrets.token_urlsafe(32)
+    app.state.auth_token_password = settings.controller_password
 
     yield
 
@@ -64,6 +68,7 @@ def create_app() -> FastAPI:
         )
 
     # Include routers.
+    app.include_router(auth_router, prefix="/api")
     app.include_router(scene_router, prefix="/api")
     app.include_router(ambience_router, prefix="/api")
     app.include_router(image_router, prefix="/api")

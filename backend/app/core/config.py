@@ -18,6 +18,7 @@ class Settings:
         self.resolve_data_directory()
         self.resolve_assets_directory()
         self.resolve_origins()
+        self.resolve_auth()
 
     def resolve_assets_directory(self) -> None:
         # Resolve assets directory from .env.
@@ -53,6 +54,12 @@ class Settings:
     def resolve_origins(self) -> None:
         raw = os.environ.get("ALLOWED_ORIGINS", "")
         self.allowed_origins = [o.strip() for o in raw.split(",") if o.strip()]
+
+    def resolve_auth(self) -> None:
+        password = os.environ.get("CONTROLLER_PASSWORD")
+        if not password:
+            raise KeyError("CONTROLLER_PASSWORD is not set in .env")
+        self.controller_password = password
 
 
 settings = Settings()
