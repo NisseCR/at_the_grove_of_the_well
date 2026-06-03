@@ -4,13 +4,13 @@
 
 A D&D ambient experience tool inspired by the music of [At the Grove of the Well](https://taylormooremusic.bandcamp.com/track/at-the-grove-of-the-well) by Taylor Moore.
 
-The GM controls scenes, music, ambiences and art from a **controller view**, while players experience the result in a fullscreen **player view** — synced in real time over WebSocket. Designed for both local streaming (via OBS + Discord) and remote play (via Tailscale).
+The GM controls scenes, music, ambiences and art from a **controller view**, while players experience the result in a fullscreen **player view** — synced in real time over WebSocket.
 
 ## Getting Started
 
 Run `run.bat` to start the backend and frontend in separate terminal windows, then open `http://localhost:5173` in your browser.
 
-See [HOSTING.md](HOSTING.md) for streaming and remote player setup.
+See [HOSTING.md](HOSTING.md) for VPS deployment and SSL setup.
 
 ## How It Works
 
