@@ -1,9 +1,9 @@
 import type { TransportMessage } from "@/types/message";
-import { SERVER } from "@/lib/config";
+import { WS_BASE } from "@/lib/config";
 import { handleMessage } from "@/lib/services/messageHandler";
 import { appState } from "@/stores/appState.svelte";
 
-const WEBSOCKET_URL = `ws://${SERVER}/control/ws`;
+const WEBSOCKET_URL = `${WS_BASE}/control/ws`;
 const RECONNECT_DELAY = 3000;
 
 let websocket: WebSocket | null = null;

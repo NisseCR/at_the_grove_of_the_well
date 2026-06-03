@@ -104,6 +104,8 @@
 
   /* Tab bar */
   .tabs {
+    position: relative;
+    z-index: 1;
     background: rgba(8, 6, 14, 0.75);
     backdrop-filter: blur(var(--blur-md));
     -webkit-backdrop-filter: blur(var(--blur-md));

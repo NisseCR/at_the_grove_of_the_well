@@ -9,7 +9,10 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_PROJECT_NAME: ${VITE_PROJECT_NAME}
     ports:
       - "80:80"
     depends_on:
