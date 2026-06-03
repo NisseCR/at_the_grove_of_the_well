@@ -1,11 +1,19 @@
+import { AUTH_STORAGE_KEY } from "@/stores/auth.svelte";
+
 export type KnownView = "home" | "controller" | "player" | "editor";
 
-/**
- * Get the current view from the live page URL.
- */
+const PROTECTED_VIEWS: KnownView[] = ["controller", "editor"];
+
+function isAuthenticated(): boolean {
+  return sessionStorage.getItem(AUTH_STORAGE_KEY) !== null;
+}
+
 function getCurrentView(): KnownView {
   const raw = new URLSearchParams(window.location.search).get("view");
-  if (raw === "controller" || raw === "player" || raw === "home" || raw === "editor") return raw;
+  if (raw === "controller" || raw === "player" || raw === "home" || raw === "editor") {
+    if (PROTECTED_VIEWS.includes(raw) && !isAuthenticated()) return "home";
+    return raw;
+  }
   return "home";
 }
 
