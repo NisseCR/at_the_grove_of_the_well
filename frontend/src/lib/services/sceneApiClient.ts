@@ -4,9 +4,14 @@ import type { SceneConfig, SceneCategory } from "@/types/scene";
 
 class SceneApiClient {
   private withUrl(scene: SceneConfig): SceneConfig {
+    const bg = scene.background;
     return {
       ...scene,
-      background: { ...scene.background, url: assetUrl(scene.background.src) },
+      background: {
+        ...bg,
+        url: assetUrl(bg.src),
+        thumb_url: bg.thumb_src ? assetUrl(bg.thumb_src) : null,
+      },
       layers: scene.layers.map((layer) => ({ ...layer, url: assetUrl(layer.src) })),
     };
   }

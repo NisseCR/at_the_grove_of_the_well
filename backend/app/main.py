@@ -6,10 +6,8 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
+from app.core.database import create_db_and_tables
 from app.exceptions import ResourceIdNotFound, ResourceIdConflict
-from app.services.scene_service import SceneService
-from app.services.ambience_service import AmbienceService
-from app.services.music_service import MusicService
 from app.routers.scene import router as scene_router
 from app.routers.ambience import router as ambience_router
 from app.routers.control import router as control_router
@@ -22,9 +20,7 @@ async def lifespan(app: FastAPI):
     """
     Initialise and tear down application resources.
     """
-    app.state.scene_service = SceneService(settings.scene_data_dir, settings.scene_categories_dir)
-    app.state.ambience_service = AmbienceService(settings.ambience_data_dir, settings.ambience_categories_dir)
-    app.state.music_service = MusicService(settings.music_data_dir, settings.music_categories_dir)
+    create_db_and_tables()
     app.state.auth_token = secrets.token_urlsafe(32)
     app.state.auth_token_password = settings.controller_password
 

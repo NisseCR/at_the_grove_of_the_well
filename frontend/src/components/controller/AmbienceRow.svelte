@@ -36,8 +36,8 @@
 <div class="row">
   <div class="row-header">
     <AudioLines class="icon name-icon" size={13} />
-    <span class="audio-name">{ambience.id}</span>
-    <button class="dismiss" onclick={onDismiss} aria-label="Remove {ambience.id}">
+    <span class="audio-name">{ambience.label ?? ambience.id}</span>
+    <button class="dismiss" onclick={onDismiss} aria-label="Remove {ambience.label ?? ambience.id}">
       <X size={16} />
     </button>
   </div>

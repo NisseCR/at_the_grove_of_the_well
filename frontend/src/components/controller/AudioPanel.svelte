@@ -7,7 +7,7 @@
 
   let { collapsed = $bindable(false) }: { collapsed: boolean } = $props();
 
-  const hasMusic = $derived(appState.music?.playlistId != null);
+  const hasMusic = $derived(appState.music?.id != null);
   const hasAmbiences = $derived((appState.ambiences?.length ?? 0) > 0);
 </script>
 

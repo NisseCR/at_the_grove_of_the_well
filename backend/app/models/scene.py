@@ -1,61 +1,75 @@
-from pydantic import BaseModel
-from typing import Literal
+"""Scene table models: scenes, backgrounds, layers, and categories."""
 
-BlendMode = Literal[
-    "normal",
-    "multiply",
-    "screen",
-    "overlay",
-    "darken",
-    "lighten",
-    "color-dodge",
-    "color-burn",
-    "hard-light",
-    "soft-light",
-    "difference",
-    "exclusion",
-    "hue",
-    "saturation",
-    "color",
-    "luminosity",
-]
+from typing import Optional
+from uuid import UUID, uuid4
 
-FileType = Literal["image", "video"]
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.core.database import Base
+from app.models.enums import BlendMode
 
 
-class SceneAsset(BaseModel):
-    id: str
-    src: str
-    type: FileType
-    loop: bool = True
-    opacity: float = 1.0
-    brightness: float = 1.0
-    grayscale: float = 0.0
-    blur: float = 0.0
-    flip: bool = False
-    blend_mode: BlendMode = "normal"
+class SceneVisualProperties:
+    """Mixin: shared CSS visual properties for scene backgrounds and layers."""
+
+    loop: Mapped[bool] = mapped_column(default=True)
+    opacity: Mapped[float] = mapped_column(default=1.0)
+    brightness: Mapped[float] = mapped_column(default=1.0)
+    grayscale: Mapped[float] = mapped_column(default=0.0)
+    blur: Mapped[float] = mapped_column(default=0.0)
+    flip: Mapped[bool] = mapped_column(default=False)
+    blend_mode: Mapped[BlendMode] = mapped_column(default=BlendMode.normal)
 
 
-class BackgroundAsset(SceneAsset):
-    pass
+class Scene(Base):
+    __tablename__ = "scene"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
+
+    background: Mapped["SceneBackground"] = relationship(uselist=False)
+    layers: Mapped[list["SceneLayer"]] = relationship(order_by="SceneLayer.layer_order")
 
 
-class LayerAsset(SceneAsset):
-    order: int
+class SceneBackground(SceneVisualProperties, Base):
+    """1:1 with Scene. Uses scene_id as its primary key."""
+
+    __tablename__ = "scene_background"
+
+    scene_id: Mapped[UUID] = mapped_column(ForeignKey("scene.id", ondelete="CASCADE"), primary_key=True)
+    image_asset_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("image_asset.id", ondelete="SET NULL"), default=None)
+
+    image_asset: Mapped[Optional["ImageAsset"]] = relationship()
 
 
-class SceneConfig(BaseModel):
-    id: str
-    background: BackgroundAsset
-    layers: list[LayerAsset]
+class SceneLayer(SceneVisualProperties, Base):
+    __tablename__ = "scene_layer"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    scene_id: Mapped[UUID] = mapped_column(ForeignKey("scene.id", ondelete="CASCADE"))
+    video_asset_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("video_asset.id", ondelete="SET NULL"), default=None)
+    layer_order: Mapped[int]
+
+    video_asset: Mapped[Optional["VideoAsset"]] = relationship()
 
 
-class SceneCategoryEntry(BaseModel):
-    id: str
-    label: str
+class SceneCategory(Base):
+    __tablename__ = "scene_category"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
+    display_order: Mapped[int]
+
+    scenes: Mapped[list["Scene"]] = relationship(secondary="scene_category_link", order_by="Scene.label")
 
 
-class SceneCategory(BaseModel):
-    id: str
-    order: int
-    scenes: list[SceneCategoryEntry]
+class SceneCategoryLink(Base):
+    __tablename__ = "scene_category_link"
+
+    category_id: Mapped[UUID] = mapped_column(ForeignKey("scene_category.id", ondelete="CASCADE"), primary_key=True)
+    scene_id: Mapped[UUID] = mapped_column(ForeignKey("scene.id", ondelete="CASCADE"), primary_key=True)
+
+
+# resolve forward references used in relationship()
+from app.models.assets import ImageAsset, VideoAsset  # noqa: E402

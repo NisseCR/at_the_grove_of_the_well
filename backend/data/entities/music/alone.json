@@ -1,26 +1,26 @@
 {
   "id": "alone",
-  "src": "assets/images/alone.jpg",
+  "src": "assets/images/alone.webp",
   "tracks": [
     {
       "id": "ashen",
-      "src": "assets/audio/music/ashen.mp3"
+      "src": "assets/audio/music/ashen.ogg"
     },
     {
       "id": "eye-of-the-needle",
-      "src": "assets/audio/music/eye-of-the-needle.mp3"
+      "src": "assets/audio/music/eye-of-the-needle.ogg"
     },
     {
       "id": "refuge",
-      "src": "assets/audio/music/refuge.mp3"
+      "src": "assets/audio/music/refuge.ogg"
     },
     {
       "id": "refuge-reprise",
-      "src": "assets/audio/music/refuge-reprise.mp3"
+      "src": "assets/audio/music/refuge-reprise.ogg"
     },
     {
       "id": "the-foothills",
-      "src": "assets/audio/music/the-foothills.mp3"
+      "src": "assets/audio/music/the-foothills.ogg"
     }
   ]
 }

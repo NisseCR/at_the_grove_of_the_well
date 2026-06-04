@@ -16,13 +16,10 @@ type BlendMode =
   | "color"
   | "luminosity";
 
-type FileType = "video" | "image";
-
 interface SceneAsset {
   id: string;
   src: string;
   url?: string;
-  type: FileType;
   loop: boolean;
   opacity: number;
   brightness: number;
@@ -32,14 +29,20 @@ interface SceneAsset {
   blend_mode: BlendMode;
 }
 
-export interface BackgroundAsset extends SceneAsset {}
+export interface BackgroundAsset extends SceneAsset {
+  type: "image";
+  thumb_src: string | null;
+  thumb_url?: string | null;
+}
 
 export interface LayerAsset extends SceneAsset {
+  type: "video";
   order: number;
 }
 
 export interface SceneConfig {
   id: string;
+  label: string;
   background: BackgroundAsset;
   layers: LayerAsset[];
 }
@@ -51,6 +54,7 @@ export interface SceneCategoryEntry {
 
 export interface SceneCategory {
   id: string;
+  label: string;
   order: number;
   scenes: SceneCategoryEntry[];
 }

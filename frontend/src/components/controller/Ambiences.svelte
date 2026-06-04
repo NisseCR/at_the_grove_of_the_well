@@ -18,28 +18,28 @@
     return appState.ambiences?.some((a) => a.id === id) ?? false;
   }
 
-  function toggle(id: string): void {
+  function toggle(id: string, label: string): void {
     const current = appState.ambiences ?? [];
     const next = isActive(id)
       ? current.filter((a) => a.id !== id)
-      : [...current, { id, volume: 0.5 }];
+      : [...current, { id, label, volume: 0.5 }];
     sendSetAmbiences(next);
   }
 </script>
 
 <div class="ambiences-layout">
-  <VerticalNav items={categories.map((c) => c.id)} elements={categoryEls} />
+  <VerticalNav items={categories.map((c) => c.label)} elements={categoryEls} />
 
   <div class="categories">
     {#each categories as category, i}
       <div class="category" bind:this={categoryEls[i]}>
-        <CategoryHeader label={category.id} src={category.url} />
+        <CategoryHeader label={category.label} src={category.thumb_url ?? category.url} />
         <div class="item-list">
           {#each category.ambiences as entry}
             <button
               class="item-row"
               class:active={isActive(entry.id)}
-              onclick={() => toggle(entry.id)}
+              onclick={() => toggle(entry.id, entry.label)}
             >
               {entry.label}
             </button>

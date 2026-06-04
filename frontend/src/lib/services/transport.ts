@@ -46,12 +46,12 @@ export function send(msg: TransportMessage): void {
   }
 }
 
-export function sendSetScene(sceneId: string): void {
-  send({ type: "SET_SCENE", payload: { sceneId } });
+export function sendSetScene(sceneId: string, label: string | null = null): void {
+  send({ type: "SET_SCENE", payload: { sceneId, label } });
 }
 
 export function sendSetAmbiences(
-  ambiences: { id: string; volume: number }[],
+  ambiences: { id: string; label: string | null; volume: number }[],
 ): void {
   send({ type: "SET_AMBIENCES", payload: { ambiences } });
 }
@@ -60,8 +60,8 @@ export function sendSetAmbienceVolume(id: string, volume: number): void {
   send({ type: "SET_AMBIENCE_VOLUME", payload: { id, volume } });
 }
 
-export function sendSetPlaylist(playlistId: string | null): void {
-  send({ type: "SET_PLAYLIST", payload: { playlistId } });
+export function sendSetPlaylist(id: string | null, label: string | null = null): void {
+  send({ type: "SET_PLAYLIST", payload: { id, label } });
 }
 
 export function sendSetMusicVolume(volume: number): void {

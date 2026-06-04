@@ -18,22 +18,28 @@
   });
 
   function thumbnailFor(id: string): string | undefined {
-    return playlists.find((p) => p.id === id)?.url;
+    const p = playlists.find((p) => p.id === id);
+    return p?.thumb_url ?? p?.url ?? undefined;
   }
 
   function isActive(id: string): boolean {
-    return appState.music?.playlistId === id;
+    return appState.music?.id === id;
   }
 
   function onTileClick(id: string): void {
-    sendSetPlaylist(isActive(id) ? null : id);
+    if (isActive(id)) {
+      sendSetPlaylist(null, null);
+    } else {
+      const label = playlists.find((p) => p.id === id)?.label ?? null;
+      sendSetPlaylist(id, label);
+    }
   }
 </script>
 
 <div class="categories">
   {#each categories as category}
     <div class="category">
-      <CategoryHeader label={category.id} />
+      <CategoryHeader label={category.label} />
       <div class="grid">
         {#each category.playlists as entry}
           <ThumbnailTile

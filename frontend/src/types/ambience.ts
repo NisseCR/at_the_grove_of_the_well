@@ -16,8 +16,11 @@ export interface AmbienceCategoryEntry {
 
 export interface AmbienceCategory {
   id: string;
+  label: string;
   src: string;
+  thumb_src: string | null;
   url?: string;
+  thumb_url?: string | null;
   order: number;
   ambiences: AmbienceCategoryEntry[];
 }

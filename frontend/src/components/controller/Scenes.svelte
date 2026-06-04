@@ -18,7 +18,8 @@
   });
 
   function thumbnailFor(id: string): string | undefined {
-    return scenes.find((s) => s.id === id)?.background.url;
+    const bg = scenes.find((s) => s.id === id)?.background;
+    return bg?.thumb_url ?? bg?.url ?? undefined;
   }
 
   function isActive(id: string): boolean {
@@ -29,14 +30,14 @@
 <div class="categories">
   {#each categories as category}
     <div class="category">
-      <CategoryHeader label={category.id} />
+      <CategoryHeader label={category.label} />
       <div class="grid">
         {#each category.scenes as entry}
           <ThumbnailTile
             label={entry.label}
             src={thumbnailFor(entry.id)}
             active={isActive(entry.id)}
-            onclick={() => sendSetScene(entry.id)}
+            onclick={() => sendSetScene(entry.id, entry.label)}
           />
         {/each}
       </div>

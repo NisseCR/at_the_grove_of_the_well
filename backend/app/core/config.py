@@ -17,6 +17,7 @@ class Settings:
         self.resolve_data_directory()
         self.resolve_origins()
         self.resolve_auth()
+        self.database_url = f"sqlite:///{self.data_dir}/app.db"
 
     def resolve_data_directory(self) -> None:
         self.data_dir = self.base_dir / "data"
