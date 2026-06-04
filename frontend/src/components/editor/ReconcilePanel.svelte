@@ -12,6 +12,7 @@
       result.broken_assets.length === 0
   );
 
+  /** Run a full reconcile diff between R2 and the DB. */
   async function runReconcile() {
     loading = true;
     error = null;
@@ -24,6 +25,7 @@
     }
   }
 
+  /** Delete an orphaned R2 file that has no matching DB record. */
   async function deleteOrphan(orphan: OrphanedFile) {
     try {
       await assetApiClient.deleteOrphan(orphan.key);
@@ -38,6 +40,7 @@
     }
   }
 
+  /** Delete the DB record for a broken asset whose R2 file is missing. */
   async function deleteBroken(asset: BrokenAsset) {
     try {
       await assetApiClient.deleteBrokenAsset(asset);

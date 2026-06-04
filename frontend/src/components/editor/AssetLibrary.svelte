@@ -2,6 +2,7 @@
   import { assetApiClient } from "@/lib/services/assetApiClient";
   import type { AnyAsset, AssetType, AudioAsset, ImageAsset, VideoAsset } from "@/types/assets";
   import AssetCard from "./AssetCard.svelte";
+  import AssetEditModal from "./AssetEditModal.svelte";
   import AssetUpload from "./AssetUpload.svelte";
 
   type Tab = AssetType;
@@ -13,19 +14,18 @@
   let loading = $state(false);
   let uploading = $state(false);
   let error = $state<string | null>(null);
+  let editingAsset = $state<AnyAsset | null>(null);
 
   const assets = $derived<AnyAsset[]>(
     activeTab === "image" ? images : activeTab === "audio" ? audio : video
   );
 
-  const accept = $derived(
-    activeTab === "image" ? "image/*" : activeTab === "audio" ? "audio/*" : "video/webm"
-  );
 
   $effect(() => {
     loadAssets(activeTab);
   });
 
+  /** Fetch all assets for the given tab type from the API. */
   async function loadAssets(type: Tab) {
     loading = true;
     error = null;
@@ -40,6 +40,7 @@
     }
   }
 
+  /** Upload a single file with the given label and append it to the active list. */
   async function handleUpload(file: File, label: string) {
     uploading = true;
     error = null;
@@ -58,16 +59,17 @@
     }
   }
 
+  /** Upload multiple files using filename stems as labels and append them to the active list. */
   async function handleBulkUpload(files: File[]) {
     uploading = true;
     error = null;
     try {
       if (activeTab === "image") {
-        images = [...images, ...await assetApiClient.uploadImagesBulk(files)];
+        images = [...images, ...(await assetApiClient.uploadImagesBulk(files))];
       } else if (activeTab === "audio") {
-        audio = [...audio, ...await assetApiClient.uploadAudioBulk(files)];
+        audio = [...audio, ...(await assetApiClient.uploadAudioBulk(files))];
       } else {
-        video = [...video, ...await assetApiClient.uploadVideoBulk(files)];
+        video = [...video, ...(await assetApiClient.uploadVideoBulk(files))];
       }
     } catch {
       error = "Bulk upload failed.";
@@ -76,6 +78,7 @@
     }
   }
 
+  /** Update the label for an existing asset. */
   async function handlePatchLabel(id: string, label: string) {
     try {
       if (activeTab === "image") {
@@ -93,6 +96,7 @@
     }
   }
 
+  /** Replace the file for an existing asset with a new upload. */
   async function handleReplace(id: string, file: File) {
     try {
       if (activeTab === "image") {
@@ -110,6 +114,7 @@
     }
   }
 
+  /** Delete an asset from the DB and R2, then remove it from the active list. */
   async function handleDelete(id: string) {
     try {
       if (activeTab === "image") {
@@ -125,6 +130,16 @@
     } catch {
       error = "Failed to delete asset.";
     }
+  }
+
+  /** Open the edit modal for the given asset. */
+  function handleEdit(asset: AnyAsset) {
+    editingAsset = asset;
+  }
+
+  /** Close the edit modal. */
+  function handleCloseModal() {
+    editingAsset = null;
   }
 </script>
 
@@ -145,12 +160,7 @@
     <p class="error">{error}</p>
   {/if}
 
-  <AssetUpload
-    {accept}
-    {uploading}
-    onUpload={handleUpload}
-    onBulkUpload={handleBulkUpload}
-  />
+  <AssetUpload type={activeTab} {uploading} onUpload={handleUpload} onBulkUpload={handleBulkUpload} />
 
   {#if loading}
     <p class="status">Loading…</p>
@@ -159,17 +169,22 @@
   {:else}
     <div class="grid">
       {#each assets as asset (asset.id)}
-        <AssetCard
-          {asset}
-          type={activeTab}
-          onPatchLabel={handlePatchLabel}
-          onReplace={handleReplace}
-          onDelete={handleDelete}
-        />
+        <AssetCard {asset} type={activeTab} onEdit={handleEdit} />
       {/each}
     </div>
   {/if}
 </div>
+
+{#if editingAsset}
+  <AssetEditModal
+    asset={editingAsset}
+    type={activeTab}
+    onPatchLabel={handlePatchLabel}
+    onReplace={handleReplace}
+    onDelete={handleDelete}
+    onClose={handleCloseModal}
+  />
+{/if}
 
 <style>
   .library {
@@ -182,7 +197,6 @@
     gap: var(--space-1);
     margin-bottom: var(--space-6);
     border-bottom: 1px solid var(--color-border);
-    padding-bottom: 0;
   }
 
   .sub-tab {

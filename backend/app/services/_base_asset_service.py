@@ -71,16 +71,41 @@ class BaseAssetService[T]:
     def replace(self, asset_id: UUID, data: bytes, session: Session) -> T:
         """Replace the file(s) for an existing asset. Asset ID and label are unchanged.
 
-        All asset types use fixed extensions so the R2 key never changes on replace —
-        the new file is uploaded over the same key.
+        A new file UUID is generated so the R2 key changes, busting the CDN cache.
+        The DB src is updated, and the old R2 files are deleted after a successful commit.
         """
         asset = session.get(self._model, asset_id)
         if not asset:
             raise ResourceIdNotFound(self._resource_name, str(asset_id))
 
-        prepared = self._prepare(asset_id, data)
-        for key, (content, content_type) in prepared.files.items():
-            r2.upload(key, content, content_type)
+        old_src = asset.src
+        old_thumb_src = getattr(asset, "thumb_src", None)
+
+        prepared = self._prepare(uuid4(), data)
+
+        uploaded: list[str] = []
+        try:
+            for key, (content, content_type) in prepared.files.items():
+                r2.upload(key, content, content_type)
+                uploaded.append(key)
+        except Exception:
+            for key in uploaded:
+                r2.delete(key)
+            raise
+
+        asset.src = prepared.src
+        for field, value in prepared.extra.items():
+            setattr(asset, field, value)
+        try:
+            session.commit()
+        except Exception:
+            for key in uploaded:
+                r2.delete(key)
+            raise
+
+        r2.delete(old_src)
+        if old_thumb_src:
+            r2.delete(old_thumb_src)
 
         session.refresh(asset)
         return asset

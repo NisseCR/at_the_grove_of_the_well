@@ -1,19 +1,38 @@
 <script lang="ts">
   import { Upload } from "@lucide/svelte";
+  import type { AssetType } from "@/types/assets";
 
   interface Props {
-    accept: string;
+    type: AssetType;
     uploading: boolean;
+    /** Called when a single file is ready to upload, with its label. */
     onUpload: (file: File, label: string) => void;
+    /** Called when multiple files are ready to upload. Labels derived from filenames. */
     onBulkUpload: (files: File[]) => void;
   }
 
-  const { accept, uploading, onUpload, onBulkUpload }: Props = $props();
+  const { type, uploading, onUpload, onBulkUpload }: Props = $props();
 
   let files = $state<File[]>([]);
   let label = $state("");
+  let didUpload = $state(false);
   let fileInput: HTMLInputElement;
 
+  const accept = $derived(
+    type === "image" ? "image/*" : type === "audio" ? "audio/*" : "video/webm"
+  );
+
+  /** Clear the staged files once the parent signals upload is complete. */
+  $effect(() => {
+    if (didUpload && !uploading) {
+      files = [];
+      label = "";
+      if (fileInput) fileInput.value = "";
+      didUpload = false;
+    }
+  });
+
+  /** Handle file picker selection — pre-fills label from filename for single files. */
   function onFileChange(e: Event) {
     const selected = Array.from((e.target as HTMLInputElement).files ?? []);
     files = selected;
@@ -24,18 +43,18 @@
     }
   }
 
+  /** Dispatch upload or bulk upload depending on how many files were selected. */
   function handleUpload() {
     if (files.length === 0) return;
+    didUpload = true;
     if (files.length === 1) {
       onUpload(files[0], label.trim() || files[0].name);
     } else {
       onBulkUpload(files);
     }
-    files = [];
-    label = "";
-    fileInput.value = "";
   }
 
+  /** Clear the current file selection without uploading. */
   function cancel() {
     files = [];
     label = "";
@@ -49,37 +68,38 @@
       <Upload size={13} />
       Upload
     </button>
+  {:else if uploading}
+    <div class="uploading">
+      <span class="spinner"></span>
+      <span class="uploading-name">
+        {files.length === 1 ? files[0].name : `${files.length} files`}
+      </span>
+      {#if type === "audio"}
+        <span class="uploading-hint">Processing audio — this may take a moment…</span>
+      {:else}
+        <span class="uploading-hint">Uploading…</span>
+      {/if}
+    </div>
   {:else if files.length === 1}
-    <div class="single">
+    <div class="staged">
       <input
         class="label-input"
         bind:value={label}
         placeholder="Label"
         onkeydown={(e) => e.key === "Enter" && handleUpload()}
       />
-      <button class="upload-btn" onclick={handleUpload} disabled={uploading}>
-        {uploading ? "Uploading…" : "Upload"}
-      </button>
-      <button class="cancel-btn" onclick={cancel} disabled={uploading}>×</button>
+      <button class="upload-btn" onclick={handleUpload}>Upload</button>
+      <button class="cancel-btn" onclick={cancel}>×</button>
     </div>
   {:else}
-    <div class="bulk">
+    <div class="staged">
       <span class="bulk-label">{files.length} files selected</span>
-      <button class="upload-btn" onclick={handleUpload} disabled={uploading}>
-        {uploading ? "Uploading…" : `Upload ${files.length}`}
-      </button>
-      <button class="cancel-btn" onclick={cancel} disabled={uploading}>×</button>
+      <button class="upload-btn" onclick={handleUpload}>Upload {files.length}</button>
+      <button class="cancel-btn" onclick={cancel}>×</button>
     </div>
   {/if}
 
-  <input
-    type="file"
-    bind:this={fileInput}
-    {accept}
-    multiple
-    onchange={onFileChange}
-    hidden
-  />
+  <input type="file" bind:this={fileInput} {accept} multiple onchange={onFileChange} hidden />
 </div>
 
 <style>
@@ -108,11 +128,48 @@
     border-color: var(--color-accent);
   }
 
-  .single,
-  .bulk {
+  .pick-btn:disabled {
+    opacity: 0.4;
+  }
+
+  .staged {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+  }
+
+  .uploading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .uploading-name {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .uploading-hint {
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
   }
 
   .label-input {
@@ -146,8 +203,8 @@
     transition: opacity var(--ease-fast);
   }
 
-  .upload-btn:disabled {
-    opacity: 0.5;
+  .upload-btn:hover {
+    opacity: 0.85;
   }
 
   .cancel-btn {
