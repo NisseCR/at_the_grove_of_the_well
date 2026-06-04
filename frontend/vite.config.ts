@@ -10,7 +10,6 @@ export default defineConfig({
     strictPort: false,
     proxy: {
       '/api': { target: 'http://localhost:8000', ws: true },
-      '/static': 'http://localhost:8000',
     },
   },
   resolve: {
