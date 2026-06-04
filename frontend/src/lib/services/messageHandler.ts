@@ -9,8 +9,8 @@ import { musicEngine } from "@/lib/engines/musicEngine";
 export async function handleMessage(message: TransportMessage): Promise<void> {
   switch (message.type) {
     case "SET_SCENE": {
-      const { sceneId } = message.payload;
-      appState.scene = { id: sceneId };
+      const { sceneId, label } = message.payload;
+      appState.scene = { id: sceneId, label };
       if (router.view === "player") {
         sceneState.requestedSceneId = sceneId;
       }
@@ -39,16 +39,16 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SET_PLAYLIST": {
-      if (!appState.music) appState.music = { id: null, volume: 0.5 };
-      appState.music.id = message.payload.id;
+      const { id, label } = message.payload;
+      appState.music = { id, label, volume: appState.music?.volume ?? 0.5 };
       if (router.view === "player" && appState.audioReady)
-        await musicEngine.setPlaylist(message.payload.id);
+        await musicEngine.setPlaylist(id);
       break;
     }
 
     case "SET_MUSIC_VOLUME": {
       if (!appState.music)
-        appState.music = { id: null, volume: message.payload.volume };
+        appState.music = { id: null, label: null, volume: message.payload.volume };
       else appState.music.volume = message.payload.volume;
       if (router.view === "player" && appState.audioReady)
         musicEngine.setVolume(message.payload.volume);
@@ -72,9 +72,9 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
 
     case "SYNC": {
       const { scene, ambiences, music } = message.payload;
-      appState.scene = scene;
-      appState.ambiences = ambiences;
-      appState.music = music;
+      appState.scene = scene ? { id: scene.id, label: null } : null;
+      appState.ambiences = ambiences ?? null;
+      appState.music = music ? { ...music, label: music.label ?? null } : null;
       if (router.view === "player" && appState.audioReady) {
         if (scene) sceneState.requestedSceneId = scene.id;
         await ambienceEngine.syncActive(ambiences ?? []);

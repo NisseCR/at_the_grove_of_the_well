@@ -37,7 +37,7 @@
             label={entry.label}
             src={thumbnailFor(entry.id)}
             active={isActive(entry.id)}
-            onclick={() => sendSetScene(entry.id)}
+            onclick={() => sendSetScene(entry.id, entry.label)}
           />
         {/each}
       </div>

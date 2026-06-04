@@ -27,7 +27,12 @@
   }
 
   function onTileClick(id: string): void {
-    sendSetPlaylist(isActive(id) ? null : id);
+    if (isActive(id)) {
+      sendSetPlaylist(null, null);
+    } else {
+      const label = playlists.find((p) => p.id === id)?.label ?? null;
+      sendSetPlaylist(id, label);
+    }
   }
 </script>
 

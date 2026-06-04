@@ -31,7 +31,7 @@
 <div class="row">
   <div class="row-header">
     <Music class="icon name-icon" size={13} />
-    <span class="audio-name">{appState.music!.id}</span>
+    <span class="audio-name">{appState.music!.label ?? appState.music!.id}</span>
     <button
       class="dismiss"
       onclick={() => sendSetPlaylist(null)}
