@@ -33,7 +33,7 @@
   <div class="categories">
     {#each categories as category, i}
       <div class="category" bind:this={categoryEls[i]}>
-        <CategoryHeader label={category.label} src={category.url} />
+        <CategoryHeader label={category.label} src={category.thumb_url ?? category.url} />
         <div class="item-list">
           {#each category.ambiences as entry}
             <button

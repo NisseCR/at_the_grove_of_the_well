@@ -18,7 +18,8 @@
   });
 
   function thumbnailFor(id: string): string | undefined {
-    return scenes.find((s) => s.id === id)?.background.url;
+    const bg = scenes.find((s) => s.id === id)?.background;
+    return bg?.thumb_url ?? bg?.url ?? undefined;
   }
 
   function isActive(id: string): boolean {

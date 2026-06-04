@@ -18,7 +18,8 @@
   });
 
   function thumbnailFor(id: string): string | undefined {
-    return playlists.find((p) => p.id === id)?.url;
+    const p = playlists.find((p) => p.id === id);
+    return p?.thumb_url ?? p?.url ?? undefined;
   }
 
   function isActive(id: string): boolean {
