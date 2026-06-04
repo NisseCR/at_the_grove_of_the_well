@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.database import create_db_and_tables
 from app.exceptions import ResourceIdNotFound, ResourceIdConflict
+from app.routers.assets import router as assets_router
 from app.routers.scene import router as scene_router
 from app.routers.ambience import router as ambience_router
 from app.routers.control import router as control_router
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
         )
 
     app.include_router(auth_router, prefix="/api")
+    app.include_router(assets_router, prefix="/api")
     app.include_router(scene_router, prefix="/api")
     app.include_router(ambience_router, prefix="/api")
     app.include_router(control_router, prefix="/api")
