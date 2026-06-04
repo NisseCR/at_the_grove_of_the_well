@@ -2,7 +2,7 @@
   "id": "study",
   "background": {
     "id": "study",
-    "src": "assets/images/study.jpg",
+    "src": "assets/images/study.webp",
     "type": "image"
   },
   "layers": [
