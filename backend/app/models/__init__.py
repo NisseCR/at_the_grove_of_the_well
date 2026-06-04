@@ -1,6 +1,6 @@
-"""SQLModel table models.
+"""SQLAlchemy table models.
 
-All models are imported here so that SQLModel.metadata is fully populated
+All models are imported here so that Base.metadata is fully populated
 before create_db_and_tables() is called.
 """
 

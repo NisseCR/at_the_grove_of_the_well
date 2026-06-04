@@ -3,40 +3,29 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.core.database import Base
 
 
-class AmbienceCategory(SQLModel, table=True):
-    """A display category for grouping ambience sounds in the controller.
+class AmbienceCategory(Base):
+    __tablename__ = "ambience_category"
 
-    display_order controls the position of this category relative to others.
-    Deleting the thumbnail image sets thumb_id to null rather than removing
-    the category.
-    """
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
+    display_order: Mapped[int]
+    thumb_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("image_asset.id", ondelete="SET NULL"), default=None)
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    label: str
-    display_order: int
-    thumb_id: Optional[UUID] = Field(
-        default=None,
-        foreign_key="imageasset.id",
-        ondelete="SET NULL",
-    )
+    thumb: Mapped[Optional["ImageAsset"]] = relationship()
+    audio_assets: Mapped[list["AudioAsset"]] = relationship(secondary="ambience_category_link", order_by="AudioAsset.label")
 
 
-class AmbienceCategoryLink(SQLModel, table=True):
-    """Many-to-many link between ambience categories and audio assets.
+class AmbienceCategoryLink(Base):
+    __tablename__ = "ambience_category_link"
 
-    Deleting either the category or the audio asset removes the link row.
-    """
+    category_id: Mapped[UUID] = mapped_column(ForeignKey("ambience_category.id", ondelete="CASCADE"), primary_key=True)
+    audio_asset_id: Mapped[UUID] = mapped_column(ForeignKey("audio_asset.id", ondelete="CASCADE"), primary_key=True)
 
-    category_id: UUID = Field(
-        foreign_key="ambiencecategory.id",
-        primary_key=True,
-        ondelete="CASCADE",
-    )
-    audio_asset_id: UUID = Field(
-        foreign_key="audioasset.id",
-        primary_key=True,
-        ondelete="CASCADE",
-    )
+
+from app.models.assets import AudioAsset, ImageAsset  # noqa: E402

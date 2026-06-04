@@ -3,93 +3,73 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.database import Base
 from app.models.enums import BlendMode
 
 
-class SceneVisualProperties(SQLModel):
-    """Shared CSS visual properties applied to scene backgrounds and layers.
+class SceneVisualProperties:
+    """Mixin: shared CSS visual properties for scene backgrounds and layers."""
 
-    These map directly to CSS filter and blend-mode values applied by the
-    player's SceneAsset component.
-    """
-
-    loop: bool = True
-    opacity: float = 1.0
-    brightness: float = 1.0
-    grayscale: float = 0.0
-    blur: float = 0.0
-    flip: bool = False
-    blend_mode: BlendMode = BlendMode.normal
+    loop: Mapped[bool] = mapped_column(default=True)
+    opacity: Mapped[float] = mapped_column(default=1.0)
+    brightness: Mapped[float] = mapped_column(default=1.0)
+    grayscale: Mapped[float] = mapped_column(default=0.0)
+    blur: Mapped[float] = mapped_column(default=0.0)
+    flip: Mapped[bool] = mapped_column(default=False)
+    blend_mode: Mapped[BlendMode] = mapped_column(default=BlendMode.normal)
 
 
-class Scene(SQLModel, table=True):
-    """A named scene composed of a background image and ordered video layers."""
+class Scene(Base):
+    __tablename__ = "scene"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    label: str
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
 
-
-class SceneBackground(SceneVisualProperties, table=True):
-    """The background image for a scene with CSS compositing properties.
-
-    Uses scene_id as its primary key, enforcing a strict 1:1 relationship
-    with Scene. Deleting the scene cascades to this row; deleting the image
-    asset sets image_asset_id to null rather than removing the background.
-    """
-
-    scene_id: UUID = Field(
-        primary_key=True,
-        foreign_key="scene.id",
-        ondelete="CASCADE",
-    )
-    image_asset_id: Optional[UUID] = Field(
-        default=None,
-        foreign_key="imageasset.id",
-        ondelete="SET NULL",
-    )
+    background: Mapped["SceneBackground"] = relationship(uselist=False)
+    layers: Mapped[list["SceneLayer"]] = relationship(order_by="SceneLayer.layer_order")
 
 
-class SceneLayer(SceneVisualProperties, table=True):
-    """An ordered video overlay layer within a scene.
+class SceneBackground(SceneVisualProperties, Base):
+    """1:1 with Scene. Uses scene_id as its primary key."""
 
-    layer_order determines the z-index stack; lower values render beneath
-    higher values. Deleting the scene cascades to all its layers; deleting
-    the video asset sets video_asset_id to null.
-    """
+    __tablename__ = "scene_background"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    scene_id: UUID = Field(foreign_key="scene.id", ondelete="CASCADE")
-    video_asset_id: Optional[UUID] = Field(
-        default=None,
-        foreign_key="videoasset.id",
-        ondelete="SET NULL",
-    )
-    layer_order: int
+    scene_id: Mapped[UUID] = mapped_column(ForeignKey("scene.id", ondelete="CASCADE"), primary_key=True)
+    image_asset_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("image_asset.id", ondelete="SET NULL"), default=None)
+
+    image_asset: Mapped[Optional["ImageAsset"]] = relationship()
 
 
-class SceneCategory(SQLModel, table=True):
-    """A display category for grouping scenes in the controller.
+class SceneLayer(SceneVisualProperties, Base):
+    __tablename__ = "scene_layer"
 
-    display_order controls the position of this category relative to others.
-    """
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    scene_id: Mapped[UUID] = mapped_column(ForeignKey("scene.id", ondelete="CASCADE"))
+    video_asset_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("video_asset.id", ondelete="SET NULL"), default=None)
+    layer_order: Mapped[int]
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    label: str
-    display_order: int
+    video_asset: Mapped[Optional["VideoAsset"]] = relationship()
 
 
-class SceneCategoryLink(SQLModel, table=True):
-    """Many-to-many link between scenes and scene categories."""
+class SceneCategory(Base):
+    __tablename__ = "scene_category"
 
-    category_id: UUID = Field(
-        foreign_key="scenecategory.id",
-        primary_key=True,
-        ondelete="CASCADE",
-    )
-    scene_id: UUID = Field(
-        foreign_key="scene.id",
-        primary_key=True,
-        ondelete="CASCADE",
-    )
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
+    display_order: Mapped[int]
+
+    scenes: Mapped[list["Scene"]] = relationship(secondary="scene_category_link", order_by="Scene.label")
+
+
+class SceneCategoryLink(Base):
+    __tablename__ = "scene_category_link"
+
+    category_id: Mapped[UUID] = mapped_column(ForeignKey("scene_category.id", ondelete="CASCADE"), primary_key=True)
+    scene_id: Mapped[UUID] = mapped_column(ForeignKey("scene.id", ondelete="CASCADE"), primary_key=True)
+
+
+# resolve forward references used in relationship()
+from app.models.assets import ImageAsset, VideoAsset  # noqa: E402

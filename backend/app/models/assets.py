@@ -3,38 +3,33 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.database import Base
 
 
-class ImageAsset(SQLModel, table=True):
-    """An image file on the CDN with a corresponding thumbnail variant.
+class ImageAsset(Base):
+    __tablename__ = "image_asset"
 
-    thumb_src stores the preprocessed thumbnail path independently so that
-    content-hash versioning can update full-res and thumbnail separately.
-    """
-
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    label: str
-    src: str
-    thumb_src: Optional[str] = None
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
+    src: Mapped[str]
+    thumb_src: Mapped[Optional[str]] = mapped_column(default=None)
 
 
-class AudioAsset(SQLModel, table=True):
-    """An audio file on the CDN.
+class AudioAsset(Base):
+    """Used for both ambience sounds and music tracks."""
 
-    Used for both ambience sounds and music tracks — the context in which an
-    asset is used is determined by the tables that reference it, not by a type
-    field on the asset itself.
-    """
+    __tablename__ = "audio_asset"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    label: str
-    src: str
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
+    src: Mapped[str]
 
 
-class VideoAsset(SQLModel, table=True):
-    """A video file on the CDN. Used as ordered overlay layers within scenes."""
+class VideoAsset(Base):
+    __tablename__ = "video_asset"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    label: str
-    src: str
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    label: Mapped[str]
+    src: Mapped[str]
