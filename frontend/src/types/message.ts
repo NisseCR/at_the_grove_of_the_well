@@ -26,4 +26,5 @@ export type TransportMessage =
         music: { id: string | null; label: string | null; volume: number } | null;
       };
     }
-  | { type: "RESET_AUDIO" };
+  | { type: "RESET_AUDIO" }
+  | { type: "SET_DEBUG"; payload: { debug: boolean } };

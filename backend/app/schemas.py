@@ -73,6 +73,59 @@ class AmbienceCategoryOut(BaseModel):
     ambiences: list[AmbienceCategoryEntryOut]
 
 
+class ImageAssetOut(BaseModel):
+    """A single image asset in the library."""
+
+    id: str
+    label: str
+    src: str
+    thumb_src: Optional[str] = None
+
+
+class AudioAssetOut(BaseModel):
+    """A single audio asset in the library."""
+
+    id: str
+    label: str
+    src: str
+
+
+class VideoAssetOut(BaseModel):
+    """A single video asset in the library."""
+
+    id: str
+    label: str
+    src: str
+
+
+class AssetLabelPatchIn(BaseModel):
+    """Payload for renaming an asset."""
+
+    label: str
+
+
+class OrphanedFileOut(BaseModel):
+    """An R2 object with no matching DB record."""
+
+    key: str
+
+
+class BrokenAssetOut(BaseModel):
+    """A DB asset record whose R2 file is missing."""
+
+    id: str
+    label: str
+    src: str
+    type: str
+
+
+class ReconcileResultOut(BaseModel):
+    """Result of a reconcile diff between R2 and the DB."""
+
+    orphaned_files: list[OrphanedFileOut]
+    broken_assets: list[BrokenAssetOut]
+
+
 class MusicTrackOut(BaseModel):
     """A single music track within a playlist."""
 

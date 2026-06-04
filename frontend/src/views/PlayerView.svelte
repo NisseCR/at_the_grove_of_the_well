@@ -1,7 +1,7 @@
 <script lang="ts">
   import SceneRenderer from "@/components/player/SceneRenderer.svelte";
   import StoryGate from "@/components/player/StoryGate.svelte";
-  // import DebugOverlay from "@/components/player/DebugOverlay.svelte";
+  import DebugOverlay from "@/components/player/DebugOverlay.svelte";
   import { appState } from "@/stores/appState.svelte";
 </script>
 
@@ -10,7 +10,7 @@
 {:else}
   <div class="player">
     <SceneRenderer />
-    <!-- <DebugOverlay /> -->
+    {#if appState.debug}<DebugOverlay />{/if}
   </div>
 {/if}
 

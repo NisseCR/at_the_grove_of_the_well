@@ -17,6 +17,7 @@ class Settings:
         self.resolve_data_directory()
         self.resolve_origins()
         self.resolve_auth()
+        self.resolve_r2()
         self.database_url = f"sqlite:///{self.data_dir}/app.db"
 
     def resolve_data_directory(self) -> None:
@@ -43,6 +44,12 @@ class Settings:
         if not password:
             raise KeyError("CONTROLLER_PASSWORD is not set in .env")
         self.controller_password = password
+
+    def resolve_r2(self) -> None:
+        self.r2_account_id = os.environ.get("R2_ACCOUNT_ID", "")
+        self.r2_access_key = os.environ.get("R2_ACCESS_KEY", "")
+        self.r2_secret_key = os.environ.get("R2_SECRET_KEY", "")
+        self.r2_bucket = os.environ.get("R2_BUCKET", "")
 
 
 settings = Settings()

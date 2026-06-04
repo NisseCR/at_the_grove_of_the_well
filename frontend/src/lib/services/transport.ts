@@ -72,6 +72,10 @@ export function sendResetAudio(): void {
   send({ type: "RESET_AUDIO" });
 }
 
+export function sendSetDebug(debug: boolean): void {
+  send({ type: "SET_DEBUG", payload: { debug } });
+}
+
 export function sendSync(): void {
   send({
     type: "SYNC",
