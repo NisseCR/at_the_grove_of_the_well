@@ -22,36 +22,7 @@ class AmbienceApiClient {
     return this.withUrl(ambience);
   }
 
-  async uploadAmbience(file: File, id: string): Promise<AmbienceAsset> {
-    const body = new FormData();
-    body.append("file", file);
-    body.append("id", id);
-    return apiClient.upload<AmbienceAsset>("/ambience/upload", body);
-  }
 
-  async createAmbience(ambience: AmbienceAsset): Promise<AmbienceAsset> {
-    return apiClient.post<AmbienceAsset>("/ambience", ambience);
-  }
-
-  async updateAmbience(ambienceId: string, ambience: AmbienceAsset): Promise<AmbienceAsset> {
-    return apiClient.put<AmbienceAsset>(`/ambience/${ambienceId}`, ambience);
-  }
-
-  async deleteAmbience(ambienceId: string): Promise<AmbienceAsset> {
-    return apiClient.delete<AmbienceAsset>(`/ambience/${ambienceId}`);
-  }
-
-  async createCategory(category: AmbienceCategory): Promise<AmbienceCategory> {
-    return apiClient.post<AmbienceCategory>("/ambience/categories", category);
-  }
-
-  async updateCategory(categoryId: string, category: AmbienceCategory): Promise<AmbienceCategory> {
-    return apiClient.put<AmbienceCategory>(`/ambience/categories/${categoryId}`, category);
-  }
-
-  async deleteCategory(categoryId: string): Promise<AmbienceCategory> {
-    return apiClient.delete<AmbienceCategory>(`/ambience/categories/${categoryId}`);
-  }
 }
 
 export const ambienceApiClient = new AmbienceApiClient();
