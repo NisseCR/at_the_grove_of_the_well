@@ -1,10 +1,5 @@
 <script lang="ts">
   import { navigate } from "@/stores/router.svelte";
-  import AmbienceEditor from "@/components/editor/AmbienceEditor.svelte";
-  import AmbienceCategoryEditor from "@/components/editor/AmbienceCategoryEditor.svelte";
-
-  type Tab = "ambiences" | "categories";
-  let activeTab = $state<Tab>("ambiences");
 </script>
 
 <div class="editor">
@@ -12,29 +7,10 @@
 
   <nav class="tabs">
     <button class="back" onclick={() => navigate("home")}>← Home</button>
-    <button
-      class="tab"
-      class:active={activeTab === "ambiences"}
-      onclick={() => (activeTab = "ambiences")}
-    >
-      Ambiences
-    </button>
-    <button
-      class="tab"
-      class:active={activeTab === "categories"}
-      onclick={() => (activeTab = "categories")}
-    >
-      Categories
-    </button>
   </nav>
 
   <div class="main">
     <div class="content">
-      {#if activeTab === "ambiences"}
-        <AmbienceEditor />
-      {:else if activeTab === "categories"}
-        <AmbienceCategoryEditor />
-      {/if}
     </div>
   </div>
 </div>

@@ -2,7 +2,7 @@
   "id": "abyssus",
   "background": {
     "id": "abyssus",
-    "src": "assets/images/abyssus.jpg",
+    "src": "assets/images/abyssus.webp",
     "type": "image"
   },
   "layers": [

@@ -2,7 +2,6 @@ import secrets
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 
 from contextlib import asynccontextmanager
 
@@ -10,11 +9,9 @@ from app.core.config import settings
 from app.exceptions import ResourceIdNotFound, ResourceIdConflict
 from app.services.scene_service import SceneService
 from app.services.ambience_service import AmbienceService
-from app.services.image_service import ImageService
 from app.services.music_service import MusicService
 from app.routers.scene import router as scene_router
 from app.routers.ambience import router as ambience_router
-from app.routers.image import router as image_router
 from app.routers.control import router as control_router
 from app.routers.music import router as music_router
 from app.routers.auth import router as auth_router
@@ -25,14 +22,8 @@ async def lifespan(app: FastAPI):
     """
     Initialise and tear down application resources.
     """
-    # Create services.
-    scene_service: SceneService = SceneService(settings.scene_data_dir, settings.scene_categories_dir)
-    ambience_service: AmbienceService = AmbienceService(settings.ambience_data_dir, settings.ambience_categories_dir, settings.ambience_audio_dir)
-
-    # Bind services to app state, so that they are accessible by endpoints throughout the app's lifespan.
-    app.state.scene_service = scene_service
-    app.state.ambience_service = ambience_service
-    app.state.image_service = ImageService(settings.image_assets_dir)
+    app.state.scene_service = SceneService(settings.scene_data_dir, settings.scene_categories_dir)
+    app.state.ambience_service = AmbienceService(settings.ambience_data_dir, settings.ambience_categories_dir)
     app.state.music_service = MusicService(settings.music_data_dir, settings.music_categories_dir)
     app.state.auth_token = secrets.token_urlsafe(32)
     app.state.auth_token_password = settings.controller_password
@@ -46,7 +37,6 @@ def create_app() -> FastAPI:
     """
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
-    # Setup middleware for front-end.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,
@@ -54,7 +44,6 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Add exception handles.
     @app.exception_handler(ResourceIdNotFound)
     def not_found_handler(request: Request, exc: ResourceIdNotFound) -> JSONResponse:
         return JSONResponse(
@@ -67,18 +56,11 @@ def create_app() -> FastAPI:
             status_code=status.HTTP_409_CONFLICT, content={"detail": str(exc)}
         )
 
-    # Include routers.
     app.include_router(auth_router, prefix="/api")
     app.include_router(scene_router, prefix="/api")
     app.include_router(ambience_router, prefix="/api")
-    app.include_router(image_router, prefix="/api")
     app.include_router(control_router, prefix="/api")
     app.include_router(music_router, prefix="/api")
-
-    # Mount static files.
-    app.mount(
-        "/static/assets", StaticFiles(directory=settings.assets_dir), name="assets"
-    )
 
     return app
 

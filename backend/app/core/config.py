@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,25 +15,8 @@ class Settings:
         self.app_name = "Paracosm"
 
         self.resolve_data_directory()
-        self.resolve_assets_directory()
         self.resolve_origins()
         self.resolve_auth()
-
-    def resolve_assets_directory(self) -> None:
-        # Resolve assets directory from .env.
-        env_assets_dir = os.environ.get("ASSETS_DIR")
-        if env_assets_dir:
-            self.assets_dir = Path(env_assets_dir).resolve()
-            logging.info(f"Using extern assets directory: {self.assets_dir}")
-        else:
-            raise KeyError("Could not resolve the assets directory from .env")
-
-        # Resolve top-level asset directories.
-        self.audio_assets_dir = self.assets_dir / "audio"
-        self.image_assets_dir = self.assets_dir / "images"
-        self.video_assets_dir = self.assets_dir / "video"
-        self.ambience_audio_dir = self.audio_assets_dir / "ambience"
-        # TODO add music to audio assets.
 
     def resolve_data_directory(self) -> None:
         self.data_dir = self.base_dir / "data"

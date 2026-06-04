@@ -2,7 +2,7 @@
   "id": "monolith",
   "background": {
     "id": "gate",
-    "src": "assets/images/gate.jpg",
+    "src": "assets/images/gate.webp",
     "type": "image"
   },
   "layers": [
