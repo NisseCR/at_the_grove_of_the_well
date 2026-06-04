@@ -63,6 +63,11 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
       break;
     }
 
+    case "SET_DEBUG": {
+      appState.debug = message.payload.debug;
+      break;
+    }
+
     case "CLIENT_CONNECTED": {
       if (router.view === "controller") {
         sendSync();

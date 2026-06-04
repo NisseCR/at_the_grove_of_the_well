@@ -3,11 +3,12 @@
   import Ambiences from "@/components/controller/Ambiences.svelte";
   import Music from "@/components/controller/Music.svelte";
   import AudioPanel from "@/components/controller/AudioPanel.svelte";
+  import Config from "@/components/controller/Config.svelte";
   import { AudioLines } from "@lucide/svelte";
 
   const projectName = import.meta.env.VITE_PROJECT_NAME as string;
 
-  type Tab = "scenes" | "ambiences" | "music";
+  type Tab = "scenes" | "ambiences" | "music" | "config";
   let activeTab = $state<Tab>("scenes");
 
   let panelCollapsed = $state(true);
@@ -43,6 +44,13 @@
         Ambiences
       </button>
       <button
+        class="tab"
+        class:active={activeTab === "config"}
+        onclick={() => (activeTab = "config")}
+      >
+        Config
+      </button>
+      <button
         class="tab audio-toggle"
         class:active={!panelCollapsed}
         onclick={() => (panelCollapsed = !panelCollapsed)}
@@ -62,6 +70,8 @@
         <Music />
       {:else if activeTab === "ambiences"}
         <Ambiences />
+      {:else if activeTab === "config"}
+        <Config />
       {/if}
     </div>
     {#if !panelCollapsed}
