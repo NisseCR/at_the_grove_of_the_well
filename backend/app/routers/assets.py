@@ -13,6 +13,7 @@ from app.schemas import (
     ReconcileResultOut,
     VideoAssetOut,
 )
+from app.core.storage import r2
 from app.services import (
     audio_asset_service,
     image_asset_service,
@@ -258,3 +259,9 @@ def get_reconcile(session: Session = Depends(get_session)) -> ReconcileResultOut
     """Diff R2 bucket contents against DB asset records."""
     result = reconcile_service.reconcile(session)
     return ReconcileResultOut(**result)
+
+
+@router.delete("/orphan/{key:path}", status_code=204)
+def delete_orphan(key: str) -> None:
+    """Delete an orphaned R2 file that has no matching DB record."""
+    r2.delete(key)

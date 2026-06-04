@@ -1,5 +1,10 @@
 <script lang="ts">
+  import AssetLibrary from "@/components/editor/AssetLibrary.svelte";
+  import ReconcilePanel from "@/components/editor/ReconcilePanel.svelte";
   import { navigate } from "@/stores/router.svelte";
+
+  type Tab = "library" | "reconcile";
+  let activeTab = $state<Tab>("library");
 </script>
 
 <div class="editor">
@@ -7,10 +12,21 @@
 
   <nav class="tabs">
     <button class="back" onclick={() => navigate("home")}>← Home</button>
+    <button class="tab" class:active={activeTab === "library"} onclick={() => (activeTab = "library")}>
+      Library
+    </button>
+    <button class="tab" class:active={activeTab === "reconcile"} onclick={() => (activeTab = "reconcile")}>
+      Reconcile
+    </button>
   </nav>
 
   <div class="main">
     <div class="content">
+      {#if activeTab === "library"}
+        <AssetLibrary />
+      {:else}
+        <ReconcilePanel />
+      {/if}
     </div>
   </div>
 </div>

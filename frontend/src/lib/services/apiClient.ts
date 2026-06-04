@@ -23,6 +23,7 @@ class ApiClient {
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
+    if (response.status === 204) return undefined as T;
     return response.json();
   }
 
@@ -38,11 +39,27 @@ class ApiClient {
     return this.request<T>(endpoint, { method: "PUT", body: JSON.stringify(body) });
   }
 
+  patch<T>(endpoint: string, body: unknown) {
+    return this.request<T>(endpoint, { method: "PATCH", body: JSON.stringify(body) });
+  }
+
   delete<T>(endpoint: string) {
     return this.request<T>(endpoint, { method: "DELETE" });
   }
 
-
+  async uploadForm<T>(endpoint: string, formData: FormData): Promise<T> {
+    const url = `${API_BASE}${endpoint}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.authHeaders(),
+      body: formData,
+    });
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+    if (response.status === 204) return undefined as T;
+    return response.json();
+  }
 }
 
 export const apiClient = new ApiClient();
