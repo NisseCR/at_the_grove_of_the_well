@@ -29,7 +29,7 @@
 <div class="categories">
   {#each categories as category}
     <div class="category">
-      <CategoryHeader label={category.id} />
+      <CategoryHeader label={category.label} />
       <div class="grid">
         {#each category.scenes as entry}
           <ThumbnailTile

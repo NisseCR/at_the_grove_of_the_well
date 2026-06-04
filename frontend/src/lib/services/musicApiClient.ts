@@ -7,6 +7,7 @@ class MusicApiClient {
     return {
       ...playlist,
       url: assetUrl(playlist.src),
+      thumb_url: playlist.thumb_src ? assetUrl(playlist.thumb_src) : null,
       tracks: playlist.tracks.map((t) => ({ ...t, url: assetUrl(t.src) })),
     };
   }

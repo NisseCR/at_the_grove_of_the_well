@@ -28,12 +28,12 @@
 </script>
 
 <div class="ambiences-layout">
-  <VerticalNav items={categories.map((c) => c.id)} elements={categoryEls} />
+  <VerticalNav items={categories.map((c) => c.label)} elements={categoryEls} />
 
   <div class="categories">
     {#each categories as category, i}
       <div class="category" bind:this={categoryEls[i]}>
-        <CategoryHeader label={category.id} src={category.url} />
+        <CategoryHeader label={category.label} src={category.url} />
         <div class="item-list">
           {#each category.ambiences as entry}
             <button

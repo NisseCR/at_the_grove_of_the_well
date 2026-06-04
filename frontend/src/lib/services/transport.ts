@@ -60,8 +60,8 @@ export function sendSetAmbienceVolume(id: string, volume: number): void {
   send({ type: "SET_AMBIENCE_VOLUME", payload: { id, volume } });
 }
 
-export function sendSetPlaylist(playlistId: string | null): void {
-  send({ type: "SET_PLAYLIST", payload: { playlistId } });
+export function sendSetPlaylist(id: string | null): void {
+  send({ type: "SET_PLAYLIST", payload: { id } });
 }
 
 export function sendSetMusicVolume(volume: number): void {

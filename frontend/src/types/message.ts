@@ -10,7 +10,7 @@ export type AmbienceMessage =
   | { type: "SET_AMBIENCE_VOLUME"; payload: { id: string; volume: number } };
 
 export type MusicMessage =
-  | { type: "SET_PLAYLIST"; payload: { playlistId: string | null } }
+  | { type: "SET_PLAYLIST"; payload: { id: string | null } }
   | { type: "SET_MUSIC_VOLUME"; payload: { volume: number } };
 
 export type TransportMessage =
@@ -23,7 +23,7 @@ export type TransportMessage =
       payload: {
         scene: { id: string } | null;
         ambiences: { id: string; volume: number }[] | null;
-        music: { playlistId: string | null; volume: number } | null;
+        music: { id: string | null; volume: number } | null;
       };
     }
   | { type: "RESET_AUDIO" };

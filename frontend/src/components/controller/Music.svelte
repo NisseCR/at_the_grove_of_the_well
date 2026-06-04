@@ -22,7 +22,7 @@
   }
 
   function isActive(id: string): boolean {
-    return appState.music?.playlistId === id;
+    return appState.music?.id === id;
   }
 
   function onTileClick(id: string): void {
@@ -33,7 +33,7 @@
 <div class="categories">
   {#each categories as category}
     <div class="category">
-      <CategoryHeader label={category.id} />
+      <CategoryHeader label={category.label} />
       <div class="grid">
         {#each category.playlists as entry}
           <ThumbnailTile

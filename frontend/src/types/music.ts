@@ -6,9 +6,12 @@ export interface MusicTrack {
 
 export interface Playlist {
   id: string;
+  label: string;
   src: string;
+  thumb_src: string | null;
   tracks: MusicTrack[];
   url?: string;
+  thumb_url?: string | null;
 }
 
 export interface PlaylistCategoryEntry {
@@ -18,6 +21,7 @@ export interface PlaylistCategoryEntry {
 
 export interface PlaylistCategory {
   id: string;
+  label: string;
   order: number;
   playlists: PlaylistCategoryEntry[];
 }

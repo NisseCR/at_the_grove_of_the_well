@@ -5,7 +5,9 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class SceneVisualPropertiesOut(BaseModel):
+class SceneAssetOut(BaseModel):
+    id: str
+    src: str
     loop: bool = True
     opacity: float = 1.0
     brightness: float = 1.0
@@ -15,22 +17,18 @@ class SceneVisualPropertiesOut(BaseModel):
     blend_mode: str = "normal"
 
 
-class BackgroundAssetOut(SceneVisualPropertiesOut):
+class BackgroundAssetOut(SceneAssetOut):
     """The background image asset for a scene."""
 
-    id: str
-    src: str
     thumb_src: Optional[str]
     type: str = "image"
 
 
-class LayerAssetOut(SceneVisualPropertiesOut):
+class LayerAssetOut(SceneAssetOut):
     """An ordered video overlay layer within a scene. Videos have no thumbnail."""
 
-    id: str
-    src: str
-    type: str = "video"
     order: int
+    type: str = "video"
 
 
 class SceneConfigOut(BaseModel):

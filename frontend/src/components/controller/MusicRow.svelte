@@ -1,7 +1,10 @@
 <script lang="ts">
   import { Music, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSetPlaylist, sendSetMusicVolume } from "@/lib/services/transport";
+  import {
+    sendSetPlaylist,
+    sendSetMusicVolume,
+  } from "@/lib/services/transport";
 
   function volumeIcon(v: number) {
     if (v === 0) return VolumeX;
@@ -28,8 +31,12 @@
 <div class="row">
   <div class="row-header">
     <Music class="icon name-icon" size={13} />
-    <span class="audio-name">{appState.music!.playlistId}</span>
-    <button class="dismiss" onclick={() => sendSetPlaylist(null)} aria-label="Stop music">
+    <span class="audio-name">{appState.music!.id}</span>
+    <button
+      class="dismiss"
+      onclick={() => sendSetPlaylist(null)}
+      aria-label="Stop music"
+    >
       <X size={16} />
     </button>
   </div>
@@ -42,7 +49,8 @@
       max="1"
       step="0.01"
       value={volume}
-      oninput={(e) => onVolumeChange((e.currentTarget as HTMLInputElement).valueAsNumber)}
+      oninput={(e) =>
+        onVolumeChange((e.currentTarget as HTMLInputElement).valueAsNumber)}
     />
   </div>
 </div>

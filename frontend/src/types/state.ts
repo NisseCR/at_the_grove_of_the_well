@@ -8,7 +8,7 @@ export interface ActiveAmbience {
 }
 
 export interface ActiveMusic {
-  playlistId: string | null;
+  id: string | null;
   volume: number;
 }
 
