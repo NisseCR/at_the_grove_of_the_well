@@ -19,8 +19,10 @@
     appState.audioReady = true;
 
     if (appState.scene?.id) sceneState.requestedSceneId = appState.scene.id;
-    if (appState.ambiences?.length) await ambienceEngine.syncActive(appState.ambiences);
-    if (appState.music?.playlistId) await musicEngine.setPlaylist(appState.music.playlistId);
+    if (appState.ambiences?.length)
+      await ambienceEngine.syncActive(appState.ambiences);
+    if (appState.music?.playlistId)
+      await musicEngine.setPlaylist(appState.music.playlistId);
     if (appState.music) musicEngine.setVolume(appState.music.volume);
   }
 </script>
