@@ -67,10 +67,10 @@ The `source/` folder holds raw asset inputs. File contents are gitignored — on
 - All folder and file names must be **kebab-case** (`forest-day`, `frystfel-i`, `wind-1`)
 - Folder names are slugs — they are used as stable IDs. **Renaming a folder breaks references.**
 - Labels are derived automatically: numeric prefix is stripped, hyphens become spaces, result is title-cased
-  - `01_exploration` → `Exploration`
+  - `01-exploration` → `Exploration`
   - `borealis` → `Borealis`
   - `frystfel-i` → `Frystfel I`
-- **Category display order** is controlled by a numeric prefix on the category folder: `01_wind`, `02_precipitation`
+- **Category display order** is controlled by a numeric prefix on the category folder: `01-wind`, `02-precipitation`
 - Playlist and ambience names have no required prefix — they appear in alphabetical order within their category
 
 ### Folder structure
@@ -89,7 +89,7 @@ source/
 
 ```
 source/playlists/
-├── 01_exploration/                 # category folder (prefix controls display order)
+├── 01-exploration/                 # category folder (prefix controls display order)
 │   ├── australis/                  # playlist folder (no prefix — alphabetical order)
 │   │   ├── cover.jpg               # required playlist cover image
 │   │   ├── a-new-day-has-dawned.mp3
@@ -104,7 +104,7 @@ source/playlists/
 │       ├── cover.jpg
 │       ├── a-blessing.mp3
 │       └── a-village-leaves.mp3
-└── 02_mood/
+└── 02-mood/
     └── alone/
         ├── cover.jpg
         ├── ashen.mp3
@@ -119,7 +119,7 @@ source/playlists/
 
 ```
 source/ambiences/
-├── 01_wind/                        # category folder (prefix controls display order)
+├── 01-wind/                        # category folder (prefix controls display order)
 │   ├── cover.jpg                   # required category thumbnail
 │   ├── distorted.ogg
 │   ├── nessus.ogg
@@ -127,7 +127,7 @@ source/ambiences/
 │   ├── wind-1.ogg
 │   ├── wind-2.ogg
 │   └── wind-3.ogg
-└── 02_precipitation/
+└── 02-precipitation/
     ├── cover.jpg
     ├── crystal.ogg
     ├── rain.ogg
