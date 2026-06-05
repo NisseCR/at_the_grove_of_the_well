@@ -128,12 +128,20 @@ class AssetApiClient {
    * @param file - The audio file to upload.
    * @param label - Display label for the asset.
    * @param artist - Optional artist credit.
+   * @param normMode - ``"music"`` normalises up and down (default).
+   *                   ``"ambience"`` only reduces loudness if the source is above target.
    */
-  async uploadAudio(file: File, label: string, artist?: string): Promise<AudioAsset> {
+  async uploadAudio(
+    file: File,
+    label: string,
+    artist?: string,
+    normMode: "music" | "ambience" = "music",
+  ): Promise<AudioAsset> {
     const form = new FormData();
     form.append("file", file);
     form.append("label", label);
     if (artist) form.append("artist", artist);
+    form.append("norm_mode", normMode);
     const raw = await apiClient.uploadForm<RawAudioAsset>("/assets/audio", form);
     return this.withAudioUrl(raw);
   }
@@ -141,10 +149,15 @@ class AssetApiClient {
   /**
    * Uploads multiple audio files. Label defaults to each file's name stem.
    * @param files - The audio files to upload.
+   * @param normMode - Normalisation mode applied to the entire batch.
    */
-  async uploadAudioBulk(files: File[]): Promise<AudioAsset[]> {
+  async uploadAudioBulk(
+    files: File[],
+    normMode: "music" | "ambience" = "music",
+  ): Promise<AudioAsset[]> {
     const form = new FormData();
     files.forEach((f) => form.append("files", f));
+    form.append("norm_mode", normMode);
     const raw = await apiClient.uploadForm<RawAudioAsset[]>("/assets/audio/bulk", form);
     return raw.map((a) => this.withAudioUrl(a));
   }
@@ -163,10 +176,16 @@ class AssetApiClient {
    * Replaces the file for an existing audio asset. Label and ID are unchanged.
    * @param id - Asset UUID.
    * @param file - Replacement audio file.
+   * @param normMode - Normalisation mode to apply to the replacement file.
    */
-  async replaceAudio(id: string, file: File): Promise<AudioAsset> {
+  async replaceAudio(
+    id: string,
+    file: File,
+    normMode: "music" | "ambience" = "music",
+  ): Promise<AudioAsset> {
     const form = new FormData();
     form.append("file", file);
+    form.append("norm_mode", normMode);
     const raw = await apiClient.uploadForm<RawAudioAsset>(`/assets/audio/${id}/replace`, form);
     return this.withAudioUrl(raw);
   }

@@ -155,25 +155,37 @@ async def upload_audio(
     file: UploadFile,
     label: str = Form(...),
     artist: str | None = Form(None),
+    norm_mode: str = Form("music"),
     session: Session = Depends(get_session),
 ) -> AudioAssetOut:
-    """Upload a single audio file. Normalises to -16 LUFS and resamples to 48000 Hz OGG."""
+    """Upload a single audio file. Normalises to -16 LUFS and resamples to 48000 Hz OGG.
+
+    ``norm_mode`` controls loudness normalisation:
+    - ``"music"`` (default) — normalises both up and down to the target LUFS.
+    - ``"ambience"`` — only reduces loudness if the source is above target;
+      quiet sources are resampled without any gain change.
+    """
     data = await file.read()
-    asset = audio_asset_service.upload(data, label, session, artist=artist)
+    asset = audio_asset_service.upload(data, label, session, artist=artist, norm_mode=norm_mode)
     return _audio_out(asset)
 
 
 @router.post("/audio/bulk")
 async def upload_audio_bulk(
     files: list[UploadFile],
+    norm_mode: str = Form("music"),
     session: Session = Depends(get_session),
 ) -> list[AudioAssetOut]:
-    """Upload multiple audio files. Label defaults to filename stem."""
+    """Upload multiple audio files. Label defaults to filename stem.
+
+    ``norm_mode`` applies to every file in the batch — same values as the
+    single upload endpoint (``"music"`` or ``"ambience"``).
+    """
     results = []
     for file in files:
         data = await file.read()
         label = (file.filename or "upload").rsplit(".", 1)[0]
-        asset = audio_asset_service.upload(data, label, session)
+        asset = audio_asset_service.upload(data, label, session, norm_mode=norm_mode)
         results.append(_audio_out(asset))
     return results
 
@@ -194,11 +206,15 @@ def patch_audio(
 async def replace_audio(
     asset_id: UUID,
     file: UploadFile,
+    norm_mode: str = Form("music"),
     session: Session = Depends(get_session),
 ) -> AudioAssetOut:
-    """Replace the file for an existing audio asset."""
+    """Replace the file for an existing audio asset.
+
+    ``norm_mode`` controls loudness normalisation — same values as the upload endpoint.
+    """
     data = await file.read()
-    asset = audio_asset_service.replace(asset_id, data, session)
+    asset = audio_asset_service.replace(asset_id, data, session, norm_mode=norm_mode)
     return _audio_out(asset)
 
 

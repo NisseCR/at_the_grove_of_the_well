@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Tabs } from "bits-ui";
+  import { Tabs, ToggleGroup } from "bits-ui";
   import { toast } from "svelte-sonner";
   import { assetApiClient } from "@/lib/services/assetApiClient";
   import type { AnyAsset, AudioAsset, ImageAsset, VideoAsset } from "@/types/assets";
@@ -28,6 +28,10 @@
   let uploading = $state(false);
   let saving = $state(false);
   let deleting = $state(false);
+  /** ID of the asset currently being replaced, to lock its card during the request. */
+  let replacingId = $state<string | null>(null);
+  /** Loudness normalisation mode — only relevant when uploading audio. */
+  let normMode = $state<"music" | "ambience">("music");
 
   /** The asset whose edit dialog is open. */
   let editTarget = $state<AnyAsset | null>(null);
@@ -84,8 +88,8 @@
       } else if (activeTab === "audio") {
         const uploaded =
           files.length === 1
-            ? [await assetApiClient.uploadAudio(files[0], labelFromFilename(files[0].name))]
-            : await assetApiClient.uploadAudioBulk(files);
+            ? [await assetApiClient.uploadAudio(files[0], labelFromFilename(files[0].name), undefined, normMode)]
+            : await assetApiClient.uploadAudioBulk(files, normMode);
         audio = [...audio, ...uploaded].sort((a, b) => a.label.localeCompare(b.label));
       } else {
         const uploaded =
@@ -192,12 +196,13 @@
 
   /** Replaces the file for an asset without changing its metadata. */
   async function handleReplace(asset: AnyAsset, file: File) {
+    replacingId = asset.id;
     try {
       if (activeTab === "images") {
         const updated = await assetApiClient.replaceImage(asset.id, file);
         images = images.map((a) => (a.id === updated.id ? updated : a));
       } else if (activeTab === "audio") {
-        const updated = await assetApiClient.replaceAudio(asset.id, file);
+        const updated = await assetApiClient.replaceAudio(asset.id, file, normMode);
         audio = audio.map((a) => (a.id === updated.id ? updated : a));
       } else {
         const updated = await assetApiClient.replaceVideo(asset.id, file);
@@ -206,6 +211,8 @@
       toast.success("File replaced");
     } catch {
       toast.error("Failed to replace file");
+    } finally {
+      replacingId = null;
     }
   }
 
@@ -240,6 +247,21 @@
 
   <!-- Content rendered with {#if} so only the active tab is mounted -->
   <div class="tab-content">
+    {#if activeTab === "audio"}
+      <div class="norm-row">
+        <span class="norm-label">Normalisation</span>
+        <ToggleGroup.Root
+          type="single"
+          value={normMode}
+          onValueChange={(v) => { if (v) normMode = v as "music" | "ambience"; }}
+          class="norm-group"
+        >
+          <ToggleGroup.Item value="music" class="norm-item">Music</ToggleGroup.Item>
+          <ToggleGroup.Item value="ambience" class="norm-item">Ambience</ToggleGroup.Item>
+        </ToggleGroup.Root>
+      </div>
+    {/if}
+
     <AssetUploadZone
       accept={ACCEPT[activeTab]}
       {uploading}
@@ -255,6 +277,7 @@
         {#each currentAssets() as asset (asset.id)}
           <AssetCard
             {asset}
+            replacing={replacingId === asset.id}
             onedit={handleEdit}
             ondelete={handleDelete}
             onreplace={handleReplace}
@@ -338,6 +361,49 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+  }
+
+  .norm-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .norm-label {
+    font-size: var(--text-sm);
+    color: var(--color-text-faint);
+    font-family: var(--font-body);
+    white-space: nowrap;
+  }
+
+  :global(.norm-group) {
+    display: flex;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 4px);
+    overflow: hidden;
+  }
+
+  :global(.norm-item) {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition:
+      background var(--ease-fast),
+      color var(--ease-fast);
+  }
+
+  :global(.norm-item:hover) {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-text);
+  }
+
+  :global(.norm-item[data-state="on"]) {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
   }
 
   .status {

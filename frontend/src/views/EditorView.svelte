@@ -26,15 +26,17 @@
 
   <div class="main">
     <div class="content">
-      {#if activeTab === "library"}
-        <AssetLibrary />
-      {:else if activeTab === "scenes"}
-        <p class="placeholder">Scene editor — coming soon</p>
-      {:else if activeTab === "playlists"}
-        <p class="placeholder">Playlist editor — coming soon</p>
-      {:else if activeTab === "ambiences"}
-        <p class="placeholder">Ambience editor — coming soon</p>
-      {/if}
+      <div class="inner">
+        {#if activeTab === "library"}
+          <AssetLibrary />
+        {:else if activeTab === "scenes"}
+          <p class="placeholder">Scene editor — coming soon</p>
+        {:else if activeTab === "playlists"}
+          <p class="placeholder">Playlist editor — coming soon</p>
+        {:else if activeTab === "ambiences"}
+          <p class="placeholder">Ambience editor — coming soon</p>
+        {/if}
+      </div>
     </div>
   </div>
 </div>
@@ -138,6 +140,12 @@
     overflow-y: auto;
     padding: var(--space-6);
     padding-top: var(--space-8);
+  }
+
+  .inner {
+    max-width: 1100px;
+    margin-inline: auto;
+    width: 100%;
   }
 
   .placeholder {

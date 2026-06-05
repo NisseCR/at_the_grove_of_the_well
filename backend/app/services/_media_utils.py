@@ -23,15 +23,24 @@ def extract_duration(data: bytes, suffix: str) -> float | None:
                 "-v", "quiet",
                 "-print_format", "json",
                 "-show_streams",
+                "-show_format",
                 tmp_path,
             ],
             capture_output=True,
             text=True,
         )
-        streams = json.loads(result.stdout).get("streams", [])
-        for stream in streams:
+        probe = json.loads(result.stdout)
+
+        # Streams carry duration for most audio formats (OGG, MP3, etc.)
+        for stream in probe.get("streams", []):
             if "duration" in stream:
                 return float(stream["duration"])
+
+        # Video containers (WebM, MP4) typically store duration in the format block
+        fmt_duration = probe.get("format", {}).get("duration")
+        if fmt_duration:
+            return float(fmt_duration)
+
         return None
     except Exception:
         return None

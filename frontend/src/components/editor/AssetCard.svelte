@@ -1,10 +1,13 @@
 <script lang="ts">
   import { Tooltip } from "bits-ui";
+  import { Pencil, RefreshCw, Trash2, Music, Video, Image, Copy, Check } from "@lucide/svelte";
   import type { AnyAsset, AudioAsset, ImageAsset, VideoAsset } from "@/types/assets";
   import { formatDuration } from "@/lib/utils/format";
 
   interface Props {
     asset: AnyAsset;
+    /** Whether a file replacement is currently in progress for this asset. */
+    replacing?: boolean;
     /** Called when the user requests to edit this asset's metadata. */
     onedit: (asset: AnyAsset) => void;
     /** Called when the user requests to delete this asset. */
@@ -13,18 +16,28 @@
     onreplace: (asset: AnyAsset, file: File) => void;
   }
 
-  let { asset, onedit, ondelete, onreplace }: Props = $props();
+  let { asset, replacing = false, onedit, ondelete, onreplace }: Props = $props();
 
   let replaceInput: HTMLInputElement;
+  let copied = $state(false);
+  let copyTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Copies the asset's R2 src path to the clipboard and briefly shows a confirmation. */
+  async function copyPath() {
+    await navigator.clipboard.writeText(asset.src);
+    copied = true;
+    if (copyTimer) clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => (copied = false), 2000);
+  }
 
   /** Returns true if the asset is an ImageAsset. */
   function isImage(a: AnyAsset): a is ImageAsset {
     return "thumb_src" in a;
   }
 
-  /** Returns true if the asset has a duration field (audio or video). */
-  function hasDuration(a: AnyAsset): a is AudioAsset | VideoAsset {
-    return "duration" in a;
+  /** Returns true if the asset has a known non-null duration (audio or video). */
+  function hasKnownDuration(a: AnyAsset): a is AudioAsset | VideoAsset {
+    return "duration" in a && (a as AudioAsset | VideoAsset).duration !== null;
   }
 
   /** Opens the hidden file input for replacing the asset's file. */
@@ -56,16 +69,24 @@
     {#if isImage(asset) && asset.thumb_url}
       <img class="thumb" src={asset.thumb_url} alt={asset.label} />
     {:else if isImage(asset)}
-      <span class="icon">🖼</span>
+      <span class="icon"><Image size={32} strokeWidth={1.2} /></span>
     {:else if asset.src.endsWith(".ogg")}
-      <span class="icon">🎵</span>
+      <span class="icon"><Music size={32} strokeWidth={1.2} /></span>
     {:else}
-      <span class="icon">🎬</span>
+      <span class="icon"><Video size={32} strokeWidth={1.2} /></span>
     {/if}
 
-    {#if hasDuration(asset)}
+    {#if hasKnownDuration(asset)}
       <span class="duration">{formatDuration(asset.duration)}</span>
     {/if}
+
+    <button class="copy-btn" onclick={copyPath} aria-label="Copy asset path" title={asset.src}>
+      {#if copied}
+        <Check size={12} />
+      {:else}
+        <Copy size={12} />
+      {/if}
+    </button>
   </div>
 
   <!-- Metadata -->
@@ -81,25 +102,31 @@
     <Tooltip.Provider delayDuration={400}>
       <Tooltip.Root>
         <Tooltip.Trigger class="action-btn" onclick={() => onedit(asset)} aria-label="Edit">
-          ✏
+          <Pencil size={13} />
         </Tooltip.Trigger>
         <Tooltip.Content class="tooltip">Edit</Tooltip.Content>
       </Tooltip.Root>
 
       <Tooltip.Root>
-        <Tooltip.Trigger class="action-btn" onclick={openReplaceInput} aria-label="Replace file">
-          ↺
+        <Tooltip.Trigger
+          class={replacing ? "action-btn spinning" : "action-btn"}
+          onclick={openReplaceInput}
+          disabled={replacing}
+          aria-label="Replace file"
+        >
+          <RefreshCw size={13} />
         </Tooltip.Trigger>
-        <Tooltip.Content class="tooltip">Replace file</Tooltip.Content>
+        <Tooltip.Content class="tooltip">{replacing ? "Replacing…" : "Replace file"}</Tooltip.Content>
       </Tooltip.Root>
 
       <Tooltip.Root>
         <Tooltip.Trigger
           class="action-btn action-btn--danger"
           onclick={() => ondelete(asset)}
+          disabled={replacing}
           aria-label="Delete"
         >
-          ✕
+          <Trash2 size={13} />
         </Tooltip.Trigger>
         <Tooltip.Content class="tooltip">Delete</Tooltip.Content>
       </Tooltip.Root>
@@ -147,8 +174,33 @@
   }
 
   .icon {
-    font-size: 2rem;
-    opacity: 0.5;
+    opacity: 0.4;
+    display: flex;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: var(--space-1);
+    right: var(--space-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: var(--radius-sm, 4px);
+    background: rgba(0, 0, 0, 0.55);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--ease-fast);
+  }
+
+  .card:hover .copy-btn {
+    opacity: 1;
+  }
+
+  .copy-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
   }
 
   .duration {
@@ -192,14 +244,16 @@
   .actions {
     display: flex;
     gap: var(--space-1);
-    padding: var(--space-2) var(--space-2);
+    padding: var(--space-2);
     border-top: 1px solid var(--color-border);
   }
 
   :global(.action-btn) {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: var(--space-1) 0;
-    font-size: var(--text-sm);
     color: var(--color-text-muted);
     background: none;
     border: none;
@@ -210,14 +264,27 @@
       color var(--ease-fast);
   }
 
-  :global(.action-btn:hover) {
+  :global(.action-btn:hover:not(:disabled)) {
     background: rgba(255, 255, 255, 0.08);
     color: var(--color-text);
   }
 
-  :global(.action-btn--danger:hover) {
+  :global(.action-btn:disabled) {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  :global(.action-btn--danger:hover:not(:disabled)) {
     background: rgba(192, 57, 43, 0.2);
     color: #e74c3c;
+  }
+
+  :global(.action-btn.spinning svg) {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   :global(.tooltip) {

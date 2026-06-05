@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { Upload, Loader2 } from "@lucide/svelte";
+
   interface Props {
     /** MIME type filter for the file picker, e.g. "image/*". */
     accept: string;
@@ -58,10 +60,10 @@
   type="button"
 >
   {#if uploading}
-    <span class="icon">⏳</span>
+    <span class="spin"><Loader2 size={22} strokeWidth={1.5} /></span>
     <span class="label">Uploading…</span>
   {:else}
-    <span class="icon">↑</span>
+    <Upload size={22} strokeWidth={1.5} />
     <span class="label">
       {multiple ? "Drop files here or click to browse" : "Drop a file here or click to browse"}
     </span>
@@ -109,19 +111,23 @@
     background: rgba(255, 255, 255, 0.07);
   }
 
-  .zone.uploading,
+  /* Keep the default arrow cursor while uploading — no "stop" sign. */
   .zone:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .icon {
-    font-size: var(--text-2xl, 1.5rem);
-    line-height: 1;
+    opacity: 0.7;
+    cursor: default;
   }
 
   .label {
     font-size: var(--text-sm);
     font-family: var(--font-body);
+  }
+
+  .spin {
+    display: flex;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 </style>
