@@ -22,9 +22,9 @@
   let copied = $state(false);
   let copyTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** Copies the asset's R2 src path to the clipboard and briefly shows a confirmation. */
+  /** Copies the asset's full CDN URL to the clipboard and briefly shows a confirmation. */
   async function copyPath() {
-    await navigator.clipboard.writeText(asset.src);
+    await navigator.clipboard.writeText(asset.url);
     copied = true;
     if (copyTimer) clearTimeout(copyTimer);
     copyTimer = setTimeout(() => (copied = false), 2000);
