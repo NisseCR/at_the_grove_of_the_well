@@ -7,6 +7,7 @@ Files present in R2 but removed locally are deleted from the bucket.
 """
 
 import hashlib
+import logging
 import os
 from pathlib import Path
 
@@ -15,6 +16,8 @@ from botocore.config import Config
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 SKIP_FILES = {"cache.json"}
 
@@ -79,6 +82,7 @@ def run(dry_run: bool = False) -> None:
 
     local_keys: set[str] = set()
     uploaded = skipped = deleted = 0
+    prefix = "[dry-run] " if dry_run else ""
 
     for local_file in sorted(output_path.rglob("*")):
         if not local_file.is_file():
@@ -95,19 +99,18 @@ def run(dry_run: bool = False) -> None:
             continue
 
         action = "upload (new)" if key not in remote else "upload (changed)"
-        print(f"{'[dry-run] ' if dry_run else ''}{action}: {key}")
+        logger.info("%s%s: %s", prefix, action, key)
 
         if not dry_run:
             client.upload_file(str(local_file), bucket, key)
         uploaded += 1
 
-    # Delete remote objects that no longer exist locally
     for key in remote:
         if key not in local_keys:
-            print(f"{'[dry-run] ' if dry_run else ''}delete: {key}")
+            logger.info("%sdelete: %s", prefix, key)
             if not dry_run:
                 client.delete_object(Bucket=bucket, Key=key)
             deleted += 1
 
     action = "Would transfer" if dry_run else "Transferred"
-    print(f"\n{action} {uploaded} upload(s), {skipped} unchanged, {deleted} delete(s).")
+    logger.info("%s %d upload(s), %d unchanged, %d delete(s).", action, uploaded, skipped, deleted)

@@ -1,8 +1,11 @@
 """Rename files and folders under a directory tree to kebab-case."""
 
+import logging
 import re
 import unicodedata
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def to_kebab(name: str) -> str:
@@ -50,7 +53,6 @@ def rename_tree(root: Path, dry_run: bool = False) -> None:
     their contents, keeping paths valid throughout. Hidden files (dot-files)
     are skipped. Collisions are reported and skipped without overwriting.
     """
-    # Collect all paths, sort deepest first
     all_paths = sorted(root.rglob("*"), key=lambda p: len(p.parts), reverse=True)
 
     renamed: list[tuple[Path, Path]] = []
@@ -58,7 +60,6 @@ def rename_tree(root: Path, dry_run: bool = False) -> None:
     collisions: list[tuple[Path, Path]] = []
 
     for path in all_paths:
-        # Path may no longer exist if a parent was already renamed
         if not path.exists():
             continue
 
@@ -83,18 +84,14 @@ def rename_tree(root: Path, dry_run: bool = False) -> None:
         if not dry_run:
             path.rename(new_path)
 
-    # Output
     prefix = "[dry-run] " if dry_run else ""
 
     for old, new in renamed:
-        print(f"{prefix}{old.name}  →  {new.name}")
+        logger.info("%s%s  →  %s", prefix, old.name, new.name)
 
     for old, new in collisions:
-        print(f"SKIP (collision): {old.name}  →  {new.name}  (target already exists)")
+        logger.warning("SKIP (collision): %s  →  %s  (target already exists)", old.name, new.name)
 
     action = "Would rename" if dry_run else "Renamed"
-    print(
-        f"\n{action} {len(renamed)} item(s), "
-        f"{skipped_unchanged} already kebab-case, "
-        f"{len(collisions)} collision(s) skipped."
-    )
+    logger.info("%s %d item(s), %d already kebab-case, %d collision(s) skipped.",
+                action, len(renamed), skipped_unchanged, len(collisions))

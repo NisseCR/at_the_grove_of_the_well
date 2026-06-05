@@ -7,11 +7,14 @@ Requires ffmpeg on PATH and Pillow.
 """
 
 import io
+import logging
 import shutil
 import subprocess
 from pathlib import Path
 
 from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 THUMB_WIDTH = 480
 WEBP_QUALITY = 82
@@ -45,13 +48,13 @@ def process_video(source: Path, dest: Path) -> None:
     Copy a video file to dest (passthrough, no re-encoding) and write a
     thumbnail as dest.stem + ".thumb.webp" in the same directory.
 
-    Thumbnail failure is non-fatal — a warning is printed and processing continues.
+    Thumbnail failure is non-fatal — a warning is logged and processing continues.
     """
     shutil.copy2(source, dest)
 
     thumb_data = _extract_thumbnail(source)
     if thumb_data is None:
-        print(f"  WARNING: could not extract thumbnail for {source.name}")
+        logger.warning("Could not extract thumbnail for %s", source.name)
         return
 
     thumb_path = dest.with_name(dest.stem + ".thumb.webp")

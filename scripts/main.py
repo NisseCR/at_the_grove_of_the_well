@@ -11,6 +11,7 @@ import argparse
 from pathlib import Path
 
 from lib.kebab import rename_tree
+from lib.logger import setup as setup_logging
 from lib.preprocess import run as run_preprocess
 from lib.sync import run as run_sync
 
@@ -57,6 +58,8 @@ def main() -> None:
     sync_parser.add_argument("--dry-run", action="store_true", help="Preview sync without transferring files")
 
     args = parser.parse_args()
+
+    setup_logging()
 
     dispatch = {
         "kebab": cmd_kebab,

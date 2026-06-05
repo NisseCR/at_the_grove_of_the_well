@@ -6,6 +6,7 @@ to the appropriate processor (audio, image, video). Outputs are written to a
 mirrored directory tree under OUTPUT_PATH.
 """
 
+import logging
 import os
 from pathlib import Path
 
@@ -17,6 +18,8 @@ from lib.preprocess.image import process_image
 from lib.preprocess.video import process_video
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".flac", ".aac", ".m4a", ".ogg"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -51,6 +54,7 @@ def run(source_root: Path) -> None:
     Skips files whose SHA256 hash matches the cache. Updates the cache after
     each successful conversion.
     """
+    source_root = source_root.resolve()
     output_root = _output_root()
     cache_path = output_root / CACHE_FILENAME
     cache = load_cache(cache_path)
@@ -70,6 +74,7 @@ def run(source_root: Path) -> None:
         file_hash = hash_file(source_file)
 
         if is_cached(cache, cache_key, file_hash):
+            logger.debug("SKIP (cached): %s", cache_key)
             skipped += 1
             continue
 
@@ -88,22 +93,22 @@ def run(source_root: Path) -> None:
                 process_image(source_file, out_path, thumbnail=generate_thumb)
 
             elif suffix in VIDEO_EXTENSIONS:
-                out_path = _mirror_path(source_root, source_file, output_root, suffix)
+                out_path = _mirror_path(source_root, source_file, output_root, ".webm")
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 process_video(source_file, out_path)
 
             else:
-                print(f"SKIP (unsupported): {cache_key}")
+                logger.warning("SKIP (unsupported): %s", cache_key)
                 continue
 
         except Exception as exc:
-            print(f"ERROR: {cache_key} — {exc}")
+            logger.error("ERROR: %s — %s", cache_key, exc)
             errors += 1
             continue
 
         cache[cache_key] = file_hash
         save_cache(cache_path, cache)
-        print(f"OK: {cache_key}")
+        logger.info("OK: %s  →  %s", cache_key, out_path.relative_to(output_root).as_posix())
         processed += 1
 
-    print(f"\nDone — {processed} processed, {skipped} cached, {errors} error(s).")
+    logger.info("Done — %d processed, %d cached, %d error(s).", processed, skipped, errors)
