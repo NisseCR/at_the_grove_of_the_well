@@ -3,10 +3,13 @@
   import { toast } from "svelte-sonner";
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
   import type { Ambience, AmbienceCategory } from "@/types/ambience";
-  import ConfirmDialog from "@/components/editor/ConfirmDialog.svelte";
-  import AmbienceForm from "@/components/editor/AmbienceForm.svelte";
-  import CategoryForm from "@/components/editor/CategoryForm.svelte";
-  import SearchInput from "@/components/editor/SearchInput.svelte";
+  import { dndzone, type DndEvent } from "svelte-dnd-action";
+  import { flip } from "svelte/animate";
+  import ConfirmDialog from "@/components/editor/shared/ConfirmDialog.svelte";
+  import CategoryLinkerDialog from "@/components/editor/shared/CategoryLinkerDialog.svelte";
+  import AmbienceForm from "@/components/editor/ambiences/AmbienceForm.svelte";
+  import CategoryForm from "@/components/editor/categories/CategoryForm.svelte";
+  import SearchInput from "@/components/editor/shared/SearchInput.svelte";
 
   // ---------------------------------------------------------------------------
   // State
@@ -33,6 +36,62 @@
   let deleteTarget = $state<Ambience | null>(null);
   let deleteOpen = $state(false);
 
+  // Category linker dialog
+  let linkerTarget = $state<Ambience | null>(null);
+  let linkerOpen = $state(false);
+  /** IDs of categories currently linked to the linker target, derived live. */
+  const linkerLinkedIds = $derived(
+    linkerTarget
+      ? new Set(
+          categories
+            .filter((c) => c.ambiences.some((a) => a.id === linkerTarget!.id))
+            .map((c) => c.id),
+        )
+      : new Set<string>(),
+  );
+
+  /** Opens the category linker for the given ambience. */
+  function openLinker(ambience: Ambience) {
+    linkerTarget = ambience;
+    linkerOpen = true;
+  }
+
+  /** Adds a category link and updates local state. */
+  async function handleLink(categoryId: string) {
+    if (!linkerTarget) return;
+    const ambienceId = linkerTarget.id;
+    try {
+      await ambienceApiClient.addAmbienceToCategory(categoryId, ambienceId);
+      categories = categories.map((c) =>
+        c.id === categoryId
+          ? { ...c, ambiences: [...c.ambiences, { id: ambienceId, label: linkerTarget!.label }] }
+          : c,
+      );
+      const catLabel = categories.find((c) => c.id === categoryId)?.label;
+      toast.success(`Added to ${catLabel}`);
+    } catch {
+      toast.error("Failed to link category");
+    }
+  }
+
+  /** Removes a category link and updates local state. */
+  async function handleUnlink(categoryId: string) {
+    if (!linkerTarget) return;
+    const ambienceId = linkerTarget.id;
+    try {
+      await ambienceApiClient.removeAmbienceFromCategory(categoryId, ambienceId);
+      const catLabel = categories.find((c) => c.id === categoryId)?.label;
+      categories = categories.map((c) =>
+        c.id === categoryId
+          ? { ...c, ambiences: c.ambiences.filter((a) => a.id !== ambienceId) }
+          : c,
+      );
+      toast.success(`Removed from ${catLabel}`);
+    } catch {
+      toast.error("Failed to unlink category");
+    }
+  }
+
   // Category dialogs
   let catFormOpen = $state(false);
   let catEditTarget = $state<AmbienceCategory | null>(null);
@@ -58,7 +117,9 @@
     }
   }
 
-  $effect(() => { load(); });
+  $effect(() => {
+    load();
+  });
 
   // ---------------------------------------------------------------------------
   // Filtering
@@ -72,7 +133,9 @@
       result = result.filter((a) => !linkedAmbienceIds.has(a.id));
     } else if (categoryFilter !== null) {
       const catIds = new Set(
-        categories.find((c) => c.id === categoryFilter)?.ambiences.map((a) => a.id) ?? [],
+        categories
+          .find((c) => c.id === categoryFilter)
+          ?.ambiences.map((a) => a.id) ?? [],
       );
       result = result.filter((a) => catIds.has(a.id));
     }
@@ -127,12 +190,17 @@
       };
 
       if (editTarget) {
-        const updated = await ambienceApiClient.patchAmbience(editTarget.id, payload);
+        const updated = await ambienceApiClient.patchAmbience(
+          editTarget.id,
+          payload,
+        );
         ambiences = ambiences.map((a) => (a.id === updated.id ? updated : a));
         toast.success("Ambience updated");
       } else {
         const created = await ambienceApiClient.createAmbience(payload);
-        ambiences = [...ambiences, created].sort((a, b) => a.label.localeCompare(b.label));
+        ambiences = [...ambiences, created].sort((a, b) =>
+          a.label.localeCompare(b.label),
+        );
         toast.success("Ambience created");
       }
 
@@ -197,11 +265,16 @@
       const patch = {
         label: data.label,
         display_order: data.display_order,
-        ...(data.thumb_id !== null ? { thumb_id: data.thumb_id || undefined } : {}),
+        ...(data.thumb_id !== null
+          ? { thumb_id: data.thumb_id || undefined }
+          : {}),
       };
 
       if (catEditTarget) {
-        const updated = await ambienceApiClient.patchCategory(catEditTarget.id, patch);
+        const updated = await ambienceApiClient.patchCategory(
+          catEditTarget.id,
+          patch,
+        );
         categories = categories.map((c) => (c.id === updated.id ? updated : c));
         toast.success("Category updated");
       } else {
@@ -236,18 +309,39 @@
     }
   }
 
+  /** Updates category order after a drag-and-drop finalize event. */
+  function handleCatConsider(e: CustomEvent<DndEvent<AmbienceCategory>>) {
+    categories = e.detail.items;
+  }
 
+  /** Persists the new category order to the backend. */
+  async function handleCatFinalize(e: CustomEvent<DndEvent<AmbienceCategory>>) {
+    categories = e.detail.items;
+    try {
+      await Promise.all(
+        categories.map((cat, i) =>
+          ambienceApiClient.patchCategory(cat.id, { display_order: i }),
+        ),
+      );
+      toast.success("Category order saved");
+    } catch {
+      toast.error("Failed to save category order");
+    }
+  }
 </script>
 
 <div class="editor">
   <Tabs.Root bind:value={activeTab} class="editor-tabs">
     <div class="editor-header">
       <Tabs.List class="editor-tab-list">
-        <Tabs.Trigger value="ambiences" class="editor-tab">Ambiences</Tabs.Trigger>
-        <Tabs.Trigger value="categories" class="editor-tab">Categories</Tabs.Trigger>
+        <Tabs.Trigger value="ambiences" class="editor-tab"
+          >Ambiences</Tabs.Trigger
+        >
+        <Tabs.Trigger value="categories" class="editor-tab"
+          >Categories</Tabs.Trigger
+        >
       </Tabs.List>
     </div>
-
   </Tabs.Root>
 
   <!-- Content rendered with {#if} so only the active tab is mounted -->
@@ -257,7 +351,10 @@
         <p class="status">Loading…</p>
       {:else}
         <div class="toolbar">
-          <SearchInput bind:value={searchQuery} placeholder="Search by label or audio asset…" />
+          <SearchInput
+            bind:value={searchQuery}
+            placeholder="Search by label or audio asset…"
+          />
           <button class="btn-primary" onclick={openCreate}>New ambience</button>
         </div>
 
@@ -265,25 +362,27 @@
           <button
             class="filter-chip"
             class:filter-chip--active={categoryFilter === null}
-            onclick={() => (categoryFilter = null)}
-          >All</button>
+            onclick={() => (categoryFilter = null)}>All</button
+          >
           <button
             class="filter-chip"
             class:filter-chip--active={categoryFilter === ""}
-            onclick={() => (categoryFilter = "")}
-          >None</button>
+            onclick={() => (categoryFilter = "")}>None</button
+          >
           {#each categories as cat (cat.id)}
             <button
               class="filter-chip"
               class:filter-chip--active={categoryFilter === cat.id}
-              onclick={() => (categoryFilter = cat.id)}
-            >{cat.label}</button>
+              onclick={() => (categoryFilter = cat.id)}>{cat.label}</button
+            >
           {/each}
         </div>
 
         {#if filteredAmbiences().length === 0}
           <p class="status">
-            {searchQuery ? `No results for "${searchQuery}"` : "No ambiences yet."}
+            {searchQuery
+              ? `No results for "${searchQuery}"`
+              : "No ambiences yet."}
           </p>
         {:else}
           <div class="list">
@@ -291,8 +390,12 @@
               <div class="row">
                 <span class="row-label">{ambience.label}</span>
                 <div class="row-actions">
+                  <button class="action-btn" onclick={() => openLinker(ambience)}>Categories</button>
                   <button class="action-btn" onclick={() => openEdit(ambience)}>Edit</button>
-                  <button class="action-btn action-btn--danger" onclick={() => openDelete(ambience)}>Delete</button>
+                  <button
+                    class="action-btn action-btn--danger"
+                    onclick={() => openDelete(ambience)}>Delete</button
+                  >
                 </div>
               </div>
             {/each}
@@ -306,19 +409,32 @@
         <p class="status">Loading…</p>
       {:else}
         <div class="toolbar toolbar--end">
-          <button class="btn-primary" onclick={openCatCreate}>New category</button>
+          <button class="btn-primary" onclick={openCatCreate}
+            >New category</button
+          >
         </div>
 
         {#if categories.length === 0}
           <p class="status">No categories yet.</p>
         {:else}
-          <div class="list">
+          <div
+            class="list"
+            use:dndzone={{ items: categories, flipDurationMs: 150 }}
+            onconsider={handleCatConsider}
+            onfinalize={handleCatFinalize}
+          >
             {#each categories as cat (cat.id)}
-              <div class="row">
+              <div class="row" animate:flip={{ duration: 150 }}>
+                <span class="drag-handle" aria-hidden="true">⠿</span>
                 <span class="row-label">{cat.label}</span>
                 <div class="row-actions">
-                  <button class="action-btn" onclick={() => openCatEdit(cat)}>Edit</button>
-                  <button class="action-btn action-btn--danger" onclick={() => openCatDelete(cat)}>Delete</button>
+                  <button class="action-btn" onclick={() => openCatEdit(cat)}
+                    >Edit</button
+                  >
+                  <button
+                    class="action-btn action-btn--danger"
+                    onclick={() => openCatDelete(cat)}>Delete</button
+                  >
                 </div>
               </div>
             {/each}
@@ -339,7 +455,10 @@
     bind:open={formOpen}
     {saving}
     onsave={handleSave}
-    oncancel={() => { formOpen = false; editTarget = null; }}
+    oncancel={() => {
+      formOpen = false;
+      editTarget = null;
+    }}
   />
 {/if}
 
@@ -352,7 +471,25 @@
     destructive
     loading={deleting}
     onconfirm={handleDelete}
-    oncancel={() => { deleteOpen = false; deleteTarget = null; }}
+    oncancel={() => {
+      deleteOpen = false;
+      deleteTarget = null;
+    }}
+  />
+{/if}
+
+{#if linkerTarget}
+  <CategoryLinkerDialog
+    bind:open={linkerOpen}
+    entityLabel={linkerTarget.label}
+    {categories}
+    linkedIds={linkerLinkedIds}
+    onlink={handleLink}
+    onunlink={handleUnlink}
+    onclose={() => {
+      linkerOpen = false;
+      linkerTarget = null;
+    }}
   />
 {/if}
 
@@ -364,7 +501,10 @@
     entityLabel="category"
     withThumbnail
     onsave={handleCatSave}
-    oncancel={() => { catFormOpen = false; catEditTarget = null; }}
+    oncancel={() => {
+      catFormOpen = false;
+      catEditTarget = null;
+    }}
   />
 {/if}
 
@@ -377,7 +517,10 @@
     destructive
     loading={deleting}
     onconfirm={handleCatDelete}
-    oncancel={() => { catDeleteOpen = false; catDeleteTarget = null; }}
+    oncancel={() => {
+      catDeleteOpen = false;
+      catDeleteTarget = null;
+    }}
   />
 {/if}
 
@@ -419,10 +562,14 @@
     border-right: none;
     cursor: pointer;
     user-select: none;
-    transition: color var(--ease-fast), border-color var(--ease-fast);
+    transition:
+      color var(--ease-fast),
+      border-color var(--ease-fast);
   }
 
-  :global(.editor-tab:hover) { color: var(--color-text); }
+  :global(.editor-tab:hover) {
+    color: var(--color-text);
+  }
   :global(.editor-tab[data-state="active"]) {
     color: var(--color-text);
     border-bottom-color: var(--color-accent);
@@ -459,7 +606,10 @@
     border-radius: 99px;
     padding: 2px var(--space-3);
     cursor: pointer;
-    transition: color var(--ease-fast), border-color var(--ease-fast), background var(--ease-fast);
+    transition:
+      color var(--ease-fast),
+      border-color var(--ease-fast),
+      background var(--ease-fast);
     white-space: nowrap;
   }
 
@@ -497,6 +647,18 @@
     border-radius: var(--radius-sm, 4px);
   }
 
+  .drag-handle {
+    color: var(--color-text-faint);
+    font-size: var(--text-sm);
+    cursor: grab;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+
   .row-label {
     flex: 1;
     min-width: 0;
@@ -507,8 +669,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-
 
   .row-actions {
     display: flex;
@@ -525,12 +685,20 @@
     border-radius: var(--radius-sm, 4px);
     padding: var(--space-1) var(--space-2);
     cursor: pointer;
-    transition: background var(--ease-fast), color var(--ease-fast);
+    transition:
+      background var(--ease-fast),
+      color var(--ease-fast);
   }
 
-  .action-btn:hover { background: rgba(255, 255, 255, 0.07); color: var(--color-text); }
-  .action-btn--danger:hover { background: rgba(192, 57, 43, 0.15); color: #e74c3c; border-color: transparent; }
-
+  .action-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--color-text);
+  }
+  .action-btn--danger:hover {
+    background: rgba(192, 57, 43, 0.15);
+    color: #e74c3c;
+    border-color: transparent;
+  }
 
   .btn-primary {
     font-family: var(--font-body);
@@ -545,5 +713,7 @@
     transition: opacity var(--ease-fast);
   }
 
-  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:hover {
+    opacity: 0.85;
+  }
 </style>

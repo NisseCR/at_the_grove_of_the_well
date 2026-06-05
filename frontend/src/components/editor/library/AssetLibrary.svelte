@@ -3,12 +3,17 @@
   import { ChevronDown } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
   import { assetApiClient } from "@/lib/services/assetApiClient";
-  import type { AnyAsset, AudioAsset, ImageAsset, VideoAsset } from "@/types/assets";
-  import AssetCard from "@/components/editor/AssetCard.svelte";
-  import AssetUploadZone from "@/components/editor/AssetUploadZone.svelte";
-  import AssetEditDialog from "@/components/editor/AssetEditDialog.svelte";
-  import ConfirmDialog from "@/components/editor/ConfirmDialog.svelte";
-  import SearchInput from "@/components/editor/SearchInput.svelte";
+  import type {
+    AnyAsset,
+    AudioAsset,
+    ImageAsset,
+    VideoAsset,
+  } from "@/types/assets";
+  import AssetCard from "@/components/editor/library/AssetCard.svelte";
+  import AssetUploadZone from "@/components/editor/library/AssetUploadZone.svelte";
+  import AssetEditDialog from "@/components/editor/library/AssetEditDialog.svelte";
+  import ConfirmDialog from "@/components/editor/shared/ConfirmDialog.svelte";
+  import SearchInput from "@/components/editor/shared/SearchInput.svelte";
   import { labelFromFilename } from "@/lib/utils/format";
 
   type AssetTab = "images" | "audio" | "video";
@@ -50,12 +55,12 @@
   let sortBy = $state<SortKey>("label-asc");
 
   const SORT_LABELS: Record<SortKey, string> = {
-    "label-asc":    "Label A→Z",
-    "label-desc":   "Label Z→A",
-    "artist-asc":   "Artist A→Z",
-    "artist-desc":  "Artist Z→A",
+    "label-asc": "Label A→Z",
+    "label-desc": "Label Z→A",
+    "artist-asc": "Artist A→Z",
+    "artist-desc": "Artist Z→A",
     "created-desc": "Newest first",
-    "created-asc":  "Oldest first",
+    "created-asc": "Oldest first",
     "updated-desc": "Recently updated",
   };
 
@@ -109,24 +114,49 @@
       if (activeTab === "images") {
         const uploaded =
           files.length === 1
-            ? [await assetApiClient.uploadImage(files[0], labelFromFilename(files[0].name))]
+            ? [
+                await assetApiClient.uploadImage(
+                  files[0],
+                  labelFromFilename(files[0].name),
+                ),
+              ]
             : await assetApiClient.uploadImagesBulk(files);
-        images = [...images, ...uploaded].sort((a, b) => a.label.localeCompare(b.label));
+        images = [...images, ...uploaded].sort((a, b) =>
+          a.label.localeCompare(b.label),
+        );
       } else if (activeTab === "audio") {
         const uploaded =
           files.length === 1
-            ? [await assetApiClient.uploadAudio(files[0], labelFromFilename(files[0].name), undefined, normMode)]
+            ? [
+                await assetApiClient.uploadAudio(
+                  files[0],
+                  labelFromFilename(files[0].name),
+                  undefined,
+                  normMode,
+                ),
+              ]
             : await assetApiClient.uploadAudioBulk(files, normMode);
-        audio = [...audio, ...uploaded].sort((a, b) => a.label.localeCompare(b.label));
+        audio = [...audio, ...uploaded].sort((a, b) =>
+          a.label.localeCompare(b.label),
+        );
       } else {
         const uploaded =
           files.length === 1
-            ? [await assetApiClient.uploadVideo(files[0], labelFromFilename(files[0].name))]
+            ? [
+                await assetApiClient.uploadVideo(
+                  files[0],
+                  labelFromFilename(files[0].name),
+                ),
+              ]
             : await assetApiClient.uploadVideoBulk(files);
-        video = [...video, ...uploaded].sort((a, b) => a.label.localeCompare(b.label));
+        video = [...video, ...uploaded].sort((a, b) =>
+          a.label.localeCompare(b.label),
+        );
       }
       toast.success(
-        files.length === 1 ? "Asset uploaded" : `${files.length} assets uploaded`,
+        files.length === 1
+          ? "Asset uploaded"
+          : `${files.length} assets uploaded`,
       );
     } catch {
       toast.error("Upload failed");
@@ -229,7 +259,11 @@
         const updated = await assetApiClient.replaceImage(asset.id, file);
         images = images.map((a) => (a.id === updated.id ? updated : a));
       } else if (activeTab === "audio") {
-        const updated = await assetApiClient.replaceAudio(asset.id, file, normMode);
+        const updated = await assetApiClient.replaceAudio(
+          asset.id,
+          file,
+          normMode,
+        );
         audio = audio.map((a) => (a.id === updated.id ? updated : a));
       } else {
         const updated = await assetApiClient.replaceVideo(asset.id, file);
@@ -281,7 +315,7 @@
    * Falls back to 0 if either value is missing.
    */
   function dateDiff(a: string | undefined, b: string | undefined): number {
-    return (new Date(b ?? 0).getTime()) - (new Date(a ?? 0).getTime());
+    return new Date(b ?? 0).getTime() - new Date(a ?? 0).getTime();
   }
 
   /** Returns filtered assets sorted by the active sort key. */
@@ -289,27 +323,38 @@
     const assets = filteredAssets();
     return [...assets].sort((a, b) => {
       switch (sortBy) {
-        case "label-asc":   return a.label.localeCompare(b.label);
-        case "label-desc":  return b.label.localeCompare(a.label);
-        case "artist-asc":  return (a.artist ?? "").localeCompare(b.artist ?? "");
-        case "artist-desc": return (b.artist ?? "").localeCompare(a.artist ?? "");
-        case "created-desc": return dateDiff(a.created_at, b.created_at);
-        case "created-asc":  return dateDiff(b.created_at, a.created_at);
-        case "updated-desc": return dateDiff(a.updated_at, b.updated_at);
-        default: return 0;
+        case "label-asc":
+          return a.label.localeCompare(b.label);
+        case "label-desc":
+          return b.label.localeCompare(a.label);
+        case "artist-asc":
+          return (a.artist ?? "").localeCompare(b.artist ?? "");
+        case "artist-desc":
+          return (b.artist ?? "").localeCompare(a.artist ?? "");
+        case "created-desc":
+          return dateDiff(a.created_at, b.created_at);
+        case "created-asc":
+          return dateDiff(b.created_at, a.created_at);
+        case "updated-desc":
+          return dateDiff(a.updated_at, b.updated_at);
+        default:
+          return 0;
       }
     });
   }
 </script>
 
 <div class="library">
-  <Tabs.Root value={activeTab} onValueChange={handleTabChange} class="subtabs-root">
+  <Tabs.Root
+    value={activeTab}
+    onValueChange={handleTabChange}
+    class="subtabs-root"
+  >
     <Tabs.List class="subtab-list">
       <Tabs.Trigger value="images" class="subtab">Images</Tabs.Trigger>
       <Tabs.Trigger value="audio" class="subtab">Audio</Tabs.Trigger>
       <Tabs.Trigger value="video" class="subtab">Video</Tabs.Trigger>
     </Tabs.List>
-
   </Tabs.Root>
 
   <!-- Content rendered with {#if} so only the active tab is mounted -->
@@ -320,11 +365,17 @@
         <ToggleGroup.Root
           type="single"
           value={normMode}
-          onValueChange={(v) => { if (v) normMode = v as "music" | "ambience"; }}
+          onValueChange={(v) => {
+            if (v) normMode = v as "music" | "ambience";
+          }}
           class="norm-group"
         >
-          <ToggleGroup.Item value="music" class="norm-item">Music</ToggleGroup.Item>
-          <ToggleGroup.Item value="ambience" class="norm-item">Ambience</ToggleGroup.Item>
+          <ToggleGroup.Item value="music" class="norm-item"
+            >Music</ToggleGroup.Item
+          >
+          <ToggleGroup.Item value="ambience" class="norm-item"
+            >Ambience</ToggleGroup.Item
+          >
         </ToggleGroup.Root>
       </div>
     {/if}
@@ -336,12 +387,17 @@
     />
 
     <div class="toolbar">
-      <SearchInput bind:value={searchQuery} placeholder="Search by label or artist…" />
+      <SearchInput
+        bind:value={searchQuery}
+        placeholder="Search by label or artist…"
+      />
 
       <Select.Root
         type="single"
         value={sortBy}
-        onValueChange={(v) => { if (v) sortBy = v as SortKey; }}
+        onValueChange={(v) => {
+          if (v) sortBy = v as SortKey;
+        }}
       >
         <Select.Trigger class="sort-trigger">
           {SORT_LABELS[sortBy]}
@@ -349,16 +405,10 @@
         </Select.Trigger>
         <Select.Portal>
           <Select.Content class="sort-content" sideOffset={4}>
-            {#each ([
-              { value: "label-asc",    label: "Label A→Z" },
-              { value: "label-desc",   label: "Label Z→A" },
-              { value: "artist-asc",   label: "Artist A→Z" },
-              { value: "artist-desc",  label: "Artist Z→A" },
-              { value: "created-desc", label: "Newest first" },
-              { value: "created-asc",  label: "Oldest first" },
-              { value: "updated-desc", label: "Recently updated" },
-            ] as { value: SortKey; label: string }[]) as opt}
-              <Select.Item value={opt.value} class="sort-option">{opt.label}</Select.Item>
+            {#each [{ value: "label-asc", label: "Label A→Z" }, { value: "label-desc", label: "Label Z→A" }, { value: "artist-asc", label: "Artist A→Z" }, { value: "artist-desc", label: "Artist Z→A" }, { value: "created-desc", label: "Newest first" }, { value: "created-asc", label: "Oldest first" }, { value: "updated-desc", label: "Recently updated" }] as { value: SortKey; label: string }[] as opt}
+              <Select.Item value={opt.value} class="sort-option"
+                >{opt.label}</Select.Item
+              >
             {/each}
           </Select.Content>
         </Select.Portal>
@@ -514,7 +564,6 @@
     align-items: center;
   }
 
-
   :global(.sort-trigger) {
     display: flex;
     align-items: center;
@@ -558,7 +607,9 @@
     color: var(--color-text-muted);
     cursor: pointer;
     user-select: none;
-    transition: background var(--ease-fast), color var(--ease-fast);
+    transition:
+      background var(--ease-fast),
+      color var(--ease-fast);
   }
 
   :global(.sort-option[data-highlighted]) {

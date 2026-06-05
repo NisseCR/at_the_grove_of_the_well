@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Tabs } from "bits-ui";
   import { navigate } from "@/stores/router.svelte";
-  import AssetLibrary from "@/components/editor/AssetLibrary.svelte";
-  import AmbienceEditor from "@/components/editor/AmbienceEditor.svelte";
+  import AssetLibrary from "@/components/editor/library/AssetLibrary.svelte";
+  import AmbienceEditor from "@/components/editor/ambiences/AmbienceEditor.svelte";
 
   type EditorTab = "library" | "scenes" | "playlists" | "ambiences";
 
