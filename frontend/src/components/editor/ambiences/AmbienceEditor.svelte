@@ -1,13 +1,11 @@
 <script lang="ts">
   import { Tabs } from "bits-ui";
-  import { AudioWaveform } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
   import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
   import type { Ambience, AmbienceCategory } from "@/types/ambience";
   import ConfirmDialog from "@/components/editor/ConfirmDialog.svelte";
   import AmbienceForm from "@/components/editor/AmbienceForm.svelte";
   import CategoryForm from "@/components/editor/CategoryForm.svelte";
-  import ItemPickerDialog from "@/components/editor/ItemPickerDialog.svelte";
   import SearchInput from "@/components/editor/SearchInput.svelte";
 
   // ---------------------------------------------------------------------------
@@ -22,17 +20,12 @@
 
   let activeTab = $state<"ambiences" | "categories">("ambiences");
   let searchQuery = $state("");
-  let catPickerOpenId = $state<string | null>(null);
-  let catPickerOpen = $state(false);
-
-  const pickerCat = $derived(categories.find((c) => c.id === catPickerOpenId) ?? null);
-  const pickerAmbiences = $derived(
-    pickerCat ? ambiencesNotInCategory(pickerCat).map((a) => ({ id: a.id, label: a.label })) : [],
+  /** null = all, "" = no category, catId = specific category */
+  let categoryFilter = $state<string | null>(null);
+  /** IDs of all ambiences that are linked to at least one category. */
+  const linkedAmbienceIds = $derived(
+    new Set(categories.flatMap((c) => c.ambiences.map((a) => a.id))),
   );
-
-  $effect(() => {
-    if (!catPickerOpen) catPickerOpenId = null;
-  });
 
   // Ambience dialogs
   let formOpen = $state(false);
@@ -71,11 +64,22 @@
   // Filtering
   // ---------------------------------------------------------------------------
 
-  /** Returns ambiences filtered by the current search query. */
+  /** Returns ambiences filtered by the active category filter and search query. */
   function filteredAmbiences(): Ambience[] {
+    let result = ambiences;
+
+    if (categoryFilter === "") {
+      result = result.filter((a) => !linkedAmbienceIds.has(a.id));
+    } else if (categoryFilter !== null) {
+      const catIds = new Set(
+        categories.find((c) => c.id === categoryFilter)?.ambiences.map((a) => a.id) ?? [],
+      );
+      result = result.filter((a) => catIds.has(a.id));
+    }
+
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return ambiences;
-    return ambiences.filter(
+    if (!q) return result;
+    return result.filter(
       (a) =>
         a.label.toLowerCase().includes(q) ||
         (a.audio_asset_label?.toLowerCase().includes(q) ?? false),
@@ -232,54 +236,7 @@
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Category ↔ Ambience linking
-  // ---------------------------------------------------------------------------
 
-  /** Add an ambience to a category and update the local categories list. */
-  async function addToCategory(catId: string, ambienceId: string, ambienceLabel: string) {
-    try {
-      await ambienceApiClient.addAmbienceToCategory(catId, ambienceId);
-      categories = categories.map((c) =>
-        c.id === catId
-          ? { ...c, ambiences: [...c.ambiences, { id: ambienceId, label: ambienceLabel }] }
-          : c,
-      );
-      toast.success(`Added to category`);
-    } catch {
-      toast.error("Failed to add ambience to category");
-    }
-  }
-
-  /** Remove an ambience from a category and update the local categories list. */
-  async function removeFromCategory(catId: string, ambienceId: string) {
-    try {
-      await ambienceApiClient.removeAmbienceFromCategory(catId, ambienceId);
-      categories = categories.map((c) =>
-        c.id === catId
-          ? { ...c, ambiences: c.ambiences.filter((e) => e.id !== ambienceId) }
-          : c,
-      );
-      toast.success("Removed from category");
-    } catch {
-      toast.error("Failed to remove ambience from category");
-    }
-  }
-
-  /** Picks an item from the picker and links it to the open category. */
-  function handleCatPick(item: { id: string; label: string }) {
-    if (catPickerOpenId) addToCategory(catPickerOpenId, item.id, item.label);
-    catPickerOpen = false;
-  }
-
-  /**
-   * Returns ambiences not yet in the given category,
-   * for use in the "add" dropdown.
-   */
-  function ambiencesNotInCategory(cat: AmbienceCategory): Ambience[] {
-    const linked = new Set(cat.ambiences.map((e) => e.id));
-    return ambiences.filter((a) => !linked.has(a.id));
-  }
 </script>
 
 <div class="editor">
@@ -304,6 +261,26 @@
           <button class="btn-primary" onclick={openCreate}>New ambience</button>
         </div>
 
+        <div class="filter-bar">
+          <button
+            class="filter-chip"
+            class:filter-chip--active={categoryFilter === null}
+            onclick={() => (categoryFilter = null)}
+          >All</button>
+          <button
+            class="filter-chip"
+            class:filter-chip--active={categoryFilter === ""}
+            onclick={() => (categoryFilter = "")}
+          >None</button>
+          {#each categories as cat (cat.id)}
+            <button
+              class="filter-chip"
+              class:filter-chip--active={categoryFilter === cat.id}
+              onclick={() => (categoryFilter = cat.id)}
+            >{cat.label}</button>
+          {/each}
+        </div>
+
         {#if filteredAmbiences().length === 0}
           <p class="status">
             {searchQuery ? `No results for "${searchQuery}"` : "No ambiences yet."}
@@ -313,21 +290,6 @@
             {#each filteredAmbiences() as ambience (ambience.id)}
               <div class="row">
                 <span class="row-label">{ambience.label}</span>
-                <div class="row-attrs">
-                  {#if ambience.slug}
-                    <span class="badge">/{ambience.slug}</span>
-                  {/if}
-                  {#if ambience.audio_asset_label}
-                    <span class="badge badge--audio">
-                      <AudioWaveform size={11} strokeWidth={1.5} />
-                      {ambience.audio_asset_label}
-                    </span>
-                  {:else}
-                    <span class="badge badge--warn">No audio linked</span>
-                  {/if}
-                  <span class="badge">{Math.round(ambience.volume * 100)}%</span>
-                  <span class="badge">{ambience.loop ? "loop" : "once"}</span>
-                </div>
                 <div class="row-actions">
                   <button class="action-btn" onclick={() => openEdit(ambience)}>Edit</button>
                   <button class="action-btn action-btn--danger" onclick={() => openDelete(ambience)}>Delete</button>
@@ -350,41 +312,13 @@
         {#if categories.length === 0}
           <p class="status">No categories yet.</p>
         {:else}
-          <div class="cat-list">
+          <div class="list">
             {#each categories as cat (cat.id)}
-              <div class="cat-card">
-                <div class="cat-header">
-                  <div class="cat-header-left">
-                    <span class="cat-label">{cat.label}</span>
-                    <span class="badge">order {cat.order}</span>
-                  </div>
-                  <div class="row-actions">
-                    <button class="action-btn" onclick={() => openCatEdit(cat)}>Edit</button>
-                    <button class="action-btn action-btn--danger" onclick={() => openCatDelete(cat)}>Delete</button>
-                  </div>
-                </div>
-
-                <div class="cat-ambiences">
-                  {#each cat.ambiences as entry (entry.id)}
-                    <div class="cat-ambience-row">
-                      <span class="cat-ambience-label">{entry.label}</span>
-                      <button
-                        class="action-btn action-btn--danger"
-                        onclick={() => removeFromCategory(cat.id, entry.id)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  {/each}
-
-                  {#if ambiencesNotInCategory(cat).length > 0}
-                    <button
-                      class="add-btn"
-                      onclick={() => { catPickerOpenId = cat.id; catPickerOpen = true; }}
-                    >
-                      + Add ambience…
-                    </button>
-                  {/if}
+              <div class="row">
+                <span class="row-label">{cat.label}</span>
+                <div class="row-actions">
+                  <button class="action-btn" onclick={() => openCatEdit(cat)}>Edit</button>
+                  <button class="action-btn action-btn--danger" onclick={() => openCatDelete(cat)}>Delete</button>
                 </div>
               </div>
             {/each}
@@ -398,17 +332,6 @@
 <!-- ------------------------------------------------------------------------->
 <!-- Dialogs                                                                  -->
 <!-- ------------------------------------------------------------------------->
-
-{#if catPickerOpenId}
-  <ItemPickerDialog
-    bind:open={catPickerOpen}
-    items={pickerAmbiences}
-    title="Add ambience to category"
-    placeholder="Search ambiences…"
-    onpick={handleCatPick}
-    oncancel={() => (catPickerOpen = false)}
-  />
-{/if}
 
 {#if formOpen}
   <AmbienceForm
@@ -521,6 +444,36 @@
     justify-content: flex-end;
   }
 
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .filter-chip {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-border);
+    border-radius: 99px;
+    padding: 2px var(--space-3);
+    cursor: pointer;
+    transition: color var(--ease-fast), border-color var(--ease-fast), background var(--ease-fast);
+    white-space: nowrap;
+  }
+
+  .filter-chip:hover {
+    color: var(--color-text-muted);
+    border-color: var(--color-text-faint);
+  }
+
+  .filter-chip--active {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
   .status {
     color: var(--color-text-faint);
     font-size: var(--text-sm);
@@ -545,39 +498,17 @@
   }
 
   .row-label {
+    flex: 1;
+    min-width: 0;
     font-size: var(--text-sm);
     color: var(--color-text);
     font-family: var(--font-body);
     white-space: nowrap;
-    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .row-attrs {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    flex-wrap: wrap;
-  }
 
-  .badge--audio {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .badge--warn {
-    color: #e67e22;
-  }
-
-  .badge {
-    font-size: var(--text-xs);
-    font-family: var(--font-body);
-    color: var(--color-text-faint);
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 3px;
-    padding: 1px 6px;
-  }
 
   .row-actions {
     display: flex;
@@ -600,86 +531,6 @@
   .action-btn:hover { background: rgba(255, 255, 255, 0.07); color: var(--color-text); }
   .action-btn--danger:hover { background: rgba(192, 57, 43, 0.15); color: #e74c3c; border-color: transparent; }
 
-  /* Category cards */
-  .cat-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .cat-card {
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md, 8px);
-    overflow: hidden;
-  }
-
-  .cat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3) var(--space-4);
-    background: rgba(255, 255, 255, 0.04);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .cat-header-left {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .cat-label {
-    font-size: var(--text-sm);
-    color: var(--color-text);
-    font-family: var(--font-body);
-    font-weight: 500;
-  }
-
-  .cat-ambiences {
-    padding: var(--space-2) var(--space-4);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .cat-ambience-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-1) 0;
-  }
-
-  .cat-ambience-label {
-    flex: 1;
-    min-width: 0;
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    font-family: var(--font-body);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .add-btn {
-    margin-top: var(--space-2);
-    box-sizing: border-box;
-    width: 100%;
-    padding: var(--space-2) var(--space-3);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius-sm, 4px);
-    color: var(--color-text-faint);
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    cursor: pointer;
-    text-align: left;
-    transition: border-color var(--ease-fast), color var(--ease-fast);
-  }
-
-  .add-btn:hover {
-    border-color: var(--color-text-faint);
-    color: var(--color-text-muted);
-  }
 
   .btn-primary {
     font-family: var(--font-body);
