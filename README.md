@@ -56,105 +56,119 @@ Assets live outside the repo in a directory referenced by `ASSETS_DIR` in `.env`
 
 ## Scripts
 
-Tone.js runs the Web Audio API at 48000 Hz. All audio assets must be resampled to match before serving — the browser's implicit resampling produces audible artefacts.
-
-```
-python scripts/resample.py <input_dir> <output_dir>
-```
-
-Options: `--rate` (default 48000), `--dry-run`. Run once per new audio file added.
+TODO describe usage of preprocessing scripts.
 
 ## Source Folder
 
-The `source/` folder is the raw asset input for the project. Its contents are gitignored — only the top-level folder structure is tracked. Raw files (`.mp3`, `.jpg`, etc.) live here and are preprocessed into a separate output directory before being synced to the CDN.
+The `source/` folder holds raw asset inputs. File contents are gitignored — only the top-level folder skeleton is tracked. The preprocessing script converts files to standardised formats and writes them to a separate output directory, which is what gets synced to the CDN.
 
 ### Naming conventions
 
-- All folder and file names are **kebab-case** (`forest-day`, `frystfel-i`)
-- Folder names are used as slugs — treat them as stable IDs; renaming breaks references
-- Labels are derived automatically: strip any numeric prefix, replace hyphens with spaces, title-case
-- Use a numeric prefix to control display order: `01_borealis`, `02_australis`
+- All folder and file names must be **kebab-case** (`forest-day`, `frystfel-i`, `wind-1`)
+- Folder names are slugs — they are used as stable IDs. **Renaming a folder breaks references.**
+- Labels are derived automatically: numeric prefix is stripped, hyphens become spaces, result is title-cased
+  - `01_exploration` → `Exploration`
+  - `borealis` → `Borealis`
+  - `frystfel-i` → `Frystfel I`
+- **Category display order** is controlled by a numeric prefix on the category folder: `01_wind`, `02_precipitation`
+- Playlist and ambience names have no required prefix — they appear in alphabetical order within their category
+
+### Folder structure
+
+```
+source/
+  _shared/                          ← shared visual assets, referenceable by any entity
+    images/                         ← background images and textures (.jpg, .png)
+    videos/                         ← looping video layers (.webm)
+  ambiences/                        ← one category folder per ambience group
+  playlists/                        ← one category folder per playlist group
+  handouts/                         ← future use
+```
 
 ### Playlists
 
 ```
 source/playlists/
-  01_exploration/               ← category (display order via prefix)
-    01_borealis/                ← playlist
+  01_exploration/                   ← category folder (prefix controls display order)
+    australis/                      ← playlist folder (no prefix — alphabetical order)
+      cover.jpg                     ← required playlist cover image
+      a-new-day-has-dawned.mp3
+      anders.mp3
+      awakening.mp3
+    borealis/
       cover.jpg
-      01_frystfel-i.mp3         ← track order via numeric prefix
-      02_frystfel-ii.mp3
-      03_highlands-i.mp3
-    02_australis/
+      frystfel-i.mp3
+      frystfel-ii.mp3
+      highlands-i.mp3
+    dissonance/
       cover.jpg
-      01_ashen.mp3
-      02_refuge.mp3
+      a-blessing.mp3
+      a-village-leaves.mp3
   02_mood/
-    01_alone/
+    alone/
       cover.jpg
-      01_track.mp3
+      ashen.mp3
+      eye-of-the-needle.mp3
 ```
 
-- Each playlist folder contains a `cover.jpg` and one or more audio tracks
-- Track playback order follows the numeric prefix on the filename
-- The playlist engine loops back to the first track when it reaches the end
+- Every playlist folder must contain a `cover.jpg`
+- Tracks play in alphabetical order; the engine loops back to the first track at the end
+- Empty category folders are ignored by the scanner
 
 ### Ambiences
 
 ```
 source/ambiences/
-  01_forest/                    ← category
-    cover.jpg                   ← category thumbnail
-    cursed.ogg
-    darkest.ogg
-    night.ogg
-  02_wind/
+  01_wind/                          ← category folder (prefix controls display order)
+    cover.jpg                       ← required category thumbnail
+    distorted.ogg
+    nessus.ogg
+    piercing.ogg
+    wind-1.ogg
+    wind-2.ogg
+    wind-3.ogg
+  02_precipitation/
     cover.jpg
-    ghostly.ogg
-    haunting.ogg
+    crystal.ogg
+    rain.ogg
+    snow-1.ogg
+    snow-2.ogg
 ```
 
+- Every category folder must contain a `cover.jpg` — this is used as the thumbnail in the controller
 - Each audio file directly inside a category folder is one ambience
-- Ambiences always loop and play at default volume (0.5)
-- The category `cover.jpg` is used as the thumbnail in the controller rail
-
-### Scenes
-
-```
-source/scenes/
-  (empty for now — structure TBD)
-```
-
-Scenes reference shared visual assets via a `scene.json` config file stored in the project repo (not in `source/`). The `_shared/` folder at the root of `source/` holds the visual files themselves.
+- Ambiences always loop and play at default volume (0.5) — no per-file config needed
+- Numbering within a category (e.g. `wind-1`, `wind-2`) is for distinct sound variants, not ordering
 
 ### Shared assets
 
 ```
 source/_shared/
-  images/                       ← background images and textures
-    forest-bg.jpg
-    stone-wall.jpg
-  videos/                       ← looping video layers
-    mist.webm
-    fire.webm
-    rain.webm
+  images/
+    abyssus.jpg
+    storm-at-sea.jpg
+    study.jpg
+  videos/
+    house-night.webm
+    lens-cold.webm
+    snow.webm
+    wind.webm
 ```
 
-Any entity type (scenes, handouts, etc.) can reference files from `_shared/`. This avoids duplicating large video files across multiple scenes that reuse the same layer.
+- `_shared/` is a flat pool of visual assets — no subfolders beyond `images/` and `videos/`
+- Files here are referenced by scene configs (stored in the project repo, not in `source/`)
+- Use `_shared/` for any asset that is reused across multiple scenes to avoid duplication
 
-### Handouts
+### Scenes
 
-```
-source/handouts/
-  (future — not yet populated)
-```
+Scene configs are stored in the project repo as `scene.json` files, not in `source/`. Visual assets used by scenes (backgrounds, video layers) live in `source/_shared/`. There is no `source/scenes/` folder.
 
 ### File formats
 
-Raw source files can be in any common format — the preprocessing script converts everything to the standardised output formats before syncing to the CDN:
+Raw files can be in any common format — the preprocessing script converts everything before syncing to the CDN:
 
-| Type   | Input          | Output  |
-|--------|----------------|---------|
-| Audio  | `.mp3`, `.wav` | `.ogg` (48kHz, −16 LUFS) |
-| Images | `.jpg`, `.png` | `.webp` + `cover.thumb.webp` thumbnail |
-| Video  | `.webm`        | `.webm` (passthrough for now) |
+| Type   | Accepted input      | Output                                          |
+| ------ | ------------------- | ----------------------------------------------- |
+| Audio  | `.mp3`, `.wav`, etc | `.ogg` (48kHz, −16 LUFS)                        |
+| Images | `.jpg`, `.png`, etc | `.webp` + `cover.thumb.webp` (covers only)      |
+| Video  | `.webm`             | `.webm` (passthrough)                           |
