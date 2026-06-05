@@ -124,6 +124,118 @@ class SceneCategoryOut(BaseModel):
     scenes: list[SceneCategoryEntryOut]
 
 
+class BackgroundEditorOut(BaseModel):
+    """Background as returned by the editor — includes asset label and nullable asset fields."""
+
+    asset_id: Optional[str] = None
+    label: Optional[str] = None
+    type: Optional[Literal["image", "video"]] = None
+    thumb_src: Optional[str] = None
+    loop: bool = True
+    opacity: float = 1.0
+    brightness: float = 1.0
+    grayscale: float = 0.0
+    blur: float = 0.0
+    flip: bool = False
+    blend_mode: str = "normal"
+
+
+class LayerEditorOut(BaseModel):
+    """A scene layer as returned by the editor — includes layer_id for patch/delete."""
+
+    layer_id: str
+    asset_id: str
+    label: str
+    type: Literal["image", "video"]
+    order: int
+    loop: bool
+    opacity: float
+    brightness: float
+    grayscale: float
+    blur: float
+    flip: bool
+    blend_mode: str
+
+
+class SceneEditorOut(BaseModel):
+    """Full scene representation for the editor."""
+
+    id: str
+    slug: Optional[str] = None
+    label: str
+    background: BackgroundEditorOut
+    layers: list[LayerEditorOut]
+
+
+class SceneCreateIn(BaseModel):
+    """Payload for creating a new scene."""
+
+    label: str
+    slug: Optional[str] = None
+
+
+class ScenePatchIn(BaseModel):
+    """Payload for updating scene label or slug."""
+
+    label: Optional[str] = None
+    slug: Optional[str] = None
+
+
+class SceneBackgroundPatchIn(BaseModel):
+    """Patch the background asset and/or visual properties. Providing image_asset_id clears video and vice versa."""
+
+    image_asset_id: Optional[str] = None
+    video_asset_id: Optional[str] = None
+    loop: Optional[bool] = None
+    opacity: Optional[float] = None
+    brightness: Optional[float] = None
+    grayscale: Optional[float] = None
+    blur: Optional[float] = None
+    flip: Optional[bool] = None
+    blend_mode: Optional[str] = None
+
+
+class SceneLayerCreateIn(BaseModel):
+    """Payload for adding a layer. Exactly one asset id should be provided."""
+
+    image_asset_id: Optional[str] = None
+    video_asset_id: Optional[str] = None
+
+
+class SceneLayerPatchIn(BaseModel):
+    """Patch a layer's asset and/or visual properties."""
+
+    image_asset_id: Optional[str] = None
+    video_asset_id: Optional[str] = None
+    loop: Optional[bool] = None
+    opacity: Optional[float] = None
+    brightness: Optional[float] = None
+    grayscale: Optional[float] = None
+    blur: Optional[float] = None
+    flip: Optional[bool] = None
+    blend_mode: Optional[str] = None
+
+
+class SceneLayerReorderIn(BaseModel):
+    """Ordered list of layer UUIDs defining the new layer_order."""
+
+    layer_ids: list[str]
+
+
+class SceneCategoryCreateIn(BaseModel):
+    """Payload for creating a new scene category."""
+
+    label: str
+    display_order: int = 0
+
+
+class SceneCategoryPatchIn(BaseModel):
+    """Payload for updating a scene category."""
+
+    label: Optional[str] = None
+    display_order: Optional[int] = None
+
+
 # ---------------------------------------------------------------------------
 # Ambiences
 # ---------------------------------------------------------------------------

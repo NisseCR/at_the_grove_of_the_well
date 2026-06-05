@@ -1,4 +1,4 @@
-type BlendMode =
+export type BlendMode =
   | "normal"
   | "multiply"
   | "screen"
@@ -57,4 +57,43 @@ export interface SceneCategory {
   label: string;
   order: number;
   scenes: SceneCategoryEntry[];
+}
+
+// ---------------------------------------------------------------------------
+// Editor-specific types
+// ---------------------------------------------------------------------------
+
+export interface LayerProperties {
+  loop: boolean;
+  opacity: number;
+  brightness: number;
+  grayscale: number;
+  blur: number;
+  flip: boolean;
+  blend_mode: BlendMode;
+}
+
+export interface BackgroundEditor extends LayerProperties {
+  asset_id: string | null;
+  label: string | null;
+  type: "image" | "video" | null;
+  thumb_src: string | null;
+  thumb_url?: string | null;
+}
+
+export interface LayerEditor extends LayerProperties {
+  layer_id: string;
+  asset_id: string;
+  label: string;
+  type: "image" | "video";
+  order: number;
+  url?: string;
+}
+
+export interface SceneEditor {
+  id: string;
+  slug: string | null;
+  label: string;
+  background: BackgroundEditor;
+  layers: LayerEditor[];
 }
