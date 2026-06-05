@@ -17,8 +17,8 @@
 
   let { asset, open = $bindable(), saving = false, onsave, oncancel }: Props = $props();
 
-  let label = $state(asset.label);
-  let artist = $state(asset.artist ?? "");
+  let label = $state("");
+  let artist = $state("");
 
   /** Resets form fields to the current asset values. */
   function resetForm() {

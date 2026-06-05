@@ -2,6 +2,7 @@
   import { Tabs } from "bits-ui";
   import { navigate } from "@/stores/router.svelte";
   import AssetLibrary from "@/components/editor/AssetLibrary.svelte";
+  import AmbienceEditor from "@/components/editor/AmbienceEditor.svelte";
 
   type EditorTab = "library" | "scenes" | "playlists" | "ambiences";
 
@@ -34,7 +35,7 @@
         {:else if activeTab === "playlists"}
           <p class="placeholder">Playlist editor — coming soon</p>
         {:else if activeTab === "ambiences"}
-          <p class="placeholder">Ambience editor — coming soon</p>
+          <AmbienceEditor />
         {/if}
       </div>
     </div>

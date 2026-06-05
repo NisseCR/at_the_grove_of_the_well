@@ -138,6 +138,29 @@ class AmbienceOut(BaseModel):
     volume: float
     loop: bool
     src: str
+    # Editor fields — ignored by the controller/player
+    audio_asset_id: Optional[str] = None
+    audio_asset_label: Optional[str] = None
+
+
+class AmbienceCreateIn(BaseModel):
+    """Payload for creating a new ambience."""
+
+    label: str
+    slug: Optional[str] = None
+    volume: float = 0.5
+    loop: bool = True
+    audio_asset_id: Optional[str] = None
+
+
+class AmbiencePatchIn(BaseModel):
+    """Payload for updating an ambience. Only provided fields are changed."""
+
+    label: Optional[str] = None
+    slug: Optional[str] = None
+    volume: Optional[float] = None
+    loop: Optional[bool] = None
+    audio_asset_id: Optional[str] = None
 
 
 class AmbienceCategoryEntryOut(BaseModel):
@@ -152,6 +175,21 @@ class AmbienceCategoryOut(BaseModel):
     thumb_src: Optional[str] = None
     order: int
     ambiences: list[AmbienceCategoryEntryOut]
+
+
+class AmbienceCategoryCreateIn(BaseModel):
+    """Payload for creating a new ambience category."""
+
+    label: str
+    display_order: int = 0
+
+
+class AmbienceCategoryPatchIn(BaseModel):
+    """Payload for updating an ambience category. Only provided fields are changed."""
+
+    label: Optional[str] = None
+    display_order: Optional[int] = None
+    thumb_id: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

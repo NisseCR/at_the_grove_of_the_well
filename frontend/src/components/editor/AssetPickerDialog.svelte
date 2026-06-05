@@ -30,7 +30,7 @@
   // State
   // ---------------------------------------------------------------------------
 
-  let activeType = $state<AssetType>(types[0]);
+  let activeType = $state<AssetType>("image");
   let searchQuery = $state("");
 
   let images = $state<ImageAsset[]>([]);
@@ -97,9 +97,13 @@
     open = false;
   }
 
-  // Load the first type whenever the dialog opens.
+  // Reset and load whenever the dialog opens.
   $effect(() => {
-    if (open) loadType(activeType);
+    if (open) {
+      activeType = types[0];
+      searchQuery = "";
+      loadType(types[0]);
+    }
   });
 
   // ---------------------------------------------------------------------------
@@ -206,9 +210,9 @@
 
   :global(.picker-panel) {
     position: fixed;
-    top: 50%;
+    top: 10vh;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     z-index: 51;
     background: #1a1825;
     border: 1px solid var(--color-border);

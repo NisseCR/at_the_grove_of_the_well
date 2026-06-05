@@ -296,6 +296,7 @@
         case "created-desc": return dateDiff(a.created_at, b.created_at);
         case "created-asc":  return dateDiff(b.created_at, a.created_at);
         case "updated-desc": return dateDiff(a.updated_at, b.updated_at);
+        default: return 0;
       }
     });
   }
