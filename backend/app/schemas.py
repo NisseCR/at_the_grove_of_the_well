@@ -1,73 +1,78 @@
-"""Pydantic response schemas matching the frontend TypeScript types."""
+"""Pydantic response schemas for all API routes."""
 
-from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel
 
 
 # ---------------------------------------------------------------------------
-# Tags
+# Ambiences
 # ---------------------------------------------------------------------------
 
 
-class TagOut(BaseModel):
-    """A single tag."""
+class AmbienceEntry(BaseModel):
+    """Minimal ambience reference used inside category listings."""
 
     id: str
     label: str
+
+
+class AmbienceCategoryOut(BaseModel):
+    """An ambience category with its cover image and member list."""
+
+    id: str
+    label: str
+    src: str = ""
+    thumb_src: str | None = None
+    order: int = 0
+    ambiences: list[AmbienceEntry] = []
+
+
+class AmbienceOut(BaseModel):
+    """A single ambience with playback config and resolved audio src."""
+
+    id: str
+    label: str
+    loop: bool = True
+    src: str
 
 
 # ---------------------------------------------------------------------------
-# Assets
+# Music / Playlists
 # ---------------------------------------------------------------------------
 
 
-class ImageAssetOut(BaseModel):
-    """A single image asset in the library."""
+class MusicTrackOut(BaseModel):
+    """A single track within a playlist."""
+
+    id: str
+    src: str
+
+
+class PlaylistCategoryEntryOut(BaseModel):
+    """Minimal playlist reference used inside category listings."""
 
     id: str
     label: str
-    artist: Optional[str] = None
-    src: str
-    thumb_src: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-    tags: list[TagOut] = []
 
 
-class AudioAssetOut(BaseModel):
-    """A single audio asset in the library."""
+class PlaylistCategoryOut(BaseModel):
+    """A playlist category with its member list."""
 
     id: str
     label: str
-    artist: Optional[str] = None
-    src: str
-    duration: Optional[float] = None
-    created_at: datetime
-    updated_at: datetime
-    tags: list[TagOut] = []
+    order: int = 0
+    playlists: list[PlaylistCategoryEntryOut] = []
 
 
-class VideoAssetOut(BaseModel):
-    """A single video asset in the library."""
+class PlaylistOut(BaseModel):
+    """A playlist with its cover image and ordered tracks."""
 
     id: str
     label: str
-    artist: Optional[str] = None
-    src: str
-    thumb_src: Optional[str] = None
-    duration: Optional[float] = None
-    created_at: datetime
-    updated_at: datetime
-    tags: list[TagOut] = []
-
-
-class AssetPatchIn(BaseModel):
-    """Payload for patching an asset's label and/or artist."""
-
-    label: Optional[str] = None
-    artist: Optional[str] = None
+    src: str = ""
+    thumb_src: str | None = None
+    tracks: list[MusicTrackOut] = []
 
 
 # ---------------------------------------------------------------------------
@@ -76,7 +81,7 @@ class AssetPatchIn(BaseModel):
 
 
 class SceneAssetOut(BaseModel):
-    """Shared visual properties for a scene background or layer."""
+    """Visual properties shared by a scene background and its layers."""
 
     id: str
     src: str
@@ -91,330 +96,54 @@ class SceneAssetOut(BaseModel):
 
 
 class BackgroundAssetOut(SceneAssetOut):
-    """The background asset for a scene. thumb_src only populated for images."""
+    """Scene background — adds optional thumbnail."""
 
-    thumb_src: Optional[str] = None
+    thumb_src: str | None = None
 
 
 class LayerAssetOut(SceneAssetOut):
     """An ordered overlay layer within a scene."""
 
-    order: int
+    order: int = 0
+
+
+class SceneCategoryEntryOut(BaseModel):
+    """Minimal scene reference used inside category listings."""
+
+    id: str
+    label: str
+
+
+class SceneCategoryOut(BaseModel):
+    """A scene category with its member list."""
+
+    id: str
+    label: str
+    order: int = 0
+    scenes: list[SceneCategoryEntryOut] = []
 
 
 class SceneOut(BaseModel):
     """A scene with its background and ordered layers."""
 
     id: str
-    slug: Optional[str] = None
     label: str
     background: BackgroundAssetOut
-    layers: list[LayerAssetOut]
-
-
-class SceneCategoryEntryOut(BaseModel):
-    id: str
-    label: str
-
-
-class SceneCategoryOut(BaseModel):
-    id: str
-    label: str
-    order: int
-    scenes: list[SceneCategoryEntryOut]
-
-
-class BackgroundEditorOut(BaseModel):
-    """Background as returned by the editor — includes asset label and nullable asset fields."""
-
-    asset_id: Optional[str] = None
-    label: Optional[str] = None
-    type: Optional[Literal["image", "video"]] = None
-    thumb_src: Optional[str] = None
-    loop: bool = True
-    opacity: float = 1.0
-    brightness: float = 1.0
-    grayscale: float = 0.0
-    blur: float = 0.0
-    flip: bool = False
-    blend_mode: str = "normal"
-
-
-class LayerEditorOut(BaseModel):
-    """A scene layer as returned by the editor — includes layer_id for patch/delete."""
-
-    layer_id: str
-    asset_id: str
-    label: str
-    type: Literal["image", "video"]
-    order: int
-    loop: bool
-    opacity: float
-    brightness: float
-    grayscale: float
-    blur: float
-    flip: bool
-    blend_mode: str
-
-
-class SceneEditorOut(BaseModel):
-    """Full scene representation for the editor."""
-
-    id: str
-    slug: Optional[str] = None
-    label: str
-    background: BackgroundEditorOut
-    layers: list[LayerEditorOut]
-
-
-class SceneCreateIn(BaseModel):
-    """Payload for creating a new scene."""
-
-    label: str
-    slug: Optional[str] = None
-
-
-class ScenePatchIn(BaseModel):
-    """Payload for updating scene label or slug."""
-
-    label: Optional[str] = None
-    slug: Optional[str] = None
-
-
-class SceneBackgroundPatchIn(BaseModel):
-    """Patch the background asset and/or visual properties. Providing image_asset_id clears video and vice versa."""
-
-    image_asset_id: Optional[str] = None
-    video_asset_id: Optional[str] = None
-    loop: Optional[bool] = None
-    opacity: Optional[float] = None
-    brightness: Optional[float] = None
-    grayscale: Optional[float] = None
-    blur: Optional[float] = None
-    flip: Optional[bool] = None
-    blend_mode: Optional[str] = None
-
-
-class SceneLayerCreateIn(BaseModel):
-    """Payload for adding a layer. Exactly one asset id should be provided."""
-
-    image_asset_id: Optional[str] = None
-    video_asset_id: Optional[str] = None
-
-
-class SceneLayerPatchIn(BaseModel):
-    """Patch a layer's asset and/or visual properties."""
-
-    image_asset_id: Optional[str] = None
-    video_asset_id: Optional[str] = None
-    loop: Optional[bool] = None
-    opacity: Optional[float] = None
-    brightness: Optional[float] = None
-    grayscale: Optional[float] = None
-    blur: Optional[float] = None
-    flip: Optional[bool] = None
-    blend_mode: Optional[str] = None
-
-
-class SceneLayerReorderIn(BaseModel):
-    """Ordered list of layer UUIDs defining the new layer_order."""
-
-    layer_ids: list[str]
-
-
-class SceneCategoryCreateIn(BaseModel):
-    """Payload for creating a new scene category."""
-
-    label: str
-    display_order: int = 0
-
-
-class SceneCategoryPatchIn(BaseModel):
-    """Payload for updating a scene category."""
-
-    label: Optional[str] = None
-    display_order: Optional[int] = None
+    layers: list[LayerAssetOut] = []
 
 
 # ---------------------------------------------------------------------------
-# Ambiences
+# Admin
 # ---------------------------------------------------------------------------
 
 
-class AmbienceOut(BaseModel):
-    """A single ambience entity with playback config and resolved audio src."""
+class SyncResultOut(BaseModel):
+    """Summary returned by POST /admin/sync."""
 
-    id: str
-    slug: Optional[str] = None
-    label: str
-    volume: float
-    loop: bool
-    src: str
-    # Editor fields — ignored by the controller/player
-    audio_asset_id: Optional[str] = None
-    audio_asset_label: Optional[str] = None
-
-
-class AmbienceCreateIn(BaseModel):
-    """Payload for creating a new ambience."""
-
-    label: str
-    slug: Optional[str] = None
-    volume: float = 0.5
-    loop: bool = True
-    audio_asset_id: Optional[str] = None
-
-
-class AmbiencePatchIn(BaseModel):
-    """Payload for updating an ambience. Only provided fields are changed."""
-
-    label: Optional[str] = None
-    slug: Optional[str] = None
-    volume: Optional[float] = None
-    loop: Optional[bool] = None
-    audio_asset_id: Optional[str] = None
-
-
-class AmbienceCategoryEntryOut(BaseModel):
-    id: str
-    label: str
-
-
-class AmbienceCategoryOut(BaseModel):
-    id: str
-    label: str
-    src: str
-    thumb_src: Optional[str] = None
-    order: int
-    ambiences: list[AmbienceCategoryEntryOut]
-
-
-class AmbienceCategoryCreateIn(BaseModel):
-    """Payload for creating a new ambience category."""
-
-    label: str
-    display_order: int = 0
-
-
-class AmbienceCategoryPatchIn(BaseModel):
-    """Payload for updating an ambience category. Only provided fields are changed."""
-
-    label: Optional[str] = None
-    display_order: Optional[int] = None
-    thumb_id: Optional[str] = None
-
-
-# ---------------------------------------------------------------------------
-# Music / Playlists
-# ---------------------------------------------------------------------------
-
-
-class MusicTrackOut(BaseModel):
-    """A single music track within a playlist."""
-
-    id: str
-    src: str
-
-
-class PlaylistOut(BaseModel):
-    """A playlist with its cover image and ordered tracks."""
-
-    id: str
-    slug: Optional[str] = None
-    label: str
-    volume: float
-    src: str
-    thumb_src: Optional[str] = None
-    tracks: list[MusicTrackOut]
-
-
-class PlaylistCategoryEntryOut(BaseModel):
-    id: str
-    label: str
-
-
-class PlaylistCategoryOut(BaseModel):
-    id: str
-    label: str
-    order: int
-    playlists: list[PlaylistCategoryEntryOut]
-
-
-class PlaylistTrackEditorOut(BaseModel):
-    """A track as shown in the editor — includes label for display."""
-
-    audio_asset_id: str
-    label: str
-    src: str
-
-
-class PlaylistEditorOut(BaseModel):
-    """Full playlist representation for the editor."""
-
-    id: str
-    slug: Optional[str] = None
-    label: str
-    volume: float
-    src: str
-    thumb_src: Optional[str] = None
-    cover_id: Optional[str] = None
-    tracks: list[PlaylistTrackEditorOut]
-
-
-class PlaylistCreateIn(BaseModel):
-    """Payload for creating a new playlist."""
-
-    label: str
-    slug: Optional[str] = None
-    volume: float = 0.5
-    cover_id: Optional[str] = None
-
-
-class PlaylistPatchIn(BaseModel):
-    """Payload for updating a playlist. Only provided fields are changed."""
-
-    label: Optional[str] = None
-    slug: Optional[str] = None
-    volume: Optional[float] = None
-    cover_id: Optional[str] = None
-
-
-class PlaylistCategoryCreateIn(BaseModel):
-    """Payload for creating a new playlist category."""
-
-    label: str
-    display_order: int = 0
-
-
-class PlaylistCategoryPatchIn(BaseModel):
-    """Payload for updating a playlist category. Only provided fields are changed."""
-
-    label: Optional[str] = None
-    display_order: Optional[int] = None
-
-
-# ---------------------------------------------------------------------------
-# Reconcile
-# ---------------------------------------------------------------------------
-
-
-class OrphanedFileOut(BaseModel):
-    """An R2 object with no matching DB record."""
-
-    key: str
-
-
-class BrokenAssetOut(BaseModel):
-    """A DB asset record whose R2 file is missing."""
-
-    id: str
-    label: str
-    src: str
-    type: str
-
-
-class ReconcileResultOut(BaseModel):
-    """Result of a reconcile diff between R2 and the DB."""
-
-    orphaned_files: list[OrphanedFileOut]
-    broken_assets: list[BrokenAssetOut]
+    last_synced: str
+    ambience_categories: int
+    ambiences: int
+    playlist_categories: int
+    playlists: int
+    scene_categories: int
+    scenes: int

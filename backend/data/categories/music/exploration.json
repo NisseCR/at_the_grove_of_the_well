@@ -1,8 +1,0 @@
-{
-  "id": "exploration",
-  "order": 0,
-  "playlists": [
-    { "id": "australis", "label": "Australis" },
-    { "id": "borealis", "label": "Borealis" }
-  ]
-}

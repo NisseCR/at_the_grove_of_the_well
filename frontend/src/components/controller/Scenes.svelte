@@ -3,12 +3,12 @@
   import { appState } from "@/stores/appState.svelte";
   import { sendSetScene } from "@/lib/services/transport";
   import { sceneApiClient } from "@/lib/services/sceneApiClient";
-  import type { SceneConfig, SceneCategory } from "@/types/scene";
+  import type { Scene, SceneCategory } from "@/types/scene";
   import CategoryHeader from "@/components/controller/CategoryHeader.svelte";
   import ThumbnailTile from "@/components/controller/ThumbnailTile.svelte";
 
   let categories = $state<SceneCategory[]>([]);
-  let scenes = $state<SceneConfig[]>([]);
+  let scenes = $state<Scene[]>([]);
 
   onMount(async () => {
     [categories, scenes] = await Promise.all([

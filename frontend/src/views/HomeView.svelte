@@ -4,10 +4,10 @@
   import { auth } from "@/stores/auth.svelte";
   import LoginModal from "@/components/LoginModal.svelte";
 
-  let pendingView = $state<"controller" | "editor" | null>(null);
+  let pendingView = $state<"controller" | "sync" | null>(null);
 
   function openView(view: KnownView) {
-    if ((view === "controller" || view === "editor") && !auth.isAuthenticated) {
+    if ((view === "controller" || view === "sync") && !auth.isAuthenticated) {
       pendingView = view;
       return;
     }
@@ -45,12 +45,12 @@
         <span class="card-desc">Set scenes, ambiences and music</span>
       </button>
 
-      <button class="card" class:locked={!auth.isAuthenticated} onclick={() => openView("editor")}>
+      <button class="card" class:locked={!auth.isAuthenticated} onclick={() => openView("sync")}>
         <span class="card-label">
-          Editor
+          Sync
           {#if !auth.isAuthenticated}<span class="lock-icon"><Lock size={13} /></span>{/if}
         </span>
-        <span class="card-desc">Manage assets and categories</span>
+        <span class="card-desc">Reload content from R2</span>
       </button>
     </nav>
   </div>
