@@ -228,6 +228,59 @@ class PlaylistCategoryOut(BaseModel):
     playlists: list[PlaylistCategoryEntryOut]
 
 
+class PlaylistTrackEditorOut(BaseModel):
+    """A track as shown in the editor — includes label for display."""
+
+    audio_asset_id: str
+    label: str
+    src: str
+
+
+class PlaylistEditorOut(BaseModel):
+    """Full playlist representation for the editor."""
+
+    id: str
+    slug: Optional[str] = None
+    label: str
+    volume: float
+    src: str
+    thumb_src: Optional[str] = None
+    cover_id: Optional[str] = None
+    tracks: list[PlaylistTrackEditorOut]
+
+
+class PlaylistCreateIn(BaseModel):
+    """Payload for creating a new playlist."""
+
+    label: str
+    slug: Optional[str] = None
+    volume: float = 0.5
+    cover_id: Optional[str] = None
+
+
+class PlaylistPatchIn(BaseModel):
+    """Payload for updating a playlist. Only provided fields are changed."""
+
+    label: Optional[str] = None
+    slug: Optional[str] = None
+    volume: Optional[float] = None
+    cover_id: Optional[str] = None
+
+
+class PlaylistCategoryCreateIn(BaseModel):
+    """Payload for creating a new playlist category."""
+
+    label: str
+    display_order: int = 0
+
+
+class PlaylistCategoryPatchIn(BaseModel):
+    """Payload for updating a playlist category. Only provided fields are changed."""
+
+    label: Optional[str] = None
+    display_order: Optional[int] = None
+
+
 # ---------------------------------------------------------------------------
 # Reconcile
 # ---------------------------------------------------------------------------

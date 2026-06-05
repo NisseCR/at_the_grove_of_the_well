@@ -14,6 +14,7 @@ from app.routers.ambience import router as ambience_router
 from app.routers.control import router as control_router
 from app.routers.music import router as music_router
 from app.routers.auth import router as auth_router
+from app.routers.playlist import router as playlist_router
 
 
 @asynccontextmanager
@@ -59,6 +60,7 @@ def create_app() -> FastAPI:
     app.include_router(ambience_router, prefix="/api")
     app.include_router(control_router, prefix="/api")
     app.include_router(music_router, prefix="/api")
+    app.include_router(playlist_router, prefix="/api")
 
     return app
 

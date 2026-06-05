@@ -3,9 +3,15 @@
   import { Image, Music, Video } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
   import { assetApiClient } from "@/lib/services/assetApiClient";
-  import type { AnyAsset, AssetType, AudioAsset, ImageAsset, VideoAsset } from "@/types/assets";
+  import type {
+    AnyAsset,
+    AssetType,
+    AudioAsset,
+    ImageAsset,
+    VideoAsset,
+  } from "@/types/assets";
   import { formatDuration } from "@/lib/utils/format";
-  import SearchInput from "@/components/editor/SearchInput.svelte";
+  import SearchInput from "@/components/editor/shared/SearchInput.svelte";
 
   interface Props {
     /** Controls dialog open state — use bind:open from the parent. */
@@ -146,19 +152,26 @@
         {#if types.length > 1}
           <Tabs.List class="picker-tab-list">
             {#each types as type}
-              <Tabs.Trigger value={type} class="picker-tab">{TAB_LABEL[type]}</Tabs.Trigger>
+              <Tabs.Trigger value={type} class="picker-tab"
+                >{TAB_LABEL[type]}</Tabs.Trigger
+              >
             {/each}
           </Tabs.List>
         {/if}
       </Tabs.Root>
 
-      <SearchInput bind:value={searchQuery} placeholder="Search by label or artist…" />
+      <SearchInput
+        bind:value={searchQuery}
+        placeholder="Search by label or artist…"
+      />
 
       <div class="picker-list">
         {#if loadingType}
           <p class="picker-status">Loading…</p>
         {:else if currentAssets().length === 0}
-          <p class="picker-status">No {TAB_LABEL[activeType].toLowerCase()} uploaded yet.</p>
+          <p class="picker-status">
+            No {TAB_LABEL[activeType].toLowerCase()} uploaded yet.
+          </p>
         {:else if filteredAssets().length === 0}
           <p class="picker-status">No results for "{searchQuery}".</p>
         {:else}
@@ -186,7 +199,9 @@
               </div>
 
               {#if hasKnownDuration(asset)}
-                <span class="picker-duration">{formatDuration(asset.duration)}</span>
+                <span class="picker-duration"
+                  >{formatDuration(asset.duration)}</span
+                >
               {/if}
             </button>
           {/each}
@@ -255,7 +270,9 @@
     border-left: none;
     border-right: none;
     cursor: pointer;
-    transition: color var(--ease-fast), border-color var(--ease-fast);
+    transition:
+      color var(--ease-fast),
+      border-color var(--ease-fast);
   }
 
   :global(.picker-tab:hover) {
@@ -365,7 +382,9 @@
     color: var(--color-text-muted);
     border: 1px solid var(--color-border);
     cursor: pointer;
-    transition: background var(--ease-fast), color var(--ease-fast);
+    transition:
+      background var(--ease-fast),
+      color var(--ease-fast);
   }
 
   .btn-secondary:hover {

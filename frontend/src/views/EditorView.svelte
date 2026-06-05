@@ -1,8 +1,9 @@
 <script lang="ts">
   import { Tabs } from "bits-ui";
   import { navigate } from "@/stores/router.svelte";
-  import AssetLibrary from "@/components/editor/AssetLibrary.svelte";
-  import AmbienceEditor from "@/components/editor/AmbienceEditor.svelte";
+  import AssetLibrary from "@/components/editor/library/AssetLibrary.svelte";
+  import AmbienceEditor from "@/components/editor/ambiences/AmbienceEditor.svelte";
+  import PlaylistEditor from "@/components/editor/playlists/PlaylistEditor.svelte";
 
   type EditorTab = "library" | "scenes" | "playlists" | "ambiences";
 
@@ -33,7 +34,7 @@
         {:else if activeTab === "scenes"}
           <p class="placeholder">Scene editor — coming soon</p>
         {:else if activeTab === "playlists"}
-          <p class="placeholder">Playlist editor — coming soon</p>
+          <PlaylistEditor />
         {:else if activeTab === "ambiences"}
           <AmbienceEditor />
         {/if}

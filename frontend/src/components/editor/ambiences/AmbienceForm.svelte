@@ -2,7 +2,7 @@
   import { Dialog, Label } from "bits-ui";
   import type { Ambience } from "@/types/ambience";
   import type { AudioAsset } from "@/types/assets";
-  import AssetPickerDialog from "@/components/editor/AssetPickerDialog.svelte";
+  import AssetPickerDialog from "@/components/editor/shared/AssetPickerDialog.svelte";
 
   interface Props {
     /** Existing ambience to edit, or null when creating. */
@@ -135,15 +135,30 @@
           {#if audioAssetLabel}
             <div class="asset-row">
               <span class="asset-label">{audioAssetLabel}</span>
-              <button type="button" class="btn-ghost" onclick={() => (pickerOpen = true)} disabled={saving}>
+              <button
+                type="button"
+                class="btn-ghost"
+                onclick={() => (pickerOpen = true)}
+                disabled={saving}
+              >
                 Change
               </button>
-              <button type="button" class="btn-ghost btn-ghost--danger" onclick={clearAudio} disabled={saving}>
+              <button
+                type="button"
+                class="btn-ghost btn-ghost--danger"
+                onclick={clearAudio}
+                disabled={saving}
+              >
                 Clear
               </button>
             </div>
           {:else}
-            <button type="button" class="btn-pick" onclick={() => (pickerOpen = true)} disabled={saving}>
+            <button
+              type="button"
+              class="btn-pick"
+              onclick={() => (pickerOpen = true)}
+              disabled={saving}
+            >
               Pick audio asset…
             </button>
           {/if}
@@ -175,12 +190,23 @@
             bind:checked={loop}
             disabled={saving}
           />
-          <Label.Root for="amb-loop" class="field-label field-label--inline">Loop</Label.Root>
+          <Label.Root for="amb-loop" class="field-label field-label--inline"
+            >Loop</Label.Root
+          >
         </div>
 
         <div class="actions">
-          <button type="button" class="btn-secondary" onclick={oncancel} disabled={saving}>Cancel</button>
-          <button type="submit" class="btn-primary" disabled={saving || !label.trim()}>
+          <button
+            type="button"
+            class="btn-secondary"
+            onclick={oncancel}
+            disabled={saving}>Cancel</button
+          >
+          <button
+            type="submit"
+            class="btn-primary"
+            disabled={saving || !label.trim()}
+          >
             {saving ? "Saving…" : isNew ? "Create" : "Save"}
           </button>
         </div>
@@ -338,7 +364,9 @@
     font-size: var(--text-sm);
     cursor: pointer;
     text-align: left;
-    transition: border-color var(--ease-fast), color var(--ease-fast);
+    transition:
+      border-color var(--ease-fast),
+      color var(--ease-fast);
   }
 
   .btn-pick:hover:not(:disabled) {
@@ -357,8 +385,12 @@
     transition: color var(--ease-fast);
   }
 
-  .btn-ghost:hover:not(:disabled) { color: var(--color-text-muted); }
-  .btn-ghost--danger:hover:not(:disabled) { color: #e74c3c; }
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--color-text-muted);
+  }
+  .btn-ghost--danger:hover:not(:disabled) {
+    color: #e74c3c;
+  }
 
   .actions {
     display: flex;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog, Label } from "bits-ui";
   import type { ImageAsset } from "@/types/assets";
-  import AssetPickerDialog from "@/components/editor/AssetPickerDialog.svelte";
+  import AssetPickerDialog from "@/components/editor/shared/AssetPickerDialog.svelte";
 
   interface CategoryData {
     label: string;
@@ -18,7 +18,11 @@
     entityLabel?: string;
     /** When true, shows the thumbnail image picker. */
     withThumbnail?: boolean;
-    onsave: (data: { label: string; display_order: number; thumb_id: string | null }) => void;
+    onsave: (data: {
+      label: string;
+      display_order: number;
+      thumb_id: string | null;
+    }) => void;
     oncancel: () => void;
   }
 
@@ -66,7 +70,11 @@
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     if (!label.trim()) return;
-    onsave({ label: label.trim(), display_order: displayOrder, thumb_id: thumbId });
+    onsave({
+      label: label.trim(),
+      display_order: displayOrder,
+      thumb_id: thumbId,
+    });
   }
 
   /** Stores the picked image as the new thumbnail. */
@@ -106,7 +114,9 @@
 
         <!-- Display order -->
         <div class="field">
-          <Label.Root for="cat-order" class="field-label">Display order</Label.Root>
+          <Label.Root for="cat-order" class="field-label"
+            >Display order</Label.Root
+          >
           <input
             id="cat-order"
             class="input"
@@ -124,15 +134,30 @@
             {#if thumbLabel}
               <div class="asset-row">
                 <span class="asset-label">{thumbLabel}</span>
-                <button type="button" class="btn-ghost" onclick={() => (pickerOpen = true)} disabled={saving}>
+                <button
+                  type="button"
+                  class="btn-ghost"
+                  onclick={() => (pickerOpen = true)}
+                  disabled={saving}
+                >
                   Change
                 </button>
-                <button type="button" class="btn-ghost btn-ghost--danger" onclick={clearThumb} disabled={saving}>
+                <button
+                  type="button"
+                  class="btn-ghost btn-ghost--danger"
+                  onclick={clearThumb}
+                  disabled={saving}
+                >
                   Clear
                 </button>
               </div>
             {:else}
-              <button type="button" class="btn-pick" onclick={() => (pickerOpen = true)} disabled={saving}>
+              <button
+                type="button"
+                class="btn-pick"
+                onclick={() => (pickerOpen = true)}
+                disabled={saving}
+              >
                 Pick thumbnail…
               </button>
             {/if}
@@ -140,8 +165,17 @@
         {/if}
 
         <div class="actions">
-          <button type="button" class="btn-secondary" onclick={oncancel} disabled={saving}>Cancel</button>
-          <button type="submit" class="btn-primary" disabled={saving || !label.trim()}>
+          <button
+            type="button"
+            class="btn-secondary"
+            onclick={oncancel}
+            disabled={saving}>Cancel</button
+          >
+          <button
+            type="submit"
+            class="btn-primary"
+            disabled={saving || !label.trim()}
+          >
             {saving ? "Saving…" : isNew ? "Create" : "Save"}
           </button>
         </div>
@@ -222,8 +256,12 @@
     transition: border-color var(--ease-fast);
   }
 
-  .input:focus { border-color: var(--color-accent); }
-  .input:disabled { opacity: 0.5; }
+  .input:focus {
+    border-color: var(--color-accent);
+  }
+  .input:disabled {
+    opacity: 0.5;
+  }
 
   .asset-row {
     display: flex;
@@ -255,7 +293,9 @@
     font-size: var(--text-sm);
     cursor: pointer;
     text-align: left;
-    transition: border-color var(--ease-fast), color var(--ease-fast);
+    transition:
+      border-color var(--ease-fast),
+      color var(--ease-fast);
   }
 
   .btn-pick:hover:not(:disabled) {
@@ -274,8 +314,12 @@
     transition: color var(--ease-fast);
   }
 
-  .btn-ghost:hover:not(:disabled) { color: var(--color-text-muted); }
-  .btn-ghost--danger:hover:not(:disabled) { color: #e74c3c; }
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--color-text-muted);
+  }
+  .btn-ghost--danger:hover:not(:disabled) {
+    color: #e74c3c;
+  }
 
   .actions {
     display: flex;
@@ -295,7 +339,10 @@
     transition: opacity var(--ease-fast);
   }
 
-  .btn-primary { background: var(--color-accent); color: #000; }
+  .btn-primary {
+    background: var(--color-accent);
+    color: #000;
+  }
   .btn-secondary {
     background: rgba(255, 255, 255, 0.08);
     color: var(--color-text-muted);
@@ -303,7 +350,12 @@
   }
 
   .btn-primary:disabled,
-  .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .btn-primary:hover:not(:disabled),
-  .btn-secondary:hover:not(:disabled) { opacity: 0.85; }
+  .btn-secondary:hover:not(:disabled) {
+    opacity: 0.85;
+  }
 </style>
