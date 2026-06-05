@@ -1,9 +1,0 @@
-{
-  "id": "wilderness",
-  "order": 0,
-  "scenes": [
-    { "id": "abyssus", "label": "Abyssus" },
-    { "id": "crows", "label": "Crows" },
-    { "id": "monolith", "label": "Monolith" }
-  ]
-}
