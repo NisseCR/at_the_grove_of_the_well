@@ -11,6 +11,8 @@ import argparse
 from pathlib import Path
 
 from lib.kebab import rename_tree
+from lib.preprocess import run as run_preprocess
+from lib.sync import run as run_sync
 
 
 def cmd_kebab(args: argparse.Namespace) -> None:
@@ -24,12 +26,16 @@ def cmd_kebab(args: argparse.Namespace) -> None:
 
 def cmd_preprocess(args: argparse.Namespace) -> None:
     """Process raw assets and write converted files to OUTPUT_PATH."""
-    print("TODO: preprocess assets")
+    source = Path(args.path)
+    if not source.is_dir():
+        print(f"Error: {source} is not a directory.")
+        raise SystemExit(1)
+    run_preprocess(source)
 
 
 def cmd_sync(args: argparse.Namespace) -> None:
     """Sync OUTPUT_PATH to Cloudflare R2 via rclone --checksum."""
-    print("TODO: rclone sync")
+    run_sync(dry_run=args.dry_run)
 
 
 def main() -> None:
@@ -44,8 +50,11 @@ def main() -> None:
     kebab_parser.add_argument("path", nargs="?", default="../source", help="Directory to rename recursively (default: ../source)")
     kebab_parser.add_argument("--dry-run", action="store_true", help="Preview renames without writing")
 
-    subparsers.add_parser("preprocess", help="Convert raw assets to CDN-ready formats")
-    subparsers.add_parser("sync", help="Sync output directory to Cloudflare R2")
+    preprocess_parser = subparsers.add_parser("preprocess", help="Convert raw assets to CDN-ready formats")
+    preprocess_parser.add_argument("path", nargs="?", default="../source", help="Source directory to preprocess (default: ../source)")
+
+    sync_parser = subparsers.add_parser("sync", help="Sync output directory to Cloudflare R2")
+    sync_parser.add_argument("--dry-run", action="store_true", help="Preview sync without transferring files")
 
     args = parser.parse_args()
 
