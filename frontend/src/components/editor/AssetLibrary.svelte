@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Tabs, ToggleGroup } from "bits-ui";
+  import { Tabs, ToggleGroup, Select } from "bits-ui";
+  import { Search, ChevronDown } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
   import { assetApiClient } from "@/lib/services/assetApiClient";
   import type { AnyAsset, AudioAsset, ImageAsset, VideoAsset } from "@/types/assets";
@@ -32,6 +33,30 @@
   let replacingId = $state<string | null>(null);
   /** Loudness normalisation mode — only relevant when uploading audio. */
   let normMode = $state<"music" | "ambience">("music");
+  /** Free-text filter applied to label and artist of the current tab's assets. */
+  let searchQuery = $state("");
+
+  type SortKey =
+    | "label-asc"
+    | "label-desc"
+    | "artist-asc"
+    | "artist-desc"
+    | "created-desc"
+    | "created-asc"
+    | "updated-desc";
+
+  /** Active sort order — persists across tab switches. */
+  let sortBy = $state<SortKey>("label-asc");
+
+  const SORT_LABELS: Record<SortKey, string> = {
+    "label-asc":    "Label A→Z",
+    "label-desc":   "Label Z→A",
+    "artist-asc":   "Artist A→Z",
+    "artist-desc":  "Artist Z→A",
+    "created-desc": "Newest first",
+    "created-asc":  "Oldest first",
+    "updated-desc": "Recently updated",
+  };
 
   /** The asset whose edit dialog is open. */
   let editTarget = $state<AnyAsset | null>(null);
@@ -61,9 +86,10 @@
     }
   }
 
-  /** Switches the active tab and triggers a fetch if needed. */
+  /** Switches the active tab, clears the search query, and triggers a fetch if needed. */
   function handleTabChange(tab: string) {
     activeTab = tab as AssetTab;
+    searchQuery = "";
     loadTab(activeTab);
   }
 
@@ -227,11 +253,50 @@
     video: "video/*",
   };
 
-  /** Returns the asset list for the currently active tab. */
+  /** Returns the raw asset list for the currently active tab. */
   function currentAssets(): AnyAsset[] {
     if (activeTab === "images") return images;
     if (activeTab === "audio") return audio;
     return video;
+  }
+
+  /**
+   * Returns assets for the active tab filtered by the current search query.
+   * Matches against label and artist (case-insensitive). Returns all assets when
+   * the query is empty.
+   */
+  function filteredAssets(): AnyAsset[] {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return currentAssets();
+    return currentAssets().filter(
+      (a) =>
+        a.label.toLowerCase().includes(q) ||
+        (a.artist?.toLowerCase().includes(q) ?? false),
+    );
+  }
+
+  /**
+   * Compares two date strings for descending sort (newest first).
+   * Falls back to 0 if either value is missing.
+   */
+  function dateDiff(a: string | undefined, b: string | undefined): number {
+    return (new Date(b ?? 0).getTime()) - (new Date(a ?? 0).getTime());
+  }
+
+  /** Returns filtered assets sorted by the active sort key. */
+  function sortedAssets(): AnyAsset[] {
+    const assets = filteredAssets();
+    return [...assets].sort((a, b) => {
+      switch (sortBy) {
+        case "label-asc":   return a.label.localeCompare(b.label);
+        case "label-desc":  return b.label.localeCompare(a.label);
+        case "artist-asc":  return (a.artist ?? "").localeCompare(b.artist ?? "");
+        case "artist-desc": return (b.artist ?? "").localeCompare(a.artist ?? "");
+        case "created-desc": return dateDiff(a.created_at, b.created_at);
+        case "created-asc":  return dateDiff(b.created_at, a.created_at);
+        case "updated-desc": return dateDiff(a.updated_at, b.updated_at);
+      }
+    });
   }
 </script>
 
@@ -268,13 +333,53 @@
       onfiles={handleUpload}
     />
 
+    <div class="toolbar">
+      <div class="search-row">
+        <span class="search-icon"><Search size={14} /></span>
+        <input
+          class="search-input"
+          type="search"
+          placeholder="Search by label or artist…"
+          bind:value={searchQuery}
+        />
+      </div>
+
+      <Select.Root
+        type="single"
+        value={sortBy}
+        onValueChange={(v) => { if (v) sortBy = v as SortKey; }}
+      >
+        <Select.Trigger class="sort-trigger">
+          {SORT_LABELS[sortBy]}
+          <ChevronDown size={13} />
+        </Select.Trigger>
+        <Select.Portal>
+          <Select.Content class="sort-content" sideOffset={4}>
+            {#each ([
+              { value: "label-asc",    label: "Label A→Z" },
+              { value: "label-desc",   label: "Label Z→A" },
+              { value: "artist-asc",   label: "Artist A→Z" },
+              { value: "artist-desc",  label: "Artist Z→A" },
+              { value: "created-desc", label: "Newest first" },
+              { value: "created-asc",  label: "Oldest first" },
+              { value: "updated-desc", label: "Recently updated" },
+            ] as { value: SortKey; label: string }[]) as opt}
+              <Select.Item value={opt.value} class="sort-option">{opt.label}</Select.Item>
+            {/each}
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
+    </div>
+
     {#if loadingTab}
       <p class="status">Loading…</p>
     {:else if currentAssets().length === 0}
       <p class="status">No {activeTab} uploaded yet.</p>
+    {:else if sortedAssets().length === 0}
+      <p class="status">No results for "{searchQuery}".</p>
     {:else}
       <div class="grid">
-        {#each currentAssets() as asset (asset.id)}
+        {#each sortedAssets() as asset (asset.id)}
           <AssetCard
             {asset}
             replacing={replacingId === asset.id}
@@ -404,6 +509,105 @@
   :global(.norm-item[data-state="on"]) {
     background: rgba(255, 255, 255, 0.1);
     color: var(--color-text);
+  }
+
+  .toolbar {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .search-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: var(--space-3);
+    color: var(--color-text-faint);
+    display: flex;
+    pointer-events: none;
+  }
+
+  .search-input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + 14px + var(--space-2));
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 4px);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    outline: none;
+    transition: border-color var(--ease-fast);
+  }
+
+  .search-input:focus {
+    border-color: var(--color-text-faint);
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-faint);
+  }
+
+  :global(.sort-trigger) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    min-width: 160px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 4px);
+    color: var(--color-text-muted);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color var(--ease-fast);
+  }
+
+  :global(.sort-trigger:hover),
+  :global(.sort-trigger[data-state="open"]) {
+    border-color: var(--color-text-faint);
+    color: var(--color-text);
+  }
+
+  :global(.sort-content) {
+    background: #1a1825;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 4px);
+    padding: var(--space-1) 0;
+    min-width: 160px;
+    z-index: 60;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(.sort-option) {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--ease-fast), color var(--ease-fast);
+  }
+
+  :global(.sort-option[data-highlighted]) {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--color-text);
+  }
+
+  :global(.sort-option[data-selected]) {
+    color: var(--color-text);
+    font-weight: 500;
   }
 
   .status {
