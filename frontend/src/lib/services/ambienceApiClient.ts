@@ -1,8 +1,9 @@
 import { assetUrl } from "@/lib/config";
 import { apiClient } from "@/lib/services/apiClient";
-import type { AmbienceAsset, AmbienceCategory } from "@/types/ambience";
+import type { Ambience, AmbienceCategory } from "@/types/ambience";
 
 class AmbienceApiClient {
+  /** @returns All ambience categories with their ambience entries. */
   async fetchAmbienceCategories(): Promise<AmbienceCategory[]> {
     const categories = await apiClient.get<AmbienceCategory[]>("/ambience/categories");
     return categories.map((c) => ({
@@ -12,17 +13,17 @@ class AmbienceApiClient {
     }));
   }
 
-  async fetchAmbiences(): Promise<AmbienceAsset[]> {
-    const ambiences = await apiClient.get<AmbienceAsset[]>("/ambience");
+  /** @returns All ambience entities with resolved audio URLs. */
+  async fetchAmbiences(): Promise<Ambience[]> {
+    const ambiences = await apiClient.get<Ambience[]>("/ambience");
     return ambiences.map((a) => ({ ...a, url: assetUrl(a.src) }));
   }
 
-  async fetchAmbience(ambienceId: string): Promise<AmbienceAsset> {
-    const ambience = await apiClient.get<AmbienceAsset>(`/ambience/${ambienceId}`);
+  /** @returns A single ambience entity with resolved audio URL. */
+  async fetchAmbience(ambienceId: string): Promise<Ambience> {
+    const ambience = await apiClient.get<Ambience>(`/ambience/${ambienceId}`);
     return { ...ambience, url: assetUrl(ambience.src) };
   }
-
-
 }
 
 export const ambienceApiClient = new AmbienceApiClient();
