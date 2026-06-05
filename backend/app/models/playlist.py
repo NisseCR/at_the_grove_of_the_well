@@ -1,9 +1,10 @@
 """Playlist table models: playlists, tracks, and categories."""
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -13,7 +14,11 @@ class Playlist(Base):
     __tablename__ = "playlist"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    slug: Mapped[Optional[str]] = mapped_column(unique=True, default=None)
     label: Mapped[str]
+    volume: Mapped[float] = mapped_column(default=0.5)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
     cover_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("image_asset.id", ondelete="SET NULL"), default=None)
 
     cover: Mapped[Optional["ImageAsset"]] = relationship()
@@ -38,6 +43,8 @@ class PlaylistCategory(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     label: Mapped[str]
     display_order: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     playlists: Mapped[list["Playlist"]] = relationship(secondary="playlist_category_link", order_by="Playlist.label")
 

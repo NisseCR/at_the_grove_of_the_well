@@ -2,7 +2,7 @@
   import { sceneState } from "@/stores/sceneState.svelte";
   import { sceneEngine } from "@/lib/engines/sceneEngine";
   import SceneAsset from "@/components/player/SceneAsset.svelte";
-  import type { SceneConfig } from "@/types/scene";
+  import type { Scene } from "@/types/scene";
 
   let currentSceneContainer: HTMLElement | null = $state(null);
 
@@ -19,7 +19,7 @@
    *
    * @param config - The scene config whose layers should be sorted.
    */
-  function sortedLayers(config: SceneConfig) {
+  function sortedLayers(config: Scene) {
     return config ? [...config.layers].sort((a, b) => a.order - b.order) : [];
   }
 </script>

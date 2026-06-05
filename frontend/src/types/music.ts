@@ -6,7 +6,9 @@ export interface MusicTrack {
 
 export interface Playlist {
   id: string;
+  slug: string | null;
   label: string;
+  volume: number;
   src: string;
   thumb_src: string | null;
   tracks: MusicTrack[];

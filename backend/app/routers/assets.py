@@ -1,16 +1,18 @@
-"""Asset library routes: upload, list, delete, replace, label patch, and reconcile."""
+"""Asset library routes: upload, list, delete, replace, patch, and reconcile."""
 
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Form, UploadFile
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.database import get_session
+from app.models.assets import AudioAsset, ImageAsset, VideoAsset
 from app.schemas import (
-    AssetLabelPatchIn,
+    AssetPatchIn,
     AudioAssetOut,
     ImageAssetOut,
     ReconcileResultOut,
+    TagOut,
     VideoAssetOut,
 )
 from app.core.storage import r2
@@ -24,6 +26,49 @@ from app.services import (
 router = APIRouter(prefix="/assets")
 
 
+def _image_out(a: ImageAsset) -> ImageAssetOut:
+    """Serialize an ImageAsset ORM object to its response schema."""
+    return ImageAssetOut(
+        id=str(a.id),
+        label=a.label,
+        artist=a.artist,
+        src=a.src,
+        thumb_src=a.thumb_src,
+        created_at=a.created_at,
+        updated_at=a.updated_at,
+        tags=[TagOut(id=str(t.id), label=t.label) for t in a.tags],
+    )
+
+
+def _audio_out(a: AudioAsset) -> AudioAssetOut:
+    """Serialize an AudioAsset ORM object to its response schema."""
+    return AudioAssetOut(
+        id=str(a.id),
+        label=a.label,
+        artist=a.artist,
+        src=a.src,
+        duration=a.duration,
+        created_at=a.created_at,
+        updated_at=a.updated_at,
+        tags=[TagOut(id=str(t.id), label=t.label) for t in a.tags],
+    )
+
+
+def _video_out(a: VideoAsset) -> VideoAssetOut:
+    """Serialize a VideoAsset ORM object to its response schema."""
+    return VideoAssetOut(
+        id=str(a.id),
+        label=a.label,
+        artist=a.artist,
+        src=a.src,
+        thumb_src=a.thumb_src,
+        duration=a.duration,
+        created_at=a.created_at,
+        updated_at=a.updated_at,
+        tags=[TagOut(id=str(t.id), label=t.label) for t in a.tags],
+    )
+
+
 # ---------------------------------------------------------------------------
 # Images
 # ---------------------------------------------------------------------------
@@ -32,25 +77,21 @@ router = APIRouter(prefix="/assets")
 @router.get("/images")
 def get_images(session: Session = Depends(get_session)) -> list[ImageAssetOut]:
     """Return all image assets."""
-    assets = image_asset_service.list(session)
-    return [
-        ImageAssetOut(id=str(a.id), label=a.label, src=a.src, thumb_src=a.thumb_src)
-        for a in assets
-    ]
+    assets = image_asset_service.list(session, selectinload(ImageAsset.tags))
+    return [_image_out(a) for a in assets]
 
 
 @router.post("/images")
 async def upload_image(
     file: UploadFile,
     label: str = Form(...),
+    artist: str | None = Form(None),
     session: Session = Depends(get_session),
 ) -> ImageAssetOut:
     """Upload a single image. Converts to WebP, caps at 1920px, and generates a thumbnail."""
     data = await file.read()
-    asset = image_asset_service.upload(data, label, session)
-    return ImageAssetOut(
-        id=str(asset.id), label=asset.label, src=asset.src, thumb_src=asset.thumb_src
-    )
+    asset = image_asset_service.upload(data, label, session, artist=artist)
+    return _image_out(asset)
 
 
 @router.post("/images/bulk")
@@ -64,28 +105,20 @@ async def upload_images_bulk(
         data = await file.read()
         label = file.filename.rsplit(".", 1)[0] if file.filename else "untitled"
         asset = image_asset_service.upload(data, label, session)
-        results.append(
-            ImageAssetOut(
-                id=str(asset.id),
-                label=asset.label,
-                src=asset.src,
-                thumb_src=asset.thumb_src,
-            )
-        )
+        results.append(_image_out(asset))
     return results
 
 
 @router.patch("/images/{asset_id}")
 def patch_image(
     asset_id: UUID,
-    body: AssetLabelPatchIn,
+    body: AssetPatchIn,
     session: Session = Depends(get_session),
 ) -> ImageAssetOut:
-    """Update the display label of an image asset."""
-    asset = image_asset_service.patch_label(asset_id, body.label, session)
-    return ImageAssetOut(
-        id=str(asset.id), label=asset.label, src=asset.src, thumb_src=asset.thumb_src
-    )
+    """Update label and/or artist on an image asset."""
+    fields = body.model_dump(exclude_unset=True)
+    asset = image_asset_service.patch(asset_id, session, **fields)
+    return _image_out(asset)
 
 
 @router.post("/images/{asset_id}/replace")
@@ -97,9 +130,7 @@ async def replace_image(
     """Replace the file for an existing image asset."""
     data = await file.read()
     asset = image_asset_service.replace(asset_id, data, session)
-    return ImageAssetOut(
-        id=str(asset.id), label=asset.label, src=asset.src, thumb_src=asset.thumb_src
-    )
+    return _image_out(asset)
 
 
 @router.delete("/images/{asset_id}", status_code=204)
@@ -116,60 +147,76 @@ def delete_image(asset_id: UUID, session: Session = Depends(get_session)) -> Non
 @router.get("/audio")
 def get_audio(session: Session = Depends(get_session)) -> list[AudioAssetOut]:
     """Return all audio assets."""
-    assets = audio_asset_service.list(session)
-    return [AudioAssetOut(id=str(a.id), label=a.label, src=a.src) for a in assets]
+    assets = audio_asset_service.list(session, selectinload(AudioAsset.tags))
+    return [_audio_out(a) for a in assets]
 
 
 @router.post("/audio")
 async def upload_audio(
     file: UploadFile,
     label: str = Form(...),
+    artist: str | None = Form(None),
+    norm_mode: str = Form("music"),
     session: Session = Depends(get_session),
 ) -> AudioAssetOut:
-    """Upload a single audio file. Normalises to -16 LUFS and resamples to 48000 Hz OGG."""
+    """Upload a single audio file. Normalises to -16 LUFS and resamples to 48000 Hz OGG.
+
+    ``norm_mode`` controls loudness normalisation:
+    - ``"music"`` (default) — normalises both up and down to the target LUFS.
+    - ``"ambience"`` — only reduces loudness if the source is above target;
+      quiet sources are resampled without any gain change.
+    """
     data = await file.read()
-    asset = audio_asset_service.upload(data, label, session)
-    return AudioAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
+    asset = audio_asset_service.upload(data, label, session, artist=artist, norm_mode=norm_mode)
+    return _audio_out(asset)
 
 
 @router.post("/audio/bulk")
 async def upload_audio_bulk(
     files: list[UploadFile],
+    norm_mode: str = Form("music"),
     session: Session = Depends(get_session),
 ) -> list[AudioAssetOut]:
-    """Upload multiple audio files. Label defaults to filename stem."""
+    """Upload multiple audio files. Label defaults to filename stem.
+
+    ``norm_mode`` applies to every file in the batch — same values as the
+    single upload endpoint (``"music"`` or ``"ambience"``).
+    """
     results = []
     for file in files:
         data = await file.read()
         label = (file.filename or "upload").rsplit(".", 1)[0]
-        asset = audio_asset_service.upload(data, label, session)
-        results.append(
-            AudioAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
-        )
+        asset = audio_asset_service.upload(data, label, session, norm_mode=norm_mode)
+        results.append(_audio_out(asset))
     return results
 
 
 @router.patch("/audio/{asset_id}")
 def patch_audio(
     asset_id: UUID,
-    body: AssetLabelPatchIn,
+    body: AssetPatchIn,
     session: Session = Depends(get_session),
 ) -> AudioAssetOut:
-    """Update the display label of an audio asset."""
-    asset = audio_asset_service.patch_label(asset_id, body.label, session)
-    return AudioAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
+    """Update label and/or artist on an audio asset."""
+    fields = body.model_dump(exclude_unset=True)
+    asset = audio_asset_service.patch(asset_id, session, **fields)
+    return _audio_out(asset)
 
 
 @router.post("/audio/{asset_id}/replace")
 async def replace_audio(
     asset_id: UUID,
     file: UploadFile,
+    norm_mode: str = Form("music"),
     session: Session = Depends(get_session),
 ) -> AudioAssetOut:
-    """Replace the file for an existing audio asset."""
+    """Replace the file for an existing audio asset.
+
+    ``norm_mode`` controls loudness normalisation — same values as the upload endpoint.
+    """
     data = await file.read()
-    asset = audio_asset_service.replace(asset_id, data, session)
-    return AudioAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
+    asset = audio_asset_service.replace(asset_id, data, session, norm_mode=norm_mode)
+    return _audio_out(asset)
 
 
 @router.delete("/audio/{asset_id}", status_code=204)
@@ -186,20 +233,21 @@ def delete_audio(asset_id: UUID, session: Session = Depends(get_session)) -> Non
 @router.get("/video")
 def get_video(session: Session = Depends(get_session)) -> list[VideoAssetOut]:
     """Return all video assets."""
-    assets = video_asset_service.list(session)
-    return [VideoAssetOut(id=str(a.id), label=a.label, src=a.src) for a in assets]
+    assets = video_asset_service.list(session, selectinload(VideoAsset.tags))
+    return [_video_out(a) for a in assets]
 
 
 @router.post("/video")
 async def upload_video(
     file: UploadFile,
     label: str = Form(...),
+    artist: str | None = Form(None),
     session: Session = Depends(get_session),
 ) -> VideoAssetOut:
     """Upload a single video file."""
     data = await file.read()
-    asset = video_asset_service.upload(data, label, session)
-    return VideoAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
+    asset = video_asset_service.upload(data, label, session, artist=artist)
+    return _video_out(asset)
 
 
 @router.post("/video/bulk")
@@ -211,24 +259,22 @@ async def upload_video_bulk(
     results = []
     for file in files:
         data = await file.read()
-        filename = file.filename or "upload"
-        label = filename.rsplit(".", 1)[0]
+        label = (file.filename or "upload").rsplit(".", 1)[0]
         asset = video_asset_service.upload(data, label, session)
-        results.append(
-            VideoAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
-        )
+        results.append(_video_out(asset))
     return results
 
 
 @router.patch("/video/{asset_id}")
 def patch_video(
     asset_id: UUID,
-    body: AssetLabelPatchIn,
+    body: AssetPatchIn,
     session: Session = Depends(get_session),
 ) -> VideoAssetOut:
-    """Update the display label of a video asset."""
-    asset = video_asset_service.patch_label(asset_id, body.label, session)
-    return VideoAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
+    """Update label and/or artist on a video asset."""
+    fields = body.model_dump(exclude_unset=True)
+    asset = video_asset_service.patch(asset_id, session, **fields)
+    return _video_out(asset)
 
 
 @router.post("/video/{asset_id}/replace")
@@ -240,7 +286,7 @@ async def replace_video(
     """Replace the file for an existing video asset."""
     data = await file.read()
     asset = video_asset_service.replace(asset_id, data, session)
-    return VideoAssetOut(id=str(asset.id), label=asset.label, src=asset.src)
+    return _video_out(asset)
 
 
 @router.delete("/video/{asset_id}", status_code=204)

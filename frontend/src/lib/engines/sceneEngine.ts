@@ -1,7 +1,7 @@
 import { sceneApiClient } from "@/lib/services/sceneApiClient";
 import { sceneState } from "@/stores/sceneState.svelte";
 import { guardedAwait } from "@/lib/utils/guardedAwait";
-import type { SceneConfig } from "@/types/scene";
+import type { Scene } from "@/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
 
@@ -67,9 +67,9 @@ class SceneEngine {
    * next scene in sceneState.
    *
    * @param sceneId - The id of the scene to fetch.
-   * @returns The fetched SceneConfig.
+   * @returns The fetched Scene.
    */
-  private async fetchNextScene(sceneId: string): Promise<SceneConfig> {
+  private async fetchNextScene(sceneId: string): Promise<Scene> {
     sceneState.isTransitioning = true;
     const config = await sceneApiClient.fetchScene(sceneId);
     sceneState.next = config;
@@ -83,7 +83,7 @@ class SceneEngine {
    *
    * @param config - The scene config whose assets should be preloaded.
    */
-  private async preload(config: SceneConfig): Promise<void> {
+  private async preload(config: Scene): Promise<void> {
     const sources = [
       config.background.url!,
       ...config.layers.map((l) => l.url!),

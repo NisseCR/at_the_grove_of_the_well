@@ -3,12 +3,13 @@
 from uuid import UUID
 
 from app.models.assets import AudioAsset
-from app.services._audio_processing import AudioProcessor
+from app.services._audio_processing import AudioProcessor, NormMode
 from app.services._base_asset_service import BaseAssetService, PreparedUpload
+from app.services._media_utils import extract_duration
 
 
 class AudioAssetService(BaseAssetService[AudioAsset]):
-    """Manages audio assets: normalises to -16 LUFS, resamples to 48000 Hz OGG."""
+    """Manages audio assets: normalises loudness and resamples to 48000 Hz OGG."""
 
     _model = AudioAsset
     _resource_name = "AudioAsset"
@@ -20,11 +21,21 @@ class AudioAssetService(BaseAssetService[AudioAsset]):
         """Return the R2 key for this audio asset."""
         return [f"assets/audio/{asset_id}.ogg"]
 
-    def _prepare(self, asset_id: UUID, data: bytes) -> PreparedUpload:
-        """Process audio bytes and return the OGG file ready for upload."""
-        processed = self._processor.process(data)
+    def _prepare(self, asset_id: UUID, data: bytes, norm_mode: NormMode = "music", **_) -> PreparedUpload:
+        """Process audio bytes, extract duration, and return the OGG file ready for upload.
+
+        :param norm_mode: ``"music"`` normalises to target LUFS both up and down.
+                          ``"ambience"`` only reduces loudness when the source is above target;
+                          quiet sources are left at their natural level.
+        """
+        processed = self._processor.process(data, mode=norm_mode)
         src = f"assets/audio/{asset_id}.ogg"
-        return PreparedUpload(files={src: (processed, "audio/ogg")}, src=src)
+        duration = extract_duration(processed, ".ogg")
+        return PreparedUpload(
+            files={src: (processed, "audio/ogg")},
+            src=src,
+            extra={"duration": duration},
+        )
 
 
 audio_asset_service = AudioAssetService()

@@ -1,8 +1,8 @@
-import type { SceneConfig } from "@/types/scene";
+import type { Scene } from "@/types/scene";
 
 export const sceneState = $state({
-  current: null as SceneConfig | null,
-  next: null as SceneConfig | null,
+  current: null as Scene | null,
+  next: null as Scene | null,
   isTransitioning: false,
   requestedSceneId: null as string | null,
 });

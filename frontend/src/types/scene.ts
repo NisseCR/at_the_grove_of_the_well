@@ -20,6 +20,7 @@ interface SceneAsset {
   id: string;
   src: string;
   url?: string;
+  type: "image" | "video";
   loop: boolean;
   opacity: number;
   brightness: number;
@@ -30,18 +31,17 @@ interface SceneAsset {
 }
 
 export interface BackgroundAsset extends SceneAsset {
-  type: "image";
   thumb_src: string | null;
   thumb_url?: string | null;
 }
 
 export interface LayerAsset extends SceneAsset {
-  type: "video";
   order: number;
 }
 
-export interface SceneConfig {
+export interface Scene {
   id: string;
+  slug: string | null;
   label: string;
   background: BackgroundAsset;
   layers: LayerAsset[];

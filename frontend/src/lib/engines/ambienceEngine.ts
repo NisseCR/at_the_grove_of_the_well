@@ -22,7 +22,7 @@ class AmbienceEngine {
    * @param url    - Remote URL of the audio file.
    * @param volume - Target gain value (0–1).
    */
-  async activate(id: string, url: string, volume: number): Promise<void> {
+  async activate(id: string, url: string, volume: number, loop: boolean = true): Promise<void> {
     const existing = this.active.get(id);
     if (existing) {
       audioEngine.fadeTo(existing.gain, volume, FADE_IN);
@@ -30,7 +30,7 @@ class AmbienceEngine {
     }
 
     const stem = await audioEngine.createStem(url);
-    stem.player.loop = true;
+    stem.player.loop = loop;
     stem.player.start();
 
     this.active.set(id, stem);
@@ -136,7 +136,7 @@ class AmbienceEngine {
             ambienceApiClient.fetchAmbience(id),
             token,
           );
-          await guardedAwait(this.activate(id, ambience.url!, volume), token, () =>
+          await guardedAwait(this.activate(id, ambience.url!, volume, ambience.loop), token, () =>
             this.deactivate(id),
           );
         }

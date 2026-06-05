@@ -25,7 +25,9 @@ def _build_playlist(playlist: Playlist) -> PlaylistOut:
     """Build a PlaylistOut from an already-loaded Playlist."""
     return PlaylistOut(
         id=str(playlist.id),
+        slug=playlist.slug,
         label=playlist.label,
+        volume=playlist.volume,
         src=playlist.cover.src if playlist.cover else "",
         thumb_src=playlist.cover.thumb_src if playlist.cover else None,
         tracks=[MusicTrackOut(id=str(t.audio_asset.id), src=t.audio_asset.src) for t in playlist.tracks],
