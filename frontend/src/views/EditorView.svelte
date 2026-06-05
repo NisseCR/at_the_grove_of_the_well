@@ -4,6 +4,7 @@
   import AssetLibrary from "@/components/editor/library/AssetLibrary.svelte";
   import AmbienceEditor from "@/components/editor/ambiences/AmbienceEditor.svelte";
   import PlaylistEditor from "@/components/editor/playlists/PlaylistEditor.svelte";
+  import SceneEditor from "@/components/editor/scenes/SceneEditor.svelte";
 
   type EditorTab = "library" | "scenes" | "playlists" | "ambiences";
 
@@ -32,7 +33,7 @@
         {#if activeTab === "library"}
           <AssetLibrary />
         {:else if activeTab === "scenes"}
-          <p class="placeholder">Scene editor — coming soon</p>
+          <SceneEditor />
         {:else if activeTab === "playlists"}
           <PlaylistEditor />
         {:else if activeTab === "ambiences"}

@@ -19,8 +19,8 @@
     /** Which asset types to show. Order determines tab order. */
     types: AssetType[];
     title?: string;
-    /** Called with the chosen asset; dialog closes automatically. */
-    onpick: (asset: AnyAsset) => void;
+    /** Called with the chosen asset and its type; dialog closes automatically. */
+    onpick: (asset: AnyAsset, type: AssetType) => void;
     oncancel: () => void;
   }
 
@@ -99,7 +99,7 @@
 
   /** Selects an asset and closes the dialog. */
   function handlePick(asset: AnyAsset) {
-    onpick(asset);
+    onpick(asset, activeType);
     open = false;
   }
 
