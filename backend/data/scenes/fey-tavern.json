@@ -5,7 +5,7 @@
   "background": {
     "src": "_shared/videos/fey-tavern.webm",
     "type": "video",
-    "thumb_src": "_shared/images/fey-tavern.thumb.webp"
+    "thumb_src": "_shared/videos/fey-tavern.thumb.webp"
   },
   "layers": []
 }

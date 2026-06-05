@@ -1,14 +1,9 @@
 export interface Ambience {
   id: string;
-  slug: string | null;
   label: string;
-  volume: number;
   loop: boolean;
   src: string;
   url?: string;
-  /** Populated for editor use only — null when no audio is linked. */
-  audio_asset_id: string | null;
-  audio_asset_label: string | null;
 }
 
 export interface AmbienceCategoryEntry {

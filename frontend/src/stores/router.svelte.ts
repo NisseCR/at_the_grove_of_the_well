@@ -1,8 +1,8 @@
 import { AUTH_STORAGE_KEY } from "@/stores/auth.svelte";
 
-export type KnownView = "home" | "controller" | "player" | "editor";
+export type KnownView = "home" | "controller" | "player" | "sync";
 
-const PROTECTED_VIEWS: KnownView[] = ["controller", "editor"];
+const PROTECTED_VIEWS: KnownView[] = ["controller", "sync"];
 
 /** Returns true if a valid auth token exists in sessionStorage. */
 function isAuthenticated(): boolean {
@@ -15,7 +15,7 @@ function isAuthenticated(): boolean {
  */
 function getCurrentView(): KnownView {
   const path = window.location.pathname.replace(/^\//, "");
-  if (path === "controller" || path === "player" || path === "editor") {
+  if (path === "controller" || path === "player" || path === "sync") {
     if (PROTECTED_VIEWS.includes(path) && !isAuthenticated()) return "home";
     return path;
   }
