@@ -77,38 +77,38 @@ The `source/` folder holds raw asset inputs. File contents are gitignored — on
 
 ```
 source/
-  _shared/                          ← shared visual assets, referenceable by any entity
-    images/                         ← background images and textures (.jpg, .png)
-    videos/                         ← looping video layers (.webm)
-  ambiences/                        ← one category folder per ambience group
-  playlists/                        ← one category folder per playlist group
-  handouts/                         ← future use
+├── _shared/                        # shared visual assets, referenceable by any entity
+│   ├── images/                     # background images and textures (.jpg, .png)
+│   └── videos/                     # looping video layers (.webm)
+├── ambiences/                      # one category folder per ambience group
+├── playlists/                      # one category folder per playlist group
+└── handouts/                       # future use
 ```
 
 ### Playlists
 
 ```
 source/playlists/
-  01_exploration/                   ← category folder (prefix controls display order)
-    australis/                      ← playlist folder (no prefix — alphabetical order)
-      cover.jpg                     ← required playlist cover image
-      a-new-day-has-dawned.mp3
-      anders.mp3
-      awakening.mp3
-    borealis/
-      cover.jpg
-      frystfel-i.mp3
-      frystfel-ii.mp3
-      highlands-i.mp3
-    dissonance/
-      cover.jpg
-      a-blessing.mp3
-      a-village-leaves.mp3
-  02_mood/
-    alone/
-      cover.jpg
-      ashen.mp3
-      eye-of-the-needle.mp3
+├── 01_exploration/                 # category folder (prefix controls display order)
+│   ├── australis/                  # playlist folder (no prefix — alphabetical order)
+│   │   ├── cover.jpg               # required playlist cover image
+│   │   ├── a-new-day-has-dawned.mp3
+│   │   ├── anders.mp3
+│   │   └── awakening.mp3
+│   ├── borealis/
+│   │   ├── cover.jpg
+│   │   ├── frystfel-i.mp3
+│   │   ├── frystfel-ii.mp3
+│   │   └── highlands-i.mp3
+│   └── dissonance/
+│       ├── cover.jpg
+│       ├── a-blessing.mp3
+│       └── a-village-leaves.mp3
+└── 02_mood/
+    └── alone/
+        ├── cover.jpg
+        ├── ashen.mp3
+        └── eye-of-the-needle.mp3
 ```
 
 - Every playlist folder must contain a `cover.jpg`
@@ -119,20 +119,20 @@ source/playlists/
 
 ```
 source/ambiences/
-  01_wind/                          ← category folder (prefix controls display order)
-    cover.jpg                       ← required category thumbnail
-    distorted.ogg
-    nessus.ogg
-    piercing.ogg
-    wind-1.ogg
-    wind-2.ogg
-    wind-3.ogg
-  02_precipitation/
-    cover.jpg
-    crystal.ogg
-    rain.ogg
-    snow-1.ogg
-    snow-2.ogg
+├── 01_wind/                        # category folder (prefix controls display order)
+│   ├── cover.jpg                   # required category thumbnail
+│   ├── distorted.ogg
+│   ├── nessus.ogg
+│   ├── piercing.ogg
+│   ├── wind-1.ogg
+│   ├── wind-2.ogg
+│   └── wind-3.ogg
+└── 02_precipitation/
+    ├── cover.jpg
+    ├── crystal.ogg
+    ├── rain.ogg
+    ├── snow-1.ogg
+    └── snow-2.ogg
 ```
 
 - Every category folder must contain a `cover.jpg` — this is used as the thumbnail in the controller
@@ -144,15 +144,15 @@ source/ambiences/
 
 ```
 source/_shared/
-  images/
-    abyssus.jpg
-    storm-at-sea.jpg
-    study.jpg
-  videos/
-    house-night.webm
-    lens-cold.webm
-    snow.webm
-    wind.webm
+├── images/
+│   ├── abyssus.jpg
+│   ├── storm-at-sea.jpg
+│   └── study.jpg
+└── videos/
+    ├── house-night.webm
+    ├── lens-cold.webm
+    ├── snow.webm
+    └── wind.webm
 ```
 
 - `_shared/` is a flat pool of visual assets — no subfolders beyond `images/` and `videos/`
@@ -167,8 +167,8 @@ Scene configs are stored in the project repo as `scene.json` files, not in `sour
 
 Raw files can be in any common format — the preprocessing script converts everything before syncing to the CDN:
 
-| Type   | Accepted input      | Output                                          |
-| ------ | ------------------- | ----------------------------------------------- |
-| Audio  | `.mp3`, `.wav`, etc | `.ogg` (48kHz, −16 LUFS)                        |
-| Images | `.jpg`, `.png`, etc | `.webp` + `cover.thumb.webp` (covers only)      |
-| Video  | `.webm`             | `.webm` (passthrough)                           |
+| Type   | Accepted input      | Output                                     |
+| ------ | ------------------- | ------------------------------------------ |
+| Audio  | `.mp3`, `.wav`, etc | `.ogg` (48kHz, −16 LUFS)                   |
+| Images | `.jpg`, `.png`, etc | `.webp` + `cover.thumb.webp` (covers only) |
+| Video  | `.webm`             | `.webm` (passthrough)                      |
