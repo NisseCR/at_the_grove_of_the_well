@@ -1,19 +1,24 @@
 <script lang="ts">
   import { Dialog, Label } from "bits-ui";
-  import type { AmbienceCategory } from "@/types/ambience";
   import type { ImageAsset } from "@/types/assets";
   import AssetPickerDialog from "@/components/editor/AssetPickerDialog.svelte";
 
+  interface CategoryData {
+    label: string;
+    order: number;
+    thumb_src?: string | null;
+  }
+
   interface Props {
-    /** Existing category to edit, or null when creating. */
-    category?: AmbienceCategory | null;
+    /** Existing entity to edit, or null/undefined when creating. */
+    category?: CategoryData | null;
     open: boolean;
     saving?: boolean;
-    onsave: (data: {
-      label: string;
-      display_order: number;
-      thumb_id: string | null;
-    }) => void;
+    /** Shown in the dialog title: "New {entityLabel}" / "Edit {entityLabel}". */
+    entityLabel?: string;
+    /** When true, shows the thumbnail image picker. */
+    withThumbnail?: boolean;
+    onsave: (data: { label: string; display_order: number; thumb_id: string | null }) => void;
     oncancel: () => void;
   }
 
@@ -21,12 +26,14 @@
     category = null,
     open = $bindable(),
     saving = false,
+    entityLabel = "category",
+    withThumbnail = false,
     onsave,
     oncancel,
   }: Props = $props();
 
   const isNew = $derived(!category);
-  const title = $derived(isNew ? "New category" : "Edit category");
+  const title = $derived(`${isNew ? "New" : "Edit"} ${entityLabel}`);
 
   // ---------------------------------------------------------------------------
   // Form state
@@ -39,7 +46,7 @@
 
   let pickerOpen = $state(false);
 
-  /** Reset to current category values (or defaults for new). */
+  /** Reset to current values (or defaults for new). */
   function resetForm() {
     label = category?.label ?? "";
     displayOrder = category?.order ?? 0;
@@ -59,11 +66,7 @@
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     if (!label.trim()) return;
-    onsave({
-      label: label.trim(),
-      display_order: displayOrder,
-      thumb_id: thumbId,
-    });
+    onsave({ label: label.trim(), display_order: displayOrder, thumb_id: thumbId });
   }
 
   /** Stores the picked image as the new thumbnail. */
@@ -73,7 +76,7 @@
     pickerOpen = false;
   }
 
-  /** Clears the thumbnail selection (sets to null = remove). */
+  /** Removes the thumbnail selection (empty string = explicit clear). */
   function clearThumb() {
     thumbId = "";
     thumbLabel = null;
@@ -114,25 +117,27 @@
           />
         </div>
 
-        <!-- Thumbnail -->
-        <div class="field">
-          <Label.Root class="field-label">Thumbnail image</Label.Root>
-          {#if thumbLabel}
-            <div class="asset-row">
-              <span class="asset-label">{thumbLabel}</span>
-              <button type="button" class="btn-ghost" onclick={() => (pickerOpen = true)} disabled={saving}>
-                Change
+        <!-- Thumbnail (optional) -->
+        {#if withThumbnail}
+          <div class="field">
+            <Label.Root class="field-label">Thumbnail image</Label.Root>
+            {#if thumbLabel}
+              <div class="asset-row">
+                <span class="asset-label">{thumbLabel}</span>
+                <button type="button" class="btn-ghost" onclick={() => (pickerOpen = true)} disabled={saving}>
+                  Change
+                </button>
+                <button type="button" class="btn-ghost btn-ghost--danger" onclick={clearThumb} disabled={saving}>
+                  Clear
+                </button>
+              </div>
+            {:else}
+              <button type="button" class="btn-pick" onclick={() => (pickerOpen = true)} disabled={saving}>
+                Pick thumbnail…
               </button>
-              <button type="button" class="btn-ghost btn-ghost--danger" onclick={clearThumb} disabled={saving}>
-                Clear
-              </button>
-            </div>
-          {:else}
-            <button type="button" class="btn-pick" onclick={() => (pickerOpen = true)} disabled={saving}>
-              Pick thumbnail…
-            </button>
-          {/if}
-        </div>
+            {/if}
+          </div>
+        {/if}
 
         <div class="actions">
           <button type="button" class="btn-secondary" onclick={oncancel} disabled={saving}>Cancel</button>
@@ -165,9 +170,9 @@
 
   :global(.cat-form-panel) {
     position: fixed;
-    top: 50%;
+    top: 10vh;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     z-index: 51;
     background: #1a1825;
     border: 1px solid var(--color-border);

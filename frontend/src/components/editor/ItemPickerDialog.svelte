@@ -1,18 +1,29 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
-  import { AudioWaveform } from "@lucide/svelte";
-  import type { Ambience } from "@/types/ambience";
   import SearchInput from "@/components/editor/SearchInput.svelte";
+
+  interface Item {
+    id: string;
+    label: string;
+  }
 
   interface Props {
     open: boolean;
-    /** Pre-filtered list — caller excludes ambiences already in the category. */
-    ambiences: Ambience[];
-    onpick: (ambience: Ambience) => void;
+    items: Item[];
+    title?: string;
+    placeholder?: string;
+    onpick: (item: Item) => void;
     oncancel: () => void;
   }
 
-  let { open = $bindable(), ambiences, onpick, oncancel }: Props = $props();
+  let {
+    open = $bindable(),
+    items,
+    title = "Pick item",
+    placeholder = "Search…",
+    onpick,
+    oncancel,
+  }: Props = $props();
 
   let searchQuery = $state("");
 
@@ -20,48 +31,36 @@
     if (open) searchQuery = "";
   });
 
-  /** Returns ambiences matching the current search query. */
-  function filtered(): Ambience[] {
+  /** Returns items matching the current search query. */
+  function filtered(): Item[] {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return ambiences;
-    return ambiences.filter(
-      (a) =>
-        a.label.toLowerCase().includes(q) ||
-        (a.audio_asset_label?.toLowerCase().includes(q) ?? false),
-    );
+    if (!q) return items;
+    return items.filter((item) => item.label.toLowerCase().includes(q));
   }
 
-  function handlePick(ambience: Ambience) {
-    onpick(ambience);
+  function handlePick(item: Item) {
+    onpick(item);
     open = false;
   }
 </script>
 
 <Dialog.Root bind:open>
   <Dialog.Portal>
-    <Dialog.Overlay class="amb-picker-overlay" />
-    <Dialog.Content class="amb-picker-panel">
-      <Dialog.Title class="amb-picker-title">Add ambience to category</Dialog.Title>
+    <Dialog.Overlay class="item-picker-overlay" />
+    <Dialog.Content class="item-picker-panel">
+      <Dialog.Title class="item-picker-title">{title}</Dialog.Title>
 
-      <SearchInput bind:value={searchQuery} placeholder="Search by label or audio asset…" />
+      <SearchInput bind:value={searchQuery} {placeholder} />
 
       <div class="list">
         {#if filtered().length === 0}
           <p class="status">
-            {searchQuery ? `No results for "${searchQuery}"` : "No ambiences available."}
+            {searchQuery ? `No results for "${searchQuery}"` : "Nothing available."}
           </p>
         {:else}
-          {#each filtered() as ambience (ambience.id)}
-            <button class="item" onclick={() => handlePick(ambience)}>
-              <span class="item-label">{ambience.label}</span>
-              {#if ambience.audio_asset_label}
-                <span class="item-audio">
-                  <AudioWaveform size={11} strokeWidth={1.5} />
-                  {ambience.audio_asset_label}
-                </span>
-              {:else}
-                <span class="item-warn">No audio linked</span>
-              {/if}
+          {#each filtered() as item (item.id)}
+            <button class="item" onclick={() => handlePick(item)}>
+              {item.label}
             </button>
           {/each}
         {/if}
@@ -75,14 +74,14 @@
 </Dialog.Root>
 
 <style>
-  :global(.amb-picker-overlay) {
+  :global(.item-picker-overlay) {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
     z-index: 50;
   }
 
-  :global(.amb-picker-panel) {
+  :global(.item-picker-panel) {
     position: fixed;
     top: 10vh;
     left: 50%;
@@ -99,7 +98,7 @@
     gap: var(--space-4);
   }
 
-  :global(.amb-picker-title) {
+  :global(.item-picker-title) {
     font-family: var(--font-display);
     font-size: var(--text-lg);
     color: var(--color-text);
@@ -109,6 +108,7 @@
   .list {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -123,10 +123,7 @@
   }
 
   .item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
+    display: block;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm, 4px);
     background: none;
@@ -134,40 +131,16 @@
     cursor: pointer;
     text-align: left;
     width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+    font-size: var(--text-sm);
+    color: var(--color-text);
+    font-family: var(--font-body);
     transition: background var(--ease-fast);
   }
 
   .item:hover {
     background: rgba(255, 255, 255, 0.06);
-  }
-
-  .item-label {
-    flex: 1;
-    font-size: var(--text-sm);
-    color: var(--color-text);
-    font-family: var(--font-body);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .item-audio {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: var(--text-xs);
-    color: var(--color-text-faint);
-    font-family: var(--font-body);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .item-warn {
-    font-size: var(--text-xs);
-    color: #e67e22;
-    font-family: var(--font-body);
-    white-space: nowrap;
-    flex-shrink: 0;
   }
 
   .footer {

@@ -6,8 +6,8 @@
   import type { Ambience, AmbienceCategory } from "@/types/ambience";
   import ConfirmDialog from "@/components/editor/ConfirmDialog.svelte";
   import AmbienceForm from "@/components/editor/AmbienceForm.svelte";
-  import AmbienceCategoryForm from "@/components/editor/AmbienceCategoryForm.svelte";
-  import AmbiencePickerDialog from "@/components/editor/AmbiencePickerDialog.svelte";
+  import CategoryForm from "@/components/editor/CategoryForm.svelte";
+  import ItemPickerDialog from "@/components/editor/ItemPickerDialog.svelte";
   import SearchInput from "@/components/editor/SearchInput.svelte";
 
   // ---------------------------------------------------------------------------
@@ -26,7 +26,9 @@
   let catPickerOpen = $state(false);
 
   const pickerCat = $derived(categories.find((c) => c.id === catPickerOpenId) ?? null);
-  const pickerAmbiences = $derived(pickerCat ? ambiencesNotInCategory(pickerCat) : []);
+  const pickerAmbiences = $derived(
+    pickerCat ? ambiencesNotInCategory(pickerCat).map((a) => ({ id: a.id, label: a.label })) : [],
+  );
 
   $effect(() => {
     if (!catPickerOpen) catPickerOpenId = null;
@@ -235,12 +237,12 @@
   // ---------------------------------------------------------------------------
 
   /** Add an ambience to a category and update the local categories list. */
-  async function addToCategory(catId: string, ambience: Ambience) {
+  async function addToCategory(catId: string, ambienceId: string, ambienceLabel: string) {
     try {
-      await ambienceApiClient.addAmbienceToCategory(catId, ambience.id);
+      await ambienceApiClient.addAmbienceToCategory(catId, ambienceId);
       categories = categories.map((c) =>
         c.id === catId
-          ? { ...c, ambiences: [...c.ambiences, { id: ambience.id, label: ambience.label }] }
+          ? { ...c, ambiences: [...c.ambiences, { id: ambienceId, label: ambienceLabel }] }
           : c,
       );
       toast.success(`Added to category`);
@@ -264,9 +266,9 @@
     }
   }
 
-  /** Picks an ambience from the picker and adds it to the open category. */
-  function handleCatPick(ambience: Ambience) {
-    if (catPickerOpenId) addToCategory(catPickerOpenId, ambience);
+  /** Picks an item from the picker and links it to the open category. */
+  function handleCatPick(item: { id: string; label: string }) {
+    if (catPickerOpenId) addToCategory(catPickerOpenId, item.id, item.label);
     catPickerOpen = false;
   }
 
@@ -398,9 +400,11 @@
 <!-- ------------------------------------------------------------------------->
 
 {#if catPickerOpenId}
-  <AmbiencePickerDialog
+  <ItemPickerDialog
     bind:open={catPickerOpen}
-    ambiences={pickerAmbiences}
+    items={pickerAmbiences}
+    title="Add ambience to category"
+    placeholder="Search ambiences…"
     onpick={handleCatPick}
     oncancel={() => (catPickerOpen = false)}
   />
@@ -430,10 +434,12 @@
 {/if}
 
 {#if catFormOpen}
-  <AmbienceCategoryForm
+  <CategoryForm
     category={catEditTarget}
     bind:open={catFormOpen}
     {saving}
+    entityLabel="category"
+    withThumbnail
     onsave={handleCatSave}
     oncancel={() => { catFormOpen = false; catEditTarget = null; }}
   />

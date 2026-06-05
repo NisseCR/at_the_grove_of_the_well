@@ -270,6 +270,7 @@
   .picker-list {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -295,6 +296,8 @@
     text-align: left;
     transition: background var(--ease-fast);
     width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
   }
 
   .picker-item:hover {
@@ -332,17 +335,11 @@
     font-size: var(--text-sm);
     color: var(--color-text);
     font-family: var(--font-body);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .picker-artist {
     font-size: var(--text-xs);
     color: var(--color-text-faint);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .picker-duration {
