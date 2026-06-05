@@ -13,6 +13,7 @@ class ImageAsset(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     label: Mapped[str]
+    artist: Mapped[Optional[str]] = mapped_column(default=None)
     src: Mapped[str]
     thumb_src: Mapped[Optional[str]] = mapped_column(default=None)
 
@@ -24,6 +25,7 @@ class AudioAsset(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     label: Mapped[str]
+    artist: Mapped[Optional[str]] = mapped_column(default=None)
     src: Mapped[str]
 
 
@@ -32,4 +34,5 @@ class VideoAsset(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     label: Mapped[str]
+    artist: Mapped[Optional[str]] = mapped_column(default=None)
     src: Mapped[str]

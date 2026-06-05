@@ -13,6 +13,7 @@ class Playlist(Base):
     __tablename__ = "playlist"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    slug: Mapped[Optional[str]] = mapped_column(unique=True, default=None)
     label: Mapped[str]
     cover_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("image_asset.id", ondelete="SET NULL"), default=None)
 
