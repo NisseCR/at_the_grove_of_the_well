@@ -10,7 +10,7 @@ import type {
 
 type RawImageAsset = Omit<ImageAsset, "url" | "thumb_url">;
 type RawAudioAsset = Omit<AudioAsset, "url">;
-type RawVideoAsset = Omit<VideoAsset, "url">;
+type RawVideoAsset = Omit<VideoAsset, "url" | "thumb_url">;
 
 /** Fields that can be patched on any asset. */
 export interface AssetPatch {
@@ -40,11 +40,15 @@ class AssetApiClient {
   }
 
   /**
-   * Resolves CDN URL field for a video asset.
-   * @param raw - Video asset without computed URL field.
+   * Resolves CDN URL fields for a video asset.
+   * @param raw - Video asset without computed URL fields.
    */
   private withVideoUrl(raw: RawVideoAsset): VideoAsset {
-    return { ...raw, url: assetUrl(raw.src) };
+    return {
+      ...raw,
+      url: assetUrl(raw.src),
+      thumb_url: raw.thumb_src ? assetUrl(raw.thumb_src) : null,
+    };
   }
 
   // ---------------------------------------------------------------------------

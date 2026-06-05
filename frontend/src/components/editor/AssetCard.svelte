@@ -30,9 +30,14 @@
     copyTimer = setTimeout(() => (copied = false), 2000);
   }
 
-  /** Returns true if the asset is an ImageAsset. */
+  /** Returns true if the asset is an ImageAsset (has thumb_src but no duration). */
   function isImage(a: AnyAsset): a is ImageAsset {
-    return "thumb_src" in a;
+    return "thumb_src" in a && !("duration" in a);
+  }
+
+  /** Returns true if the asset is a VideoAsset (has both thumb_src and duration). */
+  function isVideo(a: AnyAsset): a is VideoAsset {
+    return "thumb_src" in a && "duration" in a;
   }
 
   /** Returns true if the asset has a known non-null duration (audio or video). */
@@ -70,10 +75,12 @@
       <img class="thumb" src={asset.thumb_url} alt={asset.label} />
     {:else if isImage(asset)}
       <span class="icon"><Image size={32} strokeWidth={1.2} /></span>
-    {:else if asset.src.endsWith(".ogg")}
-      <span class="icon"><Music size={32} strokeWidth={1.2} /></span>
-    {:else}
+    {:else if isVideo(asset) && asset.thumb_url}
+      <img class="thumb" src={asset.thumb_url} alt={asset.label} />
+    {:else if isVideo(asset)}
       <span class="icon"><Video size={32} strokeWidth={1.2} /></span>
+    {:else}
+      <span class="icon"><Music size={32} strokeWidth={1.2} /></span>
     {/if}
 
     {#if hasKnownDuration(asset)}

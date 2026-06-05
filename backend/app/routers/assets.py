@@ -61,6 +61,7 @@ def _video_out(a: VideoAsset) -> VideoAssetOut:
         label=a.label,
         artist=a.artist,
         src=a.src,
+        thumb_src=a.thumb_src,
         duration=a.duration,
         created_at=a.created_at,
         updated_at=a.updated_at,

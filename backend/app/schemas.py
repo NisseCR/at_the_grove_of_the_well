@@ -56,6 +56,7 @@ class VideoAssetOut(BaseModel):
     label: str
     artist: Optional[str] = None
     src: str
+    thumb_src: Optional[str] = None
     duration: Optional[float] = None
     created_at: datetime
     updated_at: datetime

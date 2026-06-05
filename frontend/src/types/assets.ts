@@ -33,7 +33,9 @@ export interface VideoAsset {
   label: string;
   artist: string | null;
   src: string;
+  thumb_src: string | null;
   url: string;
+  thumb_url: string | null;
   duration: number | null;
   created_at: string;
   updated_at: string;

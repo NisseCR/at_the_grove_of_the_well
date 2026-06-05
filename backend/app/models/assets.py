@@ -47,6 +47,7 @@ class VideoAsset(Base):
     label: Mapped[str]
     artist: Mapped[Optional[str]] = mapped_column(default=None)
     src: Mapped[str]
+    thumb_src: Mapped[Optional[str]] = mapped_column(default=None)
     duration: Mapped[Optional[float]] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
