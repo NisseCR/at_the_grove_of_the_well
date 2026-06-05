@@ -1,37 +1,48 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
-  import type { AnyAsset } from "@/types/assets";
 
   interface Props {
-    /** The asset pending deletion. */
-    asset: AnyAsset;
     /** Controls dialog open state — use bind:open from the parent. */
     open: boolean;
-    /** Whether a delete request is in flight. */
-    deleting?: boolean;
-    /** Called when the user confirms the deletion. */
+    title: string;
+    description: string;
+    /** Label for the confirm button. Defaults to "Confirm". */
+    confirmLabel?: string;
+    /** Renders the confirm button in red. Use for destructive actions. */
+    destructive?: boolean;
+    /** Whether an async action triggered by confirm is in progress. */
+    loading?: boolean;
     onconfirm: () => void;
-    /** Called when the user cancels. */
     oncancel: () => void;
   }
 
-  let { asset, open = $bindable(), deleting = false, onconfirm, oncancel }: Props = $props();
+  let {
+    open = $bindable(),
+    title,
+    description,
+    confirmLabel = "Confirm",
+    destructive = false,
+    loading = false,
+    onconfirm,
+    oncancel,
+  }: Props = $props();
 </script>
 
 <Dialog.Root bind:open>
   <Dialog.Portal>
-    <Dialog.Overlay class="overlay" />
-    <Dialog.Content class="dialog">
-      <Dialog.Title class="dialog-title">Delete asset</Dialog.Title>
-      <Dialog.Description class="dialog-desc">
-        Are you sure you want to delete <em>{asset.label}</em>? This removes the file from R2 and
-        cannot be undone.
-      </Dialog.Description>
+    <Dialog.Overlay class="confirm-overlay" />
+    <Dialog.Content class="confirm-panel">
+      <Dialog.Title class="confirm-title">{title}</Dialog.Title>
+      <Dialog.Description class="confirm-desc">{description}</Dialog.Description>
 
       <div class="actions">
-        <button class="btn-secondary" onclick={oncancel} disabled={deleting}>Cancel</button>
-        <button class="btn-danger" onclick={onconfirm} disabled={deleting}>
-          {deleting ? "Deleting…" : "Delete"}
+        <button class="btn-secondary" onclick={oncancel} disabled={loading}>Cancel</button>
+        <button
+          class={destructive ? "btn-danger" : "btn-primary"}
+          onclick={onconfirm}
+          disabled={loading}
+        >
+          {loading ? "Please wait…" : confirmLabel}
         </button>
       </div>
     </Dialog.Content>
@@ -39,14 +50,14 @@
 </Dialog.Root>
 
 <style>
-  :global(.overlay) {
+  :global(.confirm-overlay) {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
     z-index: 50;
   }
 
-  :global(.dialog) {
+  :global(.confirm-panel) {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -62,14 +73,14 @@
     gap: var(--space-4);
   }
 
-  :global(.dialog-title) {
+  :global(.confirm-title) {
     font-family: var(--font-display);
     font-size: var(--text-lg);
     color: var(--color-text);
     margin: 0;
   }
 
-  :global(.dialog-desc) {
+  :global(.confirm-desc) {
     font-size: var(--text-sm);
     color: var(--color-text-muted);
     margin: 0;
@@ -84,20 +95,26 @@
   }
 
   .btn-secondary,
+  .btn-primary,
   .btn-danger {
     font-family: var(--font-body);
     font-size: var(--text-sm);
     padding: var(--space-2) var(--space-4);
     border-radius: var(--radius-sm, 4px);
     cursor: pointer;
-    transition: opacity var(--ease-fast);
     border: none;
+    transition: opacity var(--ease-fast);
   }
 
   .btn-secondary {
     background: rgba(255, 255, 255, 0.08);
     color: var(--color-text-muted);
     border: 1px solid var(--color-border);
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: #000;
   }
 
   .btn-danger {
@@ -110,11 +127,13 @@
     color: var(--color-text);
   }
 
+  .btn-primary:hover:not(:disabled),
   .btn-danger:hover:not(:disabled) {
     opacity: 0.85;
   }
 
   .btn-secondary:disabled,
+  .btn-primary:disabled,
   .btn-danger:disabled {
     opacity: 0.5;
     cursor: not-allowed;
