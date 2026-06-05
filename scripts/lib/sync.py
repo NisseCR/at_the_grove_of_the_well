@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 import boto3
+from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from dotenv import load_dotenv
 
@@ -20,6 +21,10 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 SKIP_FILES = {"cache.json"}
+
+# Force single-part uploads so ETags are plain MD5 and our comparison works.
+# Assets are never large enough to warrant multipart anyway.
+TRANSFER_CONFIG = TransferConfig(multipart_threshold=500 * 1024 * 1024)
 
 
 def _require_env(key: str) -> str:
@@ -81,7 +86,7 @@ def run(dry_run: bool = False) -> None:
     remote = _list_remote(client, bucket)
 
     local_keys: set[str] = set()
-    uploaded = skipped = deleted = 0
+    uploaded = skipped = deleted = errors = 0
     prefix = "[dry-run] " if dry_run else ""
 
     for local_file in sorted(output_path.rglob("*")):
@@ -102,15 +107,26 @@ def run(dry_run: bool = False) -> None:
         logger.info("%s%s: %s", prefix, action, key)
 
         if not dry_run:
-            client.upload_file(str(local_file), bucket, key)
+            try:
+                client.upload_file(str(local_file), bucket, key, Config=TRANSFER_CONFIG)
+            except Exception as exc:
+                logger.error("ERROR uploading %s — %s", key, exc)
+                errors += 1
+                continue
         uploaded += 1
 
     for key in remote:
         if key not in local_keys:
             logger.info("%sdelete: %s", prefix, key)
             if not dry_run:
-                client.delete_object(Bucket=bucket, Key=key)
+                try:
+                    client.delete_object(Bucket=bucket, Key=key)
+                except Exception as exc:
+                    logger.error("ERROR deleting %s — %s", key, exc)
+                    errors += 1
+                    continue
             deleted += 1
 
     action = "Would transfer" if dry_run else "Transferred"
-    logger.info("%s %d upload(s), %d unchanged, %d delete(s).", action, uploaded, skipped, deleted)
+    logger.info("%s %d upload(s), %d unchanged, %d delete(s), %d error(s).",
+                action, uploaded, skipped, deleted, errors)

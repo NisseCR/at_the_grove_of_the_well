@@ -36,11 +36,6 @@ def _output_root() -> Path:
     return Path(raw)
 
 
-def _is_cover(path: Path) -> bool:
-    """Return True if the file is a cover image (named cover.*)."""
-    return path.stem.lower() == "cover"
-
-
 def _mirror_path(source_root: Path, source_file: Path, output_root: Path, new_suffix: str) -> Path:
     """Return the output path for a source file, replacing its suffix."""
     relative = source_file.relative_to(source_root)
@@ -89,8 +84,7 @@ def run(source_root: Path) -> None:
             elif suffix in IMAGE_EXTENSIONS:
                 out_path = _mirror_path(source_root, source_file, output_root, ".webp")
                 out_path.parent.mkdir(parents=True, exist_ok=True)
-                generate_thumb = _is_cover(source_file)
-                process_image(source_file, out_path, thumbnail=generate_thumb)
+                process_image(source_file, out_path, thumbnail=True)
 
             elif suffix in VIDEO_EXTENSIONS:
                 out_path = _mirror_path(source_root, source_file, output_root, ".webm")
