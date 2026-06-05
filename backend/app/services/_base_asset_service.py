@@ -1,5 +1,6 @@
 """Base class for asset services, handling R2 and DB operations together."""
 
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
@@ -17,7 +18,7 @@ class PreparedUpload(BaseModel):
 
     files: dict[str, tuple[bytes, str]]  # R2 key → (data, content_type)
     src: str
-    extra: dict = {}  # additional fields to set on the DB model (e.g. thumb_src)
+    extra: dict = {}  # additional fields to set on the DB model (e.g. thumb_src, duration)
 
 
 class BaseAssetService[T]:
@@ -37,11 +38,14 @@ class BaseAssetService[T]:
         """Process raw bytes and return upload-ready files with their R2 keys."""
         raise NotImplementedError
 
-    def list(self, session: Session) -> list[T]:
+    def list(self, session: Session, *load_options) -> list[T]:
         """Return all assets of this type ordered by label."""
-        return list(session.scalars(select(self._model).order_by(self._model.label)).all())
+        q = select(self._model).order_by(self._model.label)
+        if load_options:
+            q = q.options(*load_options)
+        return list(session.scalars(q).all())
 
-    def upload(self, data: bytes, label: str, session: Session) -> T:
+    def upload(self, data: bytes, label: str, session: Session, artist: Optional[str] = None) -> T:
         """Process, upload to R2, and insert a DB record. Rolls back R2 on DB failure."""
         asset_id = uuid4()
         prepared = self._prepare(asset_id, data)
@@ -56,7 +60,9 @@ class BaseAssetService[T]:
                 r2.delete(key)
             raise
 
-        asset = self._model(id=asset_id, label=label, src=prepared.src, **prepared.extra)
+        asset = self._model(
+            id=asset_id, label=label, src=prepared.src, artist=artist, **prepared.extra
+        )
         session.add(asset)
         try:
             session.commit()
@@ -121,12 +127,13 @@ class BaseAssetService[T]:
         for key in self._keys(asset_id):
             r2.delete(key)
 
-    def patch_label(self, asset_id: UUID, label: str, session: Session) -> T:
-        """Update the display label of an asset."""
+    def patch(self, asset_id: UUID, session: Session, **fields) -> T:
+        """Update one or more fields on an asset. Only provided fields are changed."""
         asset = session.get(self._model, asset_id)
         if not asset:
             raise ResourceIdNotFound(self._resource_name, str(asset_id))
-        asset.label = label
+        for field, value in fields.items():
+            setattr(asset, field, value)
         session.commit()
         session.refresh(asset)
         return asset

@@ -7,48 +7,89 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.database import get_session
-from app.models.scene import Scene, SceneBackground, SceneCategory, SceneLayer
+from app.models.scene import Scene, SceneBackground, SceneLayer
+from app.models.scene import SceneCategory
 from app.schemas import (
-    LayerAssetOut,
     BackgroundAssetOut,
+    LayerAssetOut,
     SceneCategoryEntryOut,
     SceneCategoryOut,
-    SceneConfigOut,
+    SceneOut,
 )
 
 router = APIRouter(prefix="/scene")
 
 
 def _scene_load_options():
-    """Eager-load options for a fully populated SceneConfigOut."""
+    """Eager-load options for a fully populated SceneOut."""
     return [
         selectinload(Scene.background).selectinload(SceneBackground.image_asset),
+        selectinload(Scene.background).selectinload(SceneBackground.video_asset),
+        selectinload(Scene.layers).selectinload(SceneLayer.image_asset),
         selectinload(Scene.layers).selectinload(SceneLayer.video_asset),
     ]
 
 
-def _build_scene(scene: Scene) -> SceneConfigOut:
-    """Build a SceneConfigOut from an already-loaded Scene."""
-    bg = scene.background
-    image = bg.image_asset if bg else None
+def _build_background(bg: SceneBackground | None, scene_id: str) -> BackgroundAssetOut:
+    """Serialize a SceneBackground, resolving whichever asset type is set."""
+    if bg is None:
+        return BackgroundAssetOut(id=scene_id, src="", type="image")
 
-    background = BackgroundAssetOut(
-        id=str(image.id) if image else str(scene.id),
-        src=image.src if image else "",
-        thumb_src=image.thumb_src if image else None,
-        loop=bg.loop if bg else True,
-        opacity=bg.opacity if bg else 1.0,
-        brightness=bg.brightness if bg else 1.0,
-        grayscale=bg.grayscale if bg else 0.0,
-        blur=bg.blur if bg else 0.0,
-        flip=bg.flip if bg else False,
-        blend_mode=bg.blend_mode if bg else "normal",
-    )
+    if bg.image_asset:
+        return BackgroundAssetOut(
+            id=str(bg.image_asset.id),
+            src=bg.image_asset.src,
+            type="image",
+            thumb_src=bg.image_asset.thumb_src,
+            loop=bg.loop,
+            opacity=bg.opacity,
+            brightness=bg.brightness,
+            grayscale=bg.grayscale,
+            blur=bg.blur,
+            flip=bg.flip,
+            blend_mode=bg.blend_mode,
+        )
 
-    layers = [
-        LayerAssetOut(
-            id=str(layer.id),
-            src=layer.video_asset.src if layer.video_asset else "",
+    if bg.video_asset:
+        return BackgroundAssetOut(
+            id=str(bg.video_asset.id),
+            src=bg.video_asset.src,
+            type="video",
+            loop=bg.loop,
+            opacity=bg.opacity,
+            brightness=bg.brightness,
+            grayscale=bg.grayscale,
+            blur=bg.blur,
+            flip=bg.flip,
+            blend_mode=bg.blend_mode,
+        )
+
+    return BackgroundAssetOut(id=scene_id, src="", type="image")
+
+
+def _build_scene(scene: Scene) -> SceneOut:
+    """Build a SceneOut from an already-loaded Scene."""
+    background = _build_background(scene.background, str(scene.id))
+
+    layers = []
+    for layer in scene.layers:
+        if layer.image_asset:
+            asset_id = str(layer.image_asset.id)
+            src = layer.image_asset.src
+            asset_type = "image"
+        elif layer.video_asset:
+            asset_id = str(layer.video_asset.id)
+            src = layer.video_asset.src
+            asset_type = "video"
+        else:
+            asset_id = str(layer.id)
+            src = ""
+            asset_type = "image"
+
+        layers.append(LayerAssetOut(
+            id=asset_id,
+            src=src,
+            type=asset_type,
             loop=layer.loop,
             opacity=layer.opacity,
             brightness=layer.brightness,
@@ -57,19 +98,19 @@ def _build_scene(scene: Scene) -> SceneConfigOut:
             flip=layer.flip,
             blend_mode=layer.blend_mode,
             order=layer.layer_order,
-        )
-        for layer in scene.layers
-    ]
+        ))
 
-    return SceneConfigOut(
-        id=str(scene.id), label=scene.label, background=background, layers=layers
+    return SceneOut(
+        id=str(scene.id),
+        slug=scene.slug,
+        label=scene.label,
+        background=background,
+        layers=layers,
     )
 
 
 @router.get("/categories")
-def get_scene_categories(
-    session: Session = Depends(get_session),
-) -> list[SceneCategoryOut]:
+def get_scene_categories(session: Session = Depends(get_session)) -> list[SceneCategoryOut]:
     """Return all scene categories with their scene entries, sorted by display order."""
     categories = session.scalars(
         select(SceneCategory)
@@ -82,28 +123,23 @@ def get_scene_categories(
             id=str(cat.id),
             label=cat.label,
             order=cat.display_order,
-            scenes=[
-                SceneCategoryEntryOut(id=str(s.id), label=s.label) for s in cat.scenes
-            ],
+            scenes=[SceneCategoryEntryOut(id=str(s.id), label=s.label) for s in cat.scenes],
         )
         for cat in categories
     ]
 
 
 @router.get("")
-def get_scenes(session: Session = Depends(get_session)) -> list[SceneConfigOut]:
+def get_scenes(session: Session = Depends(get_session)) -> list[SceneOut]:
     """Return all scenes with their backgrounds and layers."""
     scenes = session.scalars(
         select(Scene).options(*_scene_load_options()).order_by(Scene.label)
     ).all()
-
     return [_build_scene(scene) for scene in scenes]
 
 
 @router.get("/{scene_id}")
-def get_scene(
-    scene_id: UUID, session: Session = Depends(get_session)
-) -> SceneConfigOut:
+def get_scene(scene_id: UUID, session: Session = Depends(get_session)) -> SceneOut:
     """Return a single scene by UUID."""
     scene = session.get(Scene, scene_id, options=_scene_load_options())
     if not scene:

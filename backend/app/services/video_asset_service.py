@@ -4,6 +4,7 @@ from uuid import UUID
 
 from app.models.assets import VideoAsset
 from app.services._base_asset_service import BaseAssetService, PreparedUpload
+from app.services._media_utils import extract_duration
 
 
 class VideoAssetService(BaseAssetService[VideoAsset]):
@@ -24,10 +25,15 @@ class VideoAssetService(BaseAssetService[VideoAsset]):
         return [f"assets/video/{asset_id}.webm"]
 
     def _prepare(self, asset_id: UUID, data: bytes) -> PreparedUpload:
-        """Preprocess video bytes and return the WebM file ready for upload."""
+        """Preprocess video bytes, extract duration, and return the WebM file ready for upload."""
         processed = self._preprocess(data)
         src = f"assets/video/{asset_id}.webm"
-        return PreparedUpload(files={src: (processed, "video/webm")}, src=src)
+        duration = extract_duration(processed, ".webm")
+        return PreparedUpload(
+            files={src: (processed, "video/webm")},
+            src=src,
+            extra={"duration": duration},
+        )
 
 
 video_asset_service = VideoAssetService()

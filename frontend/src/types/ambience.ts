@@ -1,12 +1,11 @@
-export interface AmbienceAsset {
+export interface Ambience {
   id: string;
+  slug: string | null;
+  label: string;
+  volume: number;
+  loop: boolean;
   src: string;
   url?: string;
-}
-
-export interface AmbienceConfig {
-  id: string;
-  ambiences: AmbienceAsset[];
 }
 
 export interface AmbienceCategoryEntry {

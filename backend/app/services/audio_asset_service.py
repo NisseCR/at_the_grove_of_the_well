@@ -5,6 +5,7 @@ from uuid import UUID
 from app.models.assets import AudioAsset
 from app.services._audio_processing import AudioProcessor
 from app.services._base_asset_service import BaseAssetService, PreparedUpload
+from app.services._media_utils import extract_duration
 
 
 class AudioAssetService(BaseAssetService[AudioAsset]):
@@ -21,10 +22,15 @@ class AudioAssetService(BaseAssetService[AudioAsset]):
         return [f"assets/audio/{asset_id}.ogg"]
 
     def _prepare(self, asset_id: UUID, data: bytes) -> PreparedUpload:
-        """Process audio bytes and return the OGG file ready for upload."""
+        """Process audio bytes, extract duration, and return the OGG file ready for upload."""
         processed = self._processor.process(data)
         src = f"assets/audio/{asset_id}.ogg"
-        return PreparedUpload(files={src: (processed, "audio/ogg")}, src=src)
+        duration = extract_duration(processed, ".ogg")
+        return PreparedUpload(
+            files={src: (processed, "audio/ogg")},
+            src=src,
+            extra={"duration": duration},
+        )
 
 
 audio_asset_service = AudioAssetService()
