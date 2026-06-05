@@ -1,10 +1,5 @@
 <script lang="ts">
-  import AssetLibrary from "@/components/editor/AssetLibrary.svelte";
-  import ReconcilePanel from "@/components/editor/ReconcilePanel.svelte";
   import { navigate } from "@/stores/router.svelte";
-
-  type Tab = "library" | "reconcile";
-  let activeTab = $state<Tab>("library");
 </script>
 
 <div class="editor">
@@ -12,21 +7,11 @@
 
   <nav class="tabs">
     <button class="back" onclick={() => navigate("home")}>← Home</button>
-    <button class="tab" class:active={activeTab === "library"} onclick={() => (activeTab = "library")}>
-      Library
-    </button>
-    <button class="tab" class:active={activeTab === "reconcile"} onclick={() => (activeTab = "reconcile")}>
-      Reconcile
-    </button>
   </nav>
 
   <div class="main">
     <div class="content">
-      {#if activeTab === "library"}
-        <AssetLibrary />
-      {:else}
-        <ReconcilePanel />
-      {/if}
+      <!-- editor goes here -->
     </div>
   </div>
 </div>
@@ -76,29 +61,6 @@
 
   .back:hover {
     color: var(--color-text-muted);
-  }
-
-  .tab {
-    font-family: var(--font-display);
-    font-size: var(--text-base);
-    letter-spacing: var(--tracking-wide);
-    color: var(--color-text-muted);
-    padding: var(--space-2) var(--space-3);
-    padding-bottom: var(--space-3);
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    transition:
-      color var(--ease-fast),
-      border-color var(--ease-fast);
-  }
-
-  .tab:hover {
-    color: var(--color-text);
-  }
-
-  .tab.active {
-    color: var(--color-text);
-    border-bottom-color: var(--color-accent);
   }
 
   .main {
