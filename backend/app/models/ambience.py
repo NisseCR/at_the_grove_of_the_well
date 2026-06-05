@@ -1,9 +1,10 @@
 """Ambience table models: ambience entities, categories, and their links."""
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -18,6 +19,10 @@ class Ambience(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     slug: Mapped[Optional[str]] = mapped_column(unique=True, default=None)
     label: Mapped[str]
+    volume: Mapped[float] = mapped_column(default=0.5)
+    loop: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
     audio_asset_id: Mapped[Optional[UUID]] = mapped_column(
         ForeignKey("audio_asset.id", ondelete="SET NULL"), default=None
     )
@@ -31,6 +36,8 @@ class AmbienceCategory(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     label: Mapped[str]
     display_order: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
     thumb_id: Mapped[Optional[UUID]] = mapped_column(
         ForeignKey("image_asset.id", ondelete="SET NULL"), default=None
     )

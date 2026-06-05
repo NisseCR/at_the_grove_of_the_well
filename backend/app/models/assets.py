@@ -1,9 +1,11 @@
 """Asset table models for images, audio, and video files stored on the CDN."""
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -16,6 +18,10 @@ class ImageAsset(Base):
     artist: Mapped[Optional[str]] = mapped_column(default=None)
     src: Mapped[str]
     thumb_src: Mapped[Optional[str]] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    tags: Mapped[list["Tag"]] = relationship(secondary="image_asset_tag")
 
 
 class AudioAsset(Base):
@@ -27,6 +33,11 @@ class AudioAsset(Base):
     label: Mapped[str]
     artist: Mapped[Optional[str]] = mapped_column(default=None)
     src: Mapped[str]
+    duration: Mapped[Optional[float]] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    tags: Mapped[list["Tag"]] = relationship(secondary="audio_asset_tag")
 
 
 class VideoAsset(Base):
@@ -36,3 +47,11 @@ class VideoAsset(Base):
     label: Mapped[str]
     artist: Mapped[Optional[str]] = mapped_column(default=None)
     src: Mapped[str]
+    duration: Mapped[Optional[float]] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    tags: Mapped[list["Tag"]] = relationship(secondary="video_asset_tag")
+
+
+from app.models.tags import Tag  # noqa: E402

@@ -1,9 +1,10 @@
 """Scene table models: scenes, backgrounds, layers, and categories."""
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -28,6 +29,8 @@ class Scene(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     slug: Mapped[Optional[str]] = mapped_column(unique=True, default=None)
     label: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     background: Mapped["SceneBackground"] = relationship(uselist=False)
     layers: Mapped[list["SceneLayer"]] = relationship(order_by="SceneLayer.layer_order")
@@ -85,6 +88,8 @@ class SceneCategory(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     label: Mapped[str]
     display_order: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     scenes: Mapped[list["Scene"]] = relationship(
         secondary="scene_category_link", order_by="Scene.label"
