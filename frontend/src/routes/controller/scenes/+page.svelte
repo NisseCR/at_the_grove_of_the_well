@@ -4,8 +4,8 @@
   import { sendSetScene } from "$lib/services/transport";
   import { sceneApiClient } from "$lib/services/sceneApiClient";
   import type { Scene, SceneCategory } from "$lib/types/scene";
-  import CategoryHeader from "./CategoryHeader.svelte";
-  import ThumbnailTile from "./ThumbnailTile.svelte";
+  import CategoryHeader from "../CategoryHeader.svelte";
+  import ThumbnailTile from "../ThumbnailTile.svelte";
 
   let categories = $state<SceneCategory[]>([]);
   let scenes = $state<Scene[]>([]);
@@ -17,11 +17,17 @@
     ]);
   });
 
+  /**
+   * @param id - Scene ID to look up thumbnail for.
+   */
   function thumbnailFor(id: string): string | undefined {
     const bg = scenes.find((s) => s.id === id)?.background;
     return bg?.thumb_url ?? bg?.url ?? undefined;
   }
 
+  /**
+   * @param id - Scene ID to check against active scene.
+   */
   function isActive(id: string): boolean {
     return appState.scene?.id === id;
   }

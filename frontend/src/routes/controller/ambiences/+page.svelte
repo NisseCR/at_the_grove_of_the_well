@@ -4,8 +4,8 @@
   import { sendSetAmbiences } from "$lib/services/transport";
   import { ambienceApiClient } from "$lib/services/ambienceApiClient";
   import type { AmbienceCategory } from "$lib/types/ambience";
-  import CategoryHeader from "./CategoryHeader.svelte";
-  import VerticalNav from "./VerticalNav.svelte";
+  import CategoryHeader from "../CategoryHeader.svelte";
+  import VerticalNav from "../VerticalNav.svelte";
 
   let categories = $state<AmbienceCategory[]>([]);
   let categoryEls = $state<HTMLElement[]>([]);
@@ -14,10 +14,17 @@
     categories = await ambienceApiClient.fetchAmbienceCategories();
   });
 
+  /**
+   * @param id - Ambience ID to check against active ambiences.
+   */
   function isActive(id: string): boolean {
     return appState.ambiences?.some((a) => a.id === id) ?? false;
   }
 
+  /**
+   * @param id - Ambience ID to toggle.
+   * @param label - Display label for the ambience.
+   */
   function toggle(id: string, label: string): void {
     const current = appState.ambiences ?? [];
     const next = isActive(id)

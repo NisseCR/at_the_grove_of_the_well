@@ -4,8 +4,8 @@
   import { sendSetPlaylist } from "$lib/services/transport";
   import { musicApiClient } from "$lib/services/musicApiClient";
   import type { Playlist, PlaylistCategory } from "$lib/types/music";
-  import CategoryHeader from "./CategoryHeader.svelte";
-  import ThumbnailTile from "./ThumbnailTile.svelte";
+  import CategoryHeader from "../CategoryHeader.svelte";
+  import ThumbnailTile from "../ThumbnailTile.svelte";
 
   let categories = $state<PlaylistCategory[]>([]);
   let playlists = $state<Playlist[]>([]);
@@ -17,15 +17,24 @@
     ]);
   });
 
+  /**
+   * @param id - Playlist ID to look up thumbnail for.
+   */
   function thumbnailFor(id: string): string | undefined {
     const p = playlists.find((p) => p.id === id);
     return p?.thumb_url ?? p?.url ?? undefined;
   }
 
+  /**
+   * @param id - Playlist ID to check against active music.
+   */
   function isActive(id: string): boolean {
     return appState.music?.id === id;
   }
 
+  /**
+   * @param id - Playlist ID to activate or deactivate.
+   */
   function onTileClick(id: string): void {
     if (isActive(id)) {
       sendSetPlaylist(null, null);

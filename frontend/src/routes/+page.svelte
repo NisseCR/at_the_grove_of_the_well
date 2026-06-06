@@ -14,7 +14,7 @@
         <span class="card-desc">The audio-visual experience</span>
       </button>
 
-      <button class="card" onclick={() => goto("/controller")}>
+      <button class="card" onclick={() => goto("/controller/scenes")}>
         <span class="card-label">Controller</span>
         <span class="card-desc">Set scenes, ambiences and music</span>
       </button>

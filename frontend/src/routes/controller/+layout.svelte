@@ -1,20 +1,16 @@
 <script lang="ts">
-  import Scenes from "./Scenes.svelte";
-  import Ambiences from "./Ambiences.svelte";
-  import Music from "./Music.svelte";
-  import AudioPanel from "./AudioPanel.svelte";
-  import Config from "./Config.svelte";
-  import { AudioLines } from "@lucide/svelte";
   import { untrack } from "svelte";
+  import { page } from "$app/state";
+  import { AudioLines } from "@lucide/svelte";
+  import AudioPanel from "./AudioPanel.svelte";
   import { appState } from "$lib/stores/appState.svelte";
   import { sendSync } from "$lib/services/transport";
 
+  const { children } = $props();
   const projectName = import.meta.env.VITE_PROJECT_NAME as string;
 
-  type Tab = "scenes" | "ambiences" | "music" | "config";
-  let activeTab = $state<Tab>("scenes");
-
   let panelCollapsed = $state(true);
+  const tab = $derived(page.url.pathname.split("/").at(2) ?? "");
 
   // When a new client connects, push current state to all clients.
   // Version starts at 0 so the initial effect run is a no-op.
@@ -37,34 +33,34 @@
     <div class="tabs-inner">
       <h1 class="project-title">{projectName}</h1>
       <div class="tab-row">
-        <button
+        <a
+          href="/controller/scenes"
           class="tab"
-          class:active={activeTab === "scenes"}
-          onclick={() => (activeTab = "scenes")}
+          class:active={tab === "scenes"}
         >
           Scenes
-        </button>
-        <button
+        </a>
+        <a
+          href="/controller/music"
           class="tab"
-          class:active={activeTab === "music"}
-          onclick={() => (activeTab = "music")}
+          class:active={tab === "music"}
         >
           Music
-        </button>
-        <button
+        </a>
+        <a
+          href="/controller/ambiences"
           class="tab"
-          class:active={activeTab === "ambiences"}
-          onclick={() => (activeTab = "ambiences")}
+          class:active={tab === "ambiences"}
         >
           Ambiences
-        </button>
-        <button
+        </a>
+        <a
+          href="/controller/config"
           class="tab"
-          class:active={activeTab === "config"}
-          onclick={() => (activeTab = "config")}
+          class:active={tab === "config"}
         >
           Config
-        </button>
+        </a>
         <button
           class="tab audio-toggle"
           class:active={!panelCollapsed}
@@ -79,15 +75,7 @@
 
   <div class="main">
     <div class="content">
-      {#if activeTab === "scenes"}
-        <Scenes />
-      {:else if activeTab === "music"}
-        <Music />
-      {:else if activeTab === "ambiences"}
-        <Ambiences />
-      {:else if activeTab === "config"}
-        <Config />
-      {/if}
+      {@render children()}
     </div>
     {#if !panelCollapsed}
       <button
@@ -167,6 +155,7 @@
     font-size: var(--text-base);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
+    text-decoration: none;
     padding: var(--space-2) var(--space-3);
     padding-bottom: var(--space-3);
     border-bottom: 2px solid transparent;
