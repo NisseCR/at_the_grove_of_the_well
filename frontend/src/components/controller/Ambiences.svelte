@@ -39,7 +39,7 @@
             <button
               class="item-row"
               class:active={isActive(entry.id)}
-              onclick={() => toggle(entry.id, entry.label)}
+              onclick={() => toggle(entry.id, `${category.label} / ${entry.label}`)}
             >
               {entry.label}
             </button>
