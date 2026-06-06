@@ -47,6 +47,11 @@ def _label(slug: str) -> str:
     return re.sub(r"^\d+-", "", slug).replace("-", " ").title()
 
 
+def _base(slug: str) -> str:
+    """Strip leading numeric prefix, keeping hyphens. Used for stable IDs."""
+    return re.sub(r"^\d+-", "", slug)
+
+
 def _order(slug: str) -> int:
     """Return the leading numeric prefix of a slug as a sort key, 999 if absent."""
     m = re.match(r"^(\d+)-", slug)
@@ -79,7 +84,7 @@ def _scan_ambiences(keys: list[str]) -> tuple[list[AmbienceCategoryOut], list[Am
                 logger.warning("Duplicate ambience slug '%s' in category '%s' — skipping", amb_slug, cat_slug)
                 continue
             ambiences[(cat_slug, amb_slug)] = AmbienceOut(
-                id=amb_slug,
+                id=f"{_base(cat_slug)}.{amb_slug}",
                 label=_label(amb_slug),
                 src=key,
             )
@@ -87,7 +92,7 @@ def _scan_ambiences(keys: list[str]) -> tuple[list[AmbienceCategoryOut], list[Am
     result_cats: list[AmbienceCategoryOut] = []
     for cat_slug, meta in sorted(cats.items(), key=lambda x: _order(x[0])):
         entries = [
-            AmbienceEntry(id=slug, label=_label(slug))
+            AmbienceEntry(id=f"{_base(cat_slug)}.{slug}", label=_label(slug))
             for (cs, slug) in sorted(ambiences, key=lambda k: k[1])
             if cs == cat_slug
         ]

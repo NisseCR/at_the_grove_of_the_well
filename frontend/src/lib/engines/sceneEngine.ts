@@ -1,7 +1,6 @@
 import { sceneApiClient } from "@/lib/services/sceneApiClient";
-import { sceneState } from "@/stores/sceneState.svelte";
 import { guardedAwait } from "@/lib/utils/guardedAwait";
-import type { Scene } from "@/types/scene";
+import type { Scene, SceneSlotState } from "@/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
 
@@ -28,14 +27,18 @@ class SceneEngine {
   async transitionScene(
     sceneId: string,
     getCurrent: () => HTMLElement | null,
+    state: SceneSlotState,
   ): Promise<void> {
     const token = this.createToken();
 
     try {
-      const config = await guardedAwait(this.fetchNextScene(sceneId), token);
+      const config = await guardedAwait(
+        this.fetchNextScene(sceneId, state),
+        token,
+      );
       await guardedAwait(this.preload(config), token);
       await guardedAwait(this.transitionOut(getCurrent()), token);
-      await guardedAwait(this.swapSceneSlots(), token);
+      await guardedAwait(this.swapSceneSlots(state), token);
       await this.transitionIn(getCurrent());
     } catch (exception) {
       if (exception instanceof DOMException && exception.name === "AbortError")
@@ -69,10 +72,13 @@ class SceneEngine {
    * @param sceneId - The id of the scene to fetch.
    * @returns The fetched Scene.
    */
-  private async fetchNextScene(sceneId: string): Promise<Scene> {
-    sceneState.isTransitioning = true;
+  private async fetchNextScene(
+    sceneId: string,
+    state: SceneSlotState,
+  ): Promise<Scene> {
+    state.isTransitioning = true;
     const config = await sceneApiClient.fetchScene(sceneId);
-    sceneState.next = config;
+    state.next = config;
     return config;
   }
 
@@ -228,10 +234,10 @@ class SceneEngine {
    * Promote the next scene to current, clear the next slot, and wait
    * for Svelte to update the DOM before continuing.
    */
-  private async swapSceneSlots(): Promise<void> {
-    sceneState.current = sceneState.next;
-    sceneState.next = null;
-    sceneState.isTransitioning = false;
+  private async swapSceneSlots(state: SceneSlotState): Promise<void> {
+    state.current = state.next;
+    state.next = null;
+    state.isTransitioning = false;
     await tick();
   }
 }

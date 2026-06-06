@@ -12,6 +12,7 @@ from app.routers.ambience import router as ambience_router
 from app.routers.auth import router as auth_router
 from app.routers.control import router as control_router
 from app.routers.music import router as music_router
+from app.routers.reader import router as reader_router
 from app.routers.scene import router as scene_router
 from app.services.scanner import scan
 
@@ -49,6 +50,7 @@ def create_app() -> FastAPI:
     app.include_router(music_router, prefix="/api")
     app.include_router(control_router, prefix="/api")
     app.include_router(admin_router, prefix="/api")
+    app.include_router(reader_router, prefix="/api")
 
     return app
 

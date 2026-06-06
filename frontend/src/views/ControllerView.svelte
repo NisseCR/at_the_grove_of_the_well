@@ -20,45 +20,45 @@
 
   <nav class="tabs">
     <div class="tabs-inner">
-    <h1 class="project-title">{projectName}</h1>
-    <div class="tab-row">
-      <button
-        class="tab"
-        class:active={activeTab === "scenes"}
-        onclick={() => (activeTab = "scenes")}
-      >
-        Scenes
-      </button>
-      <button
-        class="tab"
-        class:active={activeTab === "music"}
-        onclick={() => (activeTab = "music")}
-      >
-        Music
-      </button>
-      <button
-        class="tab"
-        class:active={activeTab === "ambiences"}
-        onclick={() => (activeTab = "ambiences")}
-      >
-        Ambiences
-      </button>
-      <button
-        class="tab"
-        class:active={activeTab === "config"}
-        onclick={() => (activeTab = "config")}
-      >
-        Config
-      </button>
-      <button
-        class="tab audio-toggle"
-        class:active={!panelCollapsed}
-        onclick={() => (panelCollapsed = !panelCollapsed)}
-        aria-label="Toggle audio panel"
-      >
-        <AudioLines size={15} />
-      </button>
-    </div>
+      <h1 class="project-title">{projectName}</h1>
+      <div class="tab-row">
+        <button
+          class="tab"
+          class:active={activeTab === "scenes"}
+          onclick={() => (activeTab = "scenes")}
+        >
+          Scenes
+        </button>
+        <button
+          class="tab"
+          class:active={activeTab === "music"}
+          onclick={() => (activeTab = "music")}
+        >
+          Music
+        </button>
+        <button
+          class="tab"
+          class:active={activeTab === "ambiences"}
+          onclick={() => (activeTab = "ambiences")}
+        >
+          Ambiences
+        </button>
+        <button
+          class="tab"
+          class:active={activeTab === "config"}
+          onclick={() => (activeTab = "config")}
+        >
+          Config
+        </button>
+        <button
+          class="tab audio-toggle"
+          class:active={!panelCollapsed}
+          onclick={() => (panelCollapsed = !panelCollapsed)}
+          aria-label="Toggle audio panel"
+        >
+          <AudioLines size={15} />
+        </button>
+      </div>
     </div>
   </nav>
 
@@ -75,7 +75,11 @@
       {/if}
     </div>
     {#if !panelCollapsed}
-      <button class="panel-backdrop" onclick={() => (panelCollapsed = true)} aria-label="Close audio panel"></button>
+      <button
+        class="panel-backdrop"
+        onclick={() => (panelCollapsed = true)}
+        aria-label="Close audio panel"
+      ></button>
     {/if}
     <AudioPanel bind:collapsed={panelCollapsed} />
   </div>
@@ -202,7 +206,6 @@
       font-style: normal;
       padding-bottom: var(--space-2);
     }
-
   }
 
   .audio-toggle {

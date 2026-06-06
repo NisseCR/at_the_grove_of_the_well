@@ -1,28 +1,15 @@
 <script lang="ts">
-  import * as Tone from "tone";
-  import { appState } from "@/stores/appState.svelte";
-  import { sceneState } from "@/stores/sceneState.svelte";
-  import { ambienceEngine } from "@/lib/engines/ambienceEngine";
-  import { musicEngine } from "@/lib/engines/musicEngine";
+  let { onunlock, title }: { onunlock: () => Promise<void>; title: string } =
+    $props();
 
   const FADE_MS = 600;
-
   let fading = $state(false);
 
   async function unlock() {
     if (fading) return;
     fading = true;
-
-    await Tone.start();
     await new Promise((resolve) => setTimeout(resolve, FADE_MS));
-
-    appState.audioReady = true;
-
-    if (appState.scene?.id) sceneState.requestedSceneId = appState.scene.id;
-    if (appState.ambiences?.length)
-      await ambienceEngine.syncActive(appState.ambiences);
-    if (appState.music?.id) await musicEngine.setPlaylist(appState.music.id);
-    if (appState.music) musicEngine.setVolume(appState.music.volume);
+    await onunlock();
   }
 </script>
 
@@ -35,7 +22,7 @@
   onkeydown={(e) => e.key === "Enter" && unlock()}
 >
   <div class="content">
-    <h1 class="title">At the Grove of the Well</h1>
+    <h1 class="title">{title}</h1>
     <span class="prompt">Click to begin</span>
   </div>
 </div>
@@ -48,12 +35,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10;
     opacity: 1;
     transition: opacity 600ms ease;
   }
 
   .gate.fading {
     opacity: 0;
+    pointer-events: none;
   }
 
   .content {

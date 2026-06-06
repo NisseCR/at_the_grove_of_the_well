@@ -39,8 +39,11 @@
     content: "";
     position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(to right, rgba(0, 0, 0, 0.5) 0%, transparent 60%),
+    background-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.5) 0%,
+        transparent 60%
+      ),
       linear-gradient(to bottom, transparent 30%, rgba(0, 0, 0, 0.55) 100%),
       var(--art-src);
     background-size: cover;

@@ -57,3 +57,11 @@ export interface SceneCategory {
   order: number;
   scenes: SceneCategoryEntry[];
 }
+
+/** Minimum shape required by sceneEngine. Both sceneState and readerState satisfy this. */
+export interface SceneSlotState {
+  current: Scene | null;
+  next: Scene | null;
+  isTransitioning: boolean;
+  requestedSceneId: string | null;
+}

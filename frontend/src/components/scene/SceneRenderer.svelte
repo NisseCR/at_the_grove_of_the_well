@@ -1,15 +1,16 @@
 <script lang="ts">
-  import { sceneState } from "@/stores/sceneState.svelte";
   import { sceneEngine } from "@/lib/engines/sceneEngine";
-  import SceneAsset from "@/components/player/SceneAsset.svelte";
-  import type { Scene } from "@/types/scene";
+  import SceneAsset from "@/components/scene/SceneAsset.svelte";
+  import type { Scene, SceneSlotState } from "@/types/scene";
 
-  let currentSceneContainer: HTMLElement | null = $state(null);
+  let { slotState }: { slotState: SceneSlotState } = $props();
+
+  let currentContainer: HTMLElement | null = $state(null);
 
   $effect(() => {
-    const sceneId = sceneState.requestedSceneId;
+    const sceneId = slotState.requestedSceneId;
     if (sceneId) {
-      sceneEngine.transitionScene(sceneId, () => currentSceneContainer);
+      sceneEngine.transitionScene(sceneId, () => currentContainer, slotState);
     }
   });
 
@@ -24,11 +25,10 @@
   }
 </script>
 
-<!-- Current scene -->
-{#if sceneState.current}
-  <div class="scene-slot" bind:this={currentSceneContainer}>
-    <SceneAsset asset={sceneState.current.background} zIndex={0} />
-    {#each sortedLayers(sceneState.current) as layer (layer.id)}
+{#if slotState.current}
+  <div class="scene-slot" bind:this={currentContainer}>
+    <SceneAsset asset={slotState.current.background} zIndex={0} />
+    {#each sortedLayers(slotState.current) as layer (layer.id)}
       <SceneAsset asset={layer} zIndex={layer.order + 1} />
     {/each}
   </div>

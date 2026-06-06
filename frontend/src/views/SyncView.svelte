@@ -32,7 +32,8 @@
   <div class="main">
     <div class="card">
       <p class="description">
-        Scans R2 for ambiences and playlists, and reloads scene configs from disk.
+        Scans R2 for ambiences and playlists, and reloads scene configs from
+        disk.
       </p>
 
       <button class="sync-btn" onclick={sync} disabled={syncing}>
@@ -45,14 +46,26 @@
 
       {#if result}
         <div class="result">
-          <p class="synced-at">Last synced: {new Date(result.last_synced).toLocaleString()}</p>
+          <p class="synced-at">
+            Last synced: {new Date(result.last_synced).toLocaleString()}
+          </p>
           <table>
             <tbody>
-              <tr><td>Ambience categories</td><td>{result.ambience_categories}</td></tr>
+              <tr
+                ><td>Ambience categories</td><td
+                  >{result.ambience_categories}</td
+                ></tr
+              >
               <tr><td>Ambiences</td><td>{result.ambiences}</td></tr>
-              <tr><td>Playlist categories</td><td>{result.playlist_categories}</td></tr>
+              <tr
+                ><td>Playlist categories</td><td
+                  >{result.playlist_categories}</td
+                ></tr
+              >
               <tr><td>Playlists</td><td>{result.playlists}</td></tr>
-              <tr><td>Scene categories</td><td>{result.scene_categories}</td></tr>
+              <tr
+                ><td>Scene categories</td><td>{result.scene_categories}</td></tr
+              >
               <tr><td>Scenes</td><td>{result.scenes}</td></tr>
             </tbody>
           </table>
