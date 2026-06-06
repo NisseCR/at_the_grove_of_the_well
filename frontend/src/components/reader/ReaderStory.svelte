@@ -54,7 +54,10 @@
 {#if loading}
   <div class="reader-status"><span>Loading…</span></div>
 {:else if !readerState.audioReady && parsed}
-  <StoryGate onunlock={() => readerEngine.unlock()} title={parsed?.frontmatter.title ?? ""} />
+  <StoryGate
+    onunlock={() => readerEngine.unlock()}
+    title={parsed?.frontmatter.title ?? ""}
+  />
 {:else if readerState.audioReady && parsed}
   <div class="content-panel" bind:this={contentEl}>
     <div class="content-inner">
@@ -62,7 +65,10 @@
 
       {#each parsed.segments as segment}
         {#if segment.trigger}
-          <div class="sentinel" data-trigger={JSON.stringify(segment.trigger)}></div>
+          <div
+            class="sentinel"
+            data-trigger={JSON.stringify(segment.trigger)}
+          ></div>
         {/if}
         {@html marked.parse(segment.text)}
       {/each}
@@ -86,6 +92,7 @@
     background: black;
     pointer-events: none;
     z-index: 1;
+    transition: opacity 1s ease;
   }
 
   .content-panel {
@@ -123,9 +130,15 @@
     margin: 2.5em 0 0.75em;
   }
 
-  .content-inner :global(h1) { font-size: var(--text-xl); }
-  .content-inner :global(h2) { font-size: var(--text-lg); }
-  .content-inner :global(h3) { font-size: var(--text-base); }
+  .content-inner :global(h1) {
+    font-size: var(--text-xl);
+  }
+  .content-inner :global(h2) {
+    font-size: var(--text-lg);
+  }
+  .content-inner :global(h3) {
+    font-size: var(--text-base);
+  }
 
   .content-inner :global(p) {
     font-family: var(--font-display);
@@ -149,8 +162,12 @@
     width: 40%;
   }
 
-  .content-inner :global(strong) { font-weight: 600; }
-  .content-inner :global(em) { font-style: italic; }
+  .content-inner :global(strong) {
+    font-weight: 600;
+  }
+  .content-inner :global(em) {
+    font-style: italic;
+  }
 
   .reader-status {
     position: fixed;

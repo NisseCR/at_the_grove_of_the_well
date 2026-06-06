@@ -16,7 +16,10 @@
     <h1 class="index-title">Stories</h1>
     <nav class="story-list">
       {#each stories as story}
-        <button class="story-card" onclick={() => navigate("reader", story.slug)}>
+        <button
+          class="story-card"
+          onclick={() => navigate("reader", story.slug)}
+        >
           <span class="story-name">{story.title}</span>
         </button>
       {/each}

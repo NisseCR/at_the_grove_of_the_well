@@ -1,5 +1,6 @@
 <script lang="ts">
   import * as Tone from "tone";
+  import { onDestroy } from "svelte";
   import SceneRenderer from "@/components/scene/SceneRenderer.svelte";
   import StoryGate from "@/components/scene/StoryGate.svelte";
   import DebugOverlay from "@/components/player/DebugOverlay.svelte";
@@ -19,9 +20,19 @@
     if (appState.scene?.id) sceneState.requestedSceneId = appState.scene.id;
     if (appState.ambiences?.length)
       await ambienceEngine.syncActive(appState.ambiences);
-    if (appState.music?.id) await musicEngine.setPlaylist(appState.music.id);
-    if (appState.music) musicEngine.setVolume(appState.music.volume);
+    if (appState.music?.id)
+      await musicEngine.setPlaylist(appState.music.id, appState.music.volume);
   }
+
+  onDestroy(() => {
+    musicEngine.reset();
+    ambienceEngine.syncActive([]);
+    sceneState.current = null;
+    sceneState.next = null;
+    sceneState.isTransitioning = false;
+    sceneState.requestedSceneId = null;
+    appState.audioReady = false;
+  });
 </script>
 
 {#if !appState.audioReady}

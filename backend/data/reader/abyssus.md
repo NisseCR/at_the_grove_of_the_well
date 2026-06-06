@@ -33,8 +33,8 @@ A wind moves through the branches above you, low and constant, like breathing.
 
 <!-- trigger
 scene: abyssus
-ambiences: wind.wind-3
-playlist: australis
+ambiences: wind.wind-3@0.9
+playlist: australis@0.1
 -->
 
 ## Into the Dark
@@ -75,8 +75,8 @@ It is older than it has any right to be. The stonework is not any style you know
 
 <!-- trigger
 scene: monolith
-ambiences: precipitation.snow-2, precipitation.rain
-playlist: dissonance
+ambiences: precipitation.snow-2@0.8, precipitation.rain@0.2
+playlist: dissonance@0.9
 -->
 
 You lean over the edge. The water is far below, but you can see it — a faint glimmer, light from no clear source, silver and distant as a star.

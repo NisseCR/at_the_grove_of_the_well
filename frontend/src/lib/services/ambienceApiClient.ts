@@ -7,7 +7,9 @@ class AmbienceApiClient {
    * @returns All ambience categories with their ambience entries.
    */
   async fetchAmbienceCategories(): Promise<AmbienceCategory[]> {
-    const categories = await apiClient.get<AmbienceCategory[]>("/ambience/categories");
+    const categories = await apiClient.get<AmbienceCategory[]>(
+      "/ambience/categories",
+    );
     return categories.map((c) => ({
       ...c,
       url: assetUrl(c.src),

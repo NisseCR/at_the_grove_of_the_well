@@ -6,5 +6,5 @@ export const readerState = $state({
   isTransitioning: false,
   requestedSceneId: null as string | null,
   audioReady: false,
-  overlayOpacity: 0.55,
+  overlayOpacity: 0,
 });

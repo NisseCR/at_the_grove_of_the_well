@@ -48,7 +48,11 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
 
     case "SET_MUSIC_VOLUME": {
       if (!appState.music)
-        appState.music = { id: null, label: null, volume: message.payload.volume };
+        appState.music = {
+          id: null,
+          label: null,
+          volume: message.payload.volume,
+        };
       else appState.music.volume = message.payload.volume;
       if (router.view === "player" && appState.audioReady)
         musicEngine.setVolume(message.payload.volume);

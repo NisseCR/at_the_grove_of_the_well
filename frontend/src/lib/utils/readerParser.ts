@@ -1,8 +1,14 @@
-import type { ParsedReader, ReaderFrontmatter, ReaderSegment, ReaderTrigger } from "@/types/reader";
+import type {
+  AmbienceRef,
+  ParsedReader,
+  PlaylistRef,
+  ReaderFrontmatter,
+  ReaderSegment,
+  ReaderTrigger,
+} from "@/types/reader";
 
 /**
  * Parse a block of `key: value` lines into a plain object.
- * Values of "none" on playlist fields are converted to null.
  */
 function parseKeyValues(raw: string): Record<string, string> {
   const result: Record<string, string> = {};
@@ -16,6 +22,37 @@ function parseKeyValues(raw: string): Record<string, string> {
   return result;
 }
 
+/**
+ * Parse a single ambience entry of the form `id` or `id@volume`.
+ * Volume defaults to 1 when omitted.
+ *
+ * @param raw - A single ambience token, e.g. "wind.rustling@0.7".
+ */
+function parseAmbienceRef(raw: string): AmbienceRef {
+  const atIdx = raw.indexOf("@");
+  if (atIdx === -1) return { id: raw, volume: 0.5 };
+  return {
+    id: raw.slice(0, atIdx),
+    volume: parseFloat(raw.slice(atIdx + 1)) || 1,
+  };
+}
+
+/**
+ * Parse a playlist value of the form `id` or `id@volume`.
+ * Returns null for "none". Volume defaults to 1 when omitted.
+ *
+ * @param raw - The raw playlist value string.
+ */
+function parsePlaylistRef(raw: string): PlaylistRef | null {
+  if (raw === "none") return null;
+  const atIdx = raw.indexOf("@");
+  if (atIdx === -1) return { id: raw, volume: 0.5 };
+  return {
+    id: raw.slice(0, atIdx),
+    volume: parseFloat(raw.slice(atIdx + 1)) || 1,
+  };
+}
+
 /** Parse YAML-like frontmatter block into a ReaderFrontmatter object. */
 function parseFrontmatter(raw: string): ReaderFrontmatter {
   const kv = parseKeyValues(raw);
@@ -23,10 +60,16 @@ function parseFrontmatter(raw: string): ReaderFrontmatter {
   if (kv.title) fm.title = kv.title;
   if (kv.scene) fm.scene = kv.scene;
   if (kv.ambiences !== undefined) {
-    fm.ambiences = kv.ambiences === "none" ? [] : kv.ambiences.split(",").map((s) => s.trim()).filter(Boolean);
+    fm.ambiences =
+      kv.ambiences === "none"
+        ? []
+        : kv.ambiences
+            .split(",")
+            .map((s) => parseAmbienceRef(s.trim()))
+            .filter((a) => a.id.length > 0);
   }
   if (kv.playlist !== undefined) {
-    fm.playlist = kv.playlist === "none" ? null : kv.playlist;
+    fm.playlist = parsePlaylistRef(kv.playlist);
   }
   return fm;
 }
@@ -37,10 +80,16 @@ function parseTrigger(raw: string): ReaderTrigger {
   const trigger: ReaderTrigger = {};
   if (kv.scene) trigger.scene = kv.scene;
   if (kv.ambiences !== undefined) {
-    trigger.ambiences = kv.ambiences === "none" ? [] : kv.ambiences.split(",").map((s) => s.trim()).filter(Boolean);
+    trigger.ambiences =
+      kv.ambiences === "none"
+        ? []
+        : kv.ambiences
+            .split(",")
+            .map((s) => parseAmbienceRef(s.trim()))
+            .filter((a) => a.id.length > 0);
   }
   if (kv.playlist !== undefined) {
-    trigger.playlist = kv.playlist === "none" ? null : kv.playlist;
+    trigger.playlist = parsePlaylistRef(kv.playlist);
   }
   return trigger;
 }
@@ -53,22 +102,20 @@ function parseTrigger(raw: string): ReaderTrigger {
  *   key: value
  *   -->
  *
- * The content following each trigger comment becomes a segment associated
- * with that trigger. Triggers fire when the segment scrolls into view.
+ * Ambience entries support optional volume via `@`: `wind.rustling@0.7`.
+ * Playlist entries support optional volume via `@`: `australis@0.8`.
+ * Volume defaults to 1 when omitted.
  */
 export function parseReader(markdown: string): ParsedReader {
   let content = markdown;
   let frontmatter: ReaderFrontmatter = {};
 
-  // Strip frontmatter block
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
   if (fmMatch) {
     frontmatter = parseFrontmatter(fmMatch[1]);
     content = content.slice(fmMatch[0].length);
   }
 
-  // Split by trigger comments — capturing group preserves trigger body
-  // parts: [text0, triggerBody1, text1, triggerBody2, text2, ...]
   const parts = content.split(/<!--\s*trigger\s*\n([\s\S]*?)-->/);
   const segments: ReaderSegment[] = [];
 

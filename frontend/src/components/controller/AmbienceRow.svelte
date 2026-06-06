@@ -1,7 +1,17 @@
 <script lang="ts">
-  import { AudioLines, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
+  import {
+    AudioLines,
+    Volume,
+    Volume1,
+    Volume2,
+    VolumeX,
+    X,
+  } from "@lucide/svelte";
   import { appState } from "@/stores/appState.svelte";
-  import { sendSetAmbiences, sendSetAmbienceVolume } from "@/lib/services/transport";
+  import {
+    sendSetAmbiences,
+    sendSetAmbienceVolume,
+  } from "@/lib/services/transport";
   import type { ActiveAmbience } from "@/types/state";
 
   const { ambience }: { ambience: ActiveAmbience } = $props();
@@ -37,7 +47,11 @@
   <div class="row-header">
     <AudioLines class="icon name-icon" size={13} />
     <span class="audio-name">{ambience.label ?? ambience.id}</span>
-    <button class="dismiss" onclick={onDismiss} aria-label="Remove {ambience.label ?? ambience.id}">
+    <button
+      class="dismiss"
+      onclick={onDismiss}
+      aria-label="Remove {ambience.label ?? ambience.id}"
+    >
       <X size={16} />
     </button>
   </div>
@@ -50,7 +64,8 @@
       max="1"
       step="0.01"
       value={ambience.volume}
-      oninput={(e) => onVolumeChange((e.currentTarget as HTMLInputElement).valueAsNumber)}
+      oninput={(e) =>
+        onVolumeChange((e.currentTarget as HTMLInputElement).valueAsNumber)}
     />
   </div>
 </div>

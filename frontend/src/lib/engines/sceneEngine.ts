@@ -32,7 +32,10 @@ class SceneEngine {
     const token = this.createToken();
 
     try {
-      const config = await guardedAwait(this.fetchNextScene(sceneId, state), token);
+      const config = await guardedAwait(
+        this.fetchNextScene(sceneId, state),
+        token,
+      );
       await guardedAwait(this.preload(config), token);
       await guardedAwait(this.transitionOut(getCurrent()), token);
       await guardedAwait(this.swapSceneSlots(state), token);
@@ -69,7 +72,10 @@ class SceneEngine {
    * @param sceneId - The id of the scene to fetch.
    * @returns The fetched Scene.
    */
-  private async fetchNextScene(sceneId: string, state: SceneSlotState): Promise<Scene> {
+  private async fetchNextScene(
+    sceneId: string,
+    state: SceneSlotState,
+  ): Promise<Scene> {
     state.isTransitioning = true;
     const config = await sceneApiClient.fetchScene(sceneId);
     state.next = config;

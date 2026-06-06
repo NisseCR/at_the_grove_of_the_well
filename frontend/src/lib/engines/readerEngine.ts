@@ -2,7 +2,11 @@ import * as Tone from "tone";
 import { readerState } from "@/stores/readerState.svelte";
 import { ambienceEngine } from "@/lib/engines/ambienceEngine";
 import { musicEngine } from "@/lib/engines/musicEngine";
-import type { ParsedReader, ReaderFrontmatter, ReaderTrigger } from "@/types/reader";
+import type {
+  ParsedReader,
+  ReaderFrontmatter,
+  ReaderTrigger,
+} from "@/types/reader";
 
 /**
  * ReaderEngine — coordinates audio-visual state for the immersive reader.
@@ -73,6 +77,7 @@ class ReaderEngine {
     readerState.isTransitioning = false;
     readerState.requestedSceneId = null;
     readerState.audioReady = false;
+    readerState.overlayOpacity = 0;
     this.parsed = null;
     this.lastTriggerIdx = -1;
   }
@@ -80,20 +85,26 @@ class ReaderEngine {
   private async applyFrontmatter(fm: ReaderFrontmatter): Promise<void> {
     if (fm.scene) readerState.requestedSceneId = fm.scene;
     if (fm.ambiences !== undefined) {
-      await ambienceEngine.syncActive(fm.ambiences.map((id) => ({ id, volume: 1 })));
+      await ambienceEngine.syncActive(fm.ambiences);
     }
     if (fm.playlist !== undefined) {
-      await musicEngine.setPlaylist(fm.playlist ?? null);
+      await musicEngine.setPlaylist(
+        fm.playlist?.id ?? null,
+        fm.playlist?.volume,
+      );
     }
   }
 
   private async applyTrigger(trigger: ReaderTrigger): Promise<void> {
     if (trigger.scene) readerState.requestedSceneId = trigger.scene;
     if (trigger.ambiences !== undefined) {
-      await ambienceEngine.syncActive(trigger.ambiences.map((id) => ({ id, volume: 1 })));
+      await ambienceEngine.syncActive(trigger.ambiences);
     }
     if (trigger.playlist !== undefined) {
-      await musicEngine.setPlaylist(trigger.playlist ?? null);
+      await musicEngine.setPlaylist(
+        trigger.playlist?.id ?? null,
+        trigger.playlist?.volume,
+      );
     }
   }
 }

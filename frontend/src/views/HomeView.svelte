@@ -37,18 +37,30 @@
         <span class="card-desc">The audio-visual experience</span>
       </button>
 
-      <button class="card" class:locked={!auth.isAuthenticated} onclick={() => openView("controller")}>
+      <button
+        class="card"
+        class:locked={!auth.isAuthenticated}
+        onclick={() => openView("controller")}
+      >
         <span class="card-label">
           Controller
-          {#if !auth.isAuthenticated}<span class="lock-icon"><Lock size={13} /></span>{/if}
+          {#if !auth.isAuthenticated}<span class="lock-icon"
+              ><Lock size={13} /></span
+            >{/if}
         </span>
         <span class="card-desc">Set scenes, ambiences and music</span>
       </button>
 
-      <button class="card" class:locked={!auth.isAuthenticated} onclick={() => openView("sync")}>
+      <button
+        class="card"
+        class:locked={!auth.isAuthenticated}
+        onclick={() => openView("sync")}
+      >
         <span class="card-label">
           Sync
-          {#if !auth.isAuthenticated}<span class="lock-icon"><Lock size={13} /></span>{/if}
+          {#if !auth.isAuthenticated}<span class="lock-icon"
+              ><Lock size={13} /></span
+            >{/if}
         </span>
         <span class="card-desc">Reload content from R2</span>
       </button>

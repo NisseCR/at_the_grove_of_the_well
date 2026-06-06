@@ -16,7 +16,8 @@ class ReaderApiClient {
    */
   async fetch(slug: string): Promise<string> {
     const response = await fetch(`${API_BASE}/reader/${slug}`);
-    if (!response.ok) throw new Error(`Reader fetch failed: ${response.status}`);
+    if (!response.ok)
+      throw new Error(`Reader fetch failed: ${response.status}`);
     return response.text();
   }
 }

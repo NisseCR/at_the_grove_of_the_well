@@ -1,5 +1,6 @@
 <script lang="ts">
-  let { onunlock, title }: { onunlock: () => Promise<void>; title: string } = $props();
+  let { onunlock, title }: { onunlock: () => Promise<void>; title: string } =
+    $props();
 
   const FADE_MS = 600;
   let fading = $state(false);

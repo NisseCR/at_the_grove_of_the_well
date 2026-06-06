@@ -1,7 +1,6 @@
 import * as Tone from "tone";
 import { audioEngine } from "@/lib/engines/audioEngine";
 import { musicApiClient } from "@/lib/services/musicApiClient";
-import { appState } from "@/stores/appState.svelte";
 import type { Stem } from "@/types/audio";
 import type { Playlist } from "@/types/music";
 
@@ -30,6 +29,9 @@ class MusicEngine {
   /** Index into playlist.tracks pointing at the current or next track to play. */
   private trackIndex = 0;
 
+  /** Target gain for the current playlist. Set on setPlaylist, used by fadeInMaster. */
+  private targetVolume = 0.5;
+
   /**
    * Incremented every time setPlaylist or reset is called. Each async
    * operation captures the generation at the time it starts and checks
@@ -49,9 +51,11 @@ class MusicEngine {
    * during this wait, the generation check exits early and the newer
    * call takes over.
    *
-   * @param id - Playlist id to start, or null to stop music.
+   * @param id     - Playlist id to start, or null to stop music.
+   * @param volume - Target gain for the fade-in (0–1). Defaults to 0.5.
    */
-  async setPlaylist(id: string | null): Promise<void> {
+  async setPlaylist(id: string | null, volume = 0.5): Promise<void> {
+    this.targetVolume = volume;
     const gen = ++this.generation;
 
     if (this.playlist && this.masterGain) {
@@ -153,11 +157,10 @@ class MusicEngine {
   }
 
   /**
-   * Fades masterGain in to the volume stored in appState.
+   * Fades masterGain in to the target volume set by the most recent setPlaylist call.
    */
   private fadeInMaster(): void {
-    const volume = appState.music?.volume ?? 0.5;
-    audioEngine.fadeTo(this.masterGain!, volume, FADE_IN);
+    audioEngine.fadeTo(this.masterGain!, this.targetVolume, FADE_IN);
   }
 
   // ─── Audio graph ───────────────────────────────────────────────────────────
