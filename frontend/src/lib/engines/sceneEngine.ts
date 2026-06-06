@@ -1,16 +1,8 @@
 import { sceneApiClient } from "@/lib/services/sceneApiClient";
-import { sceneState } from "@/stores/sceneState.svelte";
 import { guardedAwait } from "@/lib/utils/guardedAwait";
-import type { Scene } from "@/types/scene";
+import type { Scene, SceneSlotState } from "@/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
-
-/** Minimum scene slot state required by sceneEngine. Both sceneState and readerState satisfy this. */
-export interface SceneSlotState {
-  current: Scene | null;
-  next: Scene | null;
-  isTransitioning: boolean;
-}
 
 const TRANSITION_DUDRATION = 4;
 const PARALLAX_LAYER_INCREASE = 0.1;
@@ -35,7 +27,7 @@ class SceneEngine {
   async transitionScene(
     sceneId: string,
     getCurrent: () => HTMLElement | null,
-    state: SceneSlotState = sceneState,
+    state: SceneSlotState,
   ): Promise<void> {
     const token = this.createToken();
 

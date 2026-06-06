@@ -1,11 +1,13 @@
 <script lang="ts">
-  let { onunlock }: { onunlock: () => Promise<void> } = $props();
+  let { onunlock, title }: { onunlock: () => Promise<void>; title: string } = $props();
 
+  const FADE_MS = 600;
   let fading = $state(false);
 
   async function unlock() {
     if (fading) return;
     fading = true;
+    await new Promise((resolve) => setTimeout(resolve, FADE_MS));
     await onunlock();
   }
 </script>
@@ -19,7 +21,7 @@
   onkeydown={(e) => e.key === "Enter" && unlock()}
 >
   <div class="content">
-    <h1 class="title">At the Grove of the Well</h1>
+    <h1 class="title">{title}</h1>
     <span class="prompt">Click to begin</span>
   </div>
 </div>
