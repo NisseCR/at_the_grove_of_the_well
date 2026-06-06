@@ -52,6 +52,11 @@
         </span>
         <span class="card-desc">Reload content from R2</span>
       </button>
+
+      <button class="card" onclick={() => openView("reader")}>
+        <span class="card-label">Reader</span>
+        <span class="card-desc">Immersive story experience</span>
+      </button>
     </nav>
   </div>
 </div>

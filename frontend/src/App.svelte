@@ -5,6 +5,7 @@
   import PlayerView from "@/views/PlayerView.svelte";
   import HomeView from "@/views/HomeView.svelte";
   import SyncView from "@/views/SyncView.svelte";
+  import ReaderView from "@/views/ReaderView.svelte";
 </script>
 
 <Toaster theme="dark" position="bottom-right" richColors />
@@ -15,6 +16,8 @@
   <ControllerView />
 {:else if router.view === "sync"}
   <SyncView />
+{:else if router.view === "reader"}
+  <ReaderView />
 {:else}
   <HomeView />
 {/if}
