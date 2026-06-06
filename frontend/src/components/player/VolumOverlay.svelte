@@ -56,7 +56,6 @@
    * behaviour is consistent across browsers and devices.
    */
   function onwheel(e: WheelEvent) {
-    e.preventDefault();
     const step = e.deltaY > 0 ? -0.05 : 0.05;
     volume = Math.max(0, Math.min(1, volume + step));
     show();
@@ -77,49 +76,58 @@
 
 <svelte:window onmousemove={show} />
 
-<div
-  class="overlay"
-  class:visible
-  onmouseenter={keepAlive}
-  onmouseleave={resumeHide}
-  {onwheel}
-  role="group"
-  aria-label="Volume control"
->
-  <button class="mute-btn" onclick={toggleMute} aria-label={volume === 0 ? "Unmute" : "Mute"}>
-    {#if volume === 0}
-      <VolumeX size={14} />
-    {:else}
-      <Volume2 size={14} />
-    {/if}
-  </button>
-
-  <Slider.Root
-    class="vol-slider"
-    type="single"
-    bind:value={volume}
-    min={0}
-    max={1}
-    step={0.01}
-    aria-label="Master volume"
+<div class="wheel-zone" {onwheel}>
+  <div
+    class="overlay"
+    class:visible
+    onmouseenter={keepAlive}
+    onmouseleave={resumeHide}
+    role="group"
+    aria-label="Volume control"
   >
-    {#snippet children({ thumbItems })}
-      <Slider.Range class="vol-range" />
-      {#each thumbItems as thumb}
-        <Slider.Thumb class="vol-thumb" index={thumb.index} />
-      {/each}
-    {/snippet}
-  </Slider.Root>
+    <button
+      class="mute-btn"
+      onclick={toggleMute}
+      aria-label={volume === 0 ? "Unmute" : "Mute"}
+    >
+      {#if volume === 0}
+        <VolumeX size={14} />
+      {:else}
+        <Volume2 size={14} />
+      {/if}
+    </button>
 
-  <span class="label">{pct}%</span>
+    <Slider.Root
+      class="vol-slider"
+      type="single"
+      bind:value={volume}
+      min={0}
+      max={1}
+      step={0.01}
+      aria-label="Master volume"
+    >
+      {#snippet children({ thumbItems })}
+        <Slider.Range class="vol-range" />
+        {#each thumbItems as thumb}
+          <Slider.Thumb class="vol-thumb" index={thumb.index} />
+        {/each}
+      {/snippet}
+    </Slider.Root>
+
+    <span class="label">{pct}%</span>
+  </div>
 </div>
 
 <style>
-  .overlay {
+  .wheel-zone {
     position: fixed;
-    bottom: var(--space-6);
-    left: var(--space-6);
+    bottom: 0;
+    right: 0;
     z-index: 50;
+    padding: 80px 24px 24px 80px;
+  }
+
+  .overlay {
     display: flex;
     align-items: center;
     gap: var(--space-2);
