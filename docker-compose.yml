@@ -8,8 +8,7 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_PROJECT_NAME: ${VITE_PROJECT_NAME}
-        VITE_ASSETS_BASE: ${VITE_ASSETS_BASE}
+        PUBLIC_ASSETS_BASE: ${PUBLIC_ASSETS_BASE}
     depends_on:
       - backend
     restart: unless-stopped

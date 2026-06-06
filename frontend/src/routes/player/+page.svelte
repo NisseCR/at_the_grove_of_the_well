@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Tone from "tone";
-  import { onDestroy } from "svelte";
-  import "$lib/services/transport";
+  import { onMount, onDestroy } from "svelte";
+  import { connect } from "$lib/services/transport";
   import SceneRenderer from "$lib/components/scene/SceneRenderer.svelte";
   import StoryGate from "$lib/components/scene/StoryGate.svelte";
   import AudioRenderer from "$lib/components/audio/AudioRenderer.svelte";
@@ -16,6 +16,8 @@
    * Called by StoryGate after its fade animation completes. Starts Tone.js
    * and sets renderReady — AudioReactor and SceneRenderer mount from here.
    */
+  onMount(() => connect());
+
   async function unlock(): Promise<void> {
     await Tone.start();
     appState.renderReady = true;

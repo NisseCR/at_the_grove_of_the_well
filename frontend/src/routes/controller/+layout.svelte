@@ -1,15 +1,16 @@
 <script lang="ts">
-  import { untrack } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { page } from "$app/state";
   import { AudioLines } from "@lucide/svelte";
   import AudioPanel from "./AudioPanel.svelte";
   import { appState } from "$lib/stores/appState.svelte";
-  import { sendSync } from "$lib/services/transport";
+  import { connect, sendSync } from "$lib/services/transport";
 
   const { children } = $props();
-  const projectName = import.meta.env.VITE_PROJECT_NAME as string;
 
   let panelCollapsed = $state(true);
+
+  onMount(() => connect());
   const tab = $derived(page.url.pathname.split("/").at(2) ?? "");
 
   // When a new client connects, push current state to all clients.
@@ -31,7 +32,7 @@
 
   <nav class="tabs">
     <div class="tabs-inner">
-      <h1 class="project-title">{projectName}</h1>
+      <h1 class="project-title">At the Grove of the Well</h1>
       <div class="tab-row">
         <a
           href="/controller/scenes"

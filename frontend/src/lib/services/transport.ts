@@ -1,21 +1,25 @@
 import type { TransportMessage } from "$lib/types/message";
-import { WS_BASE } from "$lib/config";
 import { handleMessage } from "$lib/services/messageHandler";
 import { appState } from "$lib/stores/appState.svelte";
 
-const WEBSOCKET_URL = `${WS_BASE}/api/control/ws`;
 const RECONNECT_DELAY = 3000;
 
 let websocket: WebSocket | null = null;
 
-function connect(): void {
+/**
+ * Opens (or re-opens) the WebSocket connection to the relay.
+ * Call from onMount — safe to call multiple times (no-op if already open).
+ */
+export function connect(): void {
   if (
     websocket?.readyState === WebSocket.OPEN ||
     websocket?.readyState === WebSocket.CONNECTING
   )
     return;
 
-  websocket = new WebSocket(WEBSOCKET_URL);
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}/api/control/ws`;
+  websocket = new WebSocket(wsUrl);
 
   websocket.onopen = () => {
     appState.socketConnected = true;
@@ -35,8 +39,6 @@ function connect(): void {
     await handleMessage(message);
   };
 }
-
-connect();
 
 export function send(msg: TransportMessage): void {
   if (websocket?.readyState === WebSocket.OPEN) {
