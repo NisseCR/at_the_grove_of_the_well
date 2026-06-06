@@ -10,12 +10,6 @@ services:
       args:
         VITE_PROJECT_NAME: ${VITE_PROJECT_NAME}
         VITE_ASSETS_BASE: ${VITE_ASSETS_BASE}
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /etc/ssl/certs/paracosm-vtt.pem:/etc/ssl/certs/paracosm-vtt.pem:ro
-      - /etc/ssl/private/paracosm-vtt.key:/etc/ssl/private/paracosm-vtt.key:ro
     depends_on:
       - backend
     restart: unless-stopped
