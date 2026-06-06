@@ -1,0 +1,1 @@
+import{n as e,t}from"./zPShr8UU.js";var n=new class{async list(){return t.get(`/reader`)}async fetch(t){let n=await fetch(`${e}/reader/${t}`);if(!n.ok)throw Error(`Reader fetch failed: ${n.status}`);return n.text()}};export{n as t};

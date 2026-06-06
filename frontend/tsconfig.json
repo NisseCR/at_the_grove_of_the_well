@@ -1,22 +1,9 @@
 {
+  "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
-    "target": "es2023",
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "strict": true,
-    "noEmit": true,
-    "allowJs": true,
-    "checkJs": true,
-    "moduleDetection": "force",
-    "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "allowArbitraryExtensions": true,
-    "noFallthroughCasesInSwitch": true,
-    "types": ["svelte", "vite/client", "node"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "vite.config.ts"]
+    "noFallthroughCasesInSwitch": true
+  }
 }

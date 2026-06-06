@@ -1,6 +1,6 @@
-import { assetUrl } from "@/lib/config";
-import { apiClient } from "@/lib/services/apiClient";
-import type { Ambience, AmbienceCategory } from "@/types/ambience";
+import { assetUrl } from "$lib/config";
+import { apiClient } from "$lib/services/apiClient";
+import type { Ambience, AmbienceCategory } from "$lib/types/ambience";
 
 class AmbienceApiClient {
   /**

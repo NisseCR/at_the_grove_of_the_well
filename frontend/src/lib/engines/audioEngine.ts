@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import type { Stem } from "@/types/audio";
+import type { Stem } from "$lib/types/audio";
 
 class AudioEngine {
   private cache = new Map<string, Tone.ToneAudioBuffer>();

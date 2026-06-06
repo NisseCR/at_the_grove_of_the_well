@@ -1,12 +1,12 @@
 import * as Tone from "tone";
-import { readerState } from "@/stores/readerState.svelte";
-import { ambienceEngine } from "@/lib/engines/ambienceEngine";
-import { musicEngine } from "@/lib/engines/musicEngine";
+import { readerState } from "$lib/stores/readerState.svelte";
+import { ambienceEngine } from "$lib/engines/ambienceEngine";
+import { musicEngine } from "$lib/engines/musicEngine";
 import type {
   ParsedReader,
   ReaderFrontmatter,
   ReaderTrigger,
-} from "@/types/reader";
+} from "$lib/types/reader";
 
 /**
  * ReaderEngine — coordinates audio-visual state for the immersive reader.

@@ -1,7 +1,7 @@
-import type { Stem } from "@/types/audio";
-import { audioEngine } from "@/lib/engines/audioEngine";
-import { ambienceApiClient } from "@/lib/services/ambienceApiClient";
-import { guardedAwait } from "@/lib/utils/guardedAwait";
+import type { Stem } from "$lib/types/audio";
+import { audioEngine } from "$lib/engines/audioEngine";
+import { ambienceApiClient } from "$lib/services/ambienceApiClient";
+import { guardedAwait } from "$lib/utils/guardedAwait";
 
 const FADE_IN = 5.0;
 const FADE_OUT = 5.0;
@@ -129,12 +129,10 @@ class AmbienceEngine {
     try {
       const incoming = new Map(entries.map((e) => [e.id, e.volume]));
 
-      // Deactivate any currently active stem whose id is not in the incoming list.
       for (const id of this.active.keys()) {
         if (!incoming.has(id)) this.deactivate(id);
       }
 
-      // Activate any stem in the incoming list that is not already active.
       for (const [id, volume] of incoming) {
         if (!this.active.has(id)) {
           const ambience = await guardedAwait(

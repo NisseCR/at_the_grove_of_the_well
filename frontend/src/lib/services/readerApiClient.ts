@@ -1,6 +1,6 @@
-import { API_BASE } from "@/lib/config";
-import { apiClient } from "@/lib/services/apiClient";
-import type { ReaderFile } from "@/types/reader";
+import { API_BASE } from "$lib/config";
+import { apiClient } from "$lib/services/apiClient";
+import type { ReaderFile } from "$lib/types/reader";
 
 class ReaderApiClient {
   /** @returns Slug and title for every available story. */

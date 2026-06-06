@@ -1,8 +1,8 @@
 import * as Tone from "tone";
-import { audioEngine } from "@/lib/engines/audioEngine";
-import { musicApiClient } from "@/lib/services/musicApiClient";
-import type { Stem } from "@/types/audio";
-import type { Playlist } from "@/types/music";
+import { audioEngine } from "$lib/engines/audioEngine";
+import { musicApiClient } from "$lib/services/musicApiClient";
+import type { Stem } from "$lib/types/audio";
+import type { Playlist } from "$lib/types/music";
 
 const FADE_IN = 3.0;
 const FADE_OUT = 3.0;
@@ -135,9 +135,6 @@ class MusicEngine {
       return;
     }
 
-    // masterGain is created after the generation check so it is guaranteed
-    // to be on the same AudioContext as the stem — a reset would have
-    // incremented the generation, causing an early return above.
     const masterGain = this.getOrCreateMasterGain();
     const player = this.wireStemToMaster(stem, masterGain);
     this.player = player;

@@ -1,6 +1,6 @@
-import { assetUrl } from "@/lib/config";
-import { apiClient } from "@/lib/services/apiClient";
-import type { Scene, SceneCategory } from "@/types/scene";
+import { assetUrl } from "$lib/config";
+import { apiClient } from "$lib/services/apiClient";
+import type { Scene, SceneCategory } from "$lib/types/scene";
 
 function resolveScene(scene: Scene): Scene {
   const bg = scene.background;

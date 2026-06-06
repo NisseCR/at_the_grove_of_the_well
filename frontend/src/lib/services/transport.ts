@@ -1,7 +1,7 @@
-import type { TransportMessage } from "@/types/message";
-import { WS_BASE } from "@/lib/config";
-import { handleMessage } from "@/lib/services/messageHandler";
-import { appState } from "@/stores/appState.svelte";
+import type { TransportMessage } from "$lib/types/message";
+import { WS_BASE } from "$lib/config";
+import { handleMessage } from "$lib/services/messageHandler";
+import { appState } from "$lib/stores/appState.svelte";
 
 const WEBSOCKET_URL = `${WS_BASE}/api/control/ws`;
 const RECONNECT_DELAY = 3000;
@@ -9,14 +9,12 @@ const RECONNECT_DELAY = 3000;
 let websocket: WebSocket | null = null;
 
 function connect(): void {
-  // Don't open a new connection if one is already open or connecting
   if (
     websocket?.readyState === WebSocket.OPEN ||
     websocket?.readyState === WebSocket.CONNECTING
   )
     return;
 
-  // Create new connection.
   websocket = new WebSocket(WEBSOCKET_URL);
 
   websocket.onopen = () => {

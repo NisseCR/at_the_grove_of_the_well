@@ -1,6 +1,6 @@
-import { sceneApiClient } from "@/lib/services/sceneApiClient";
-import { guardedAwait } from "@/lib/utils/guardedAwait";
-import type { Scene, SceneSlotState } from "@/types/scene";
+import { sceneApiClient } from "$lib/services/sceneApiClient";
+import { guardedAwait } from "$lib/utils/guardedAwait";
+import type { Scene, SceneSlotState } from "$lib/types/scene";
 import { tick } from "svelte";
 import { gsap } from "gsap";
 

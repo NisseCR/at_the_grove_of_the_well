@@ -1,6 +1,6 @@
-import { assetUrl } from "@/lib/config";
-import { apiClient } from "@/lib/services/apiClient";
-import type { Playlist, PlaylistCategory } from "@/types/music";
+import { assetUrl } from "$lib/config";
+import { apiClient } from "$lib/services/apiClient";
+import type { Playlist, PlaylistCategory } from "$lib/types/music";
 
 class MusicApiClient {
   private withUrl(playlist: Playlist): Playlist {

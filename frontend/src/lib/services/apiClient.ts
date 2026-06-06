@@ -1,17 +1,11 @@
-import { API_BASE } from "@/lib/config";
-import { auth } from "@/stores/auth.svelte";
+import { API_BASE } from "$lib/config";
 
 class ApiClient {
-  private authHeaders(): Record<string, string> {
-    return auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
-  }
-
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE}${endpoint}`;
     const init = {
       headers: {
         "Content-Type": "application/json",
-        ...this.authHeaders(),
         ...options.headers,
       },
       ...options,
@@ -58,11 +52,7 @@ class ApiClient {
 
   async uploadForm<T>(endpoint: string, formData: FormData): Promise<T> {
     const url = `${API_BASE}${endpoint}`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: this.authHeaders(),
-      body: formData,
-    });
+    const response = await fetch(url, { method: "POST", body: formData });
     if (!response.ok) {
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }

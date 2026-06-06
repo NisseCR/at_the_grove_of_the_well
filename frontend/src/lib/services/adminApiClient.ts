@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/services/apiClient";
+import { apiClient } from "$lib/services/apiClient";
 
 export interface SyncResult {
   last_synced: string;

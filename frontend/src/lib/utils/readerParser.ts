@@ -5,7 +5,7 @@ import type {
   ReaderFrontmatter,
   ReaderSegment,
   ReaderTrigger,
-} from "@/types/reader";
+} from "$lib/types/reader";
 
 /**
  * Parse a block of `key: value` lines into a plain object.
