@@ -2,7 +2,7 @@ import type { AppState } from "@/types/state";
 
 export const appState = $state<AppState>({
   socketConnected: false,
-  audioReady: false,
+  renderReady: false,
   debug: false,
   scene: null,
   music: null,

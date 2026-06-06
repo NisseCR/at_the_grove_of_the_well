@@ -7,6 +7,8 @@ playlist: none
 
 # The Grove of the Well
 
+YOYO TEST
+
 The stones here are ancient. Long before the first settlers carved their names into the valley walls, this grove stood — patient, watching, indifferent to the turning of seasons and the short lives of those who passed beneath its canopy.
 
 You follow the worn path downhill. The roots of enormous oaks have long since swallowed what was once a cobbled road. Their bark is dark with moisture, slick with moss, carved by centuries into shapes that almost suggest faces.
@@ -33,8 +35,8 @@ A wind moves through the branches above you, low and constant, like breathing.
 
 <!-- trigger
 scene: abyssus
-ambiences: wind.wind-3@0.9
-playlist: australis@0.1
+ambiences: wind.wind-3@0.5
+playlist: australis@0.5
 -->
 
 ## Into the Dark

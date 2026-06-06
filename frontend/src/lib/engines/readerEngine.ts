@@ -32,7 +32,7 @@ class ReaderEngine {
    */
   async unlock(): Promise<void> {
     await Tone.start();
-    readerState.audioReady = true;
+    readerState.renderReady = true;
     if (this.parsed) await this.applyFrontmatter(this.parsed.frontmatter);
   }
 
@@ -76,7 +76,7 @@ class ReaderEngine {
     readerState.next = null;
     readerState.isTransitioning = false;
     readerState.requestedSceneId = null;
-    readerState.audioReady = false;
+    readerState.renderReady = false;
     readerState.overlayOpacity = 0;
     this.parsed = null;
     this.lastTriggerIdx = -1;

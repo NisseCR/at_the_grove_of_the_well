@@ -30,7 +30,7 @@
   });
 
   $effect(() => {
-    if (!contentEl || !readerState.audioReady) return;
+    if (!contentEl || !readerState.renderReady) return;
 
     function onScroll() {
       if (contentEl) readerEngine.checkTriggers(contentEl);
@@ -53,12 +53,12 @@
 
 {#if loading}
   <div class="reader-status"><span>Loading…</span></div>
-{:else if !readerState.audioReady && parsed}
+{:else if !readerState.renderReady && parsed}
   <StoryGate
     onunlock={() => readerEngine.unlock()}
     title={parsed?.frontmatter.title ?? ""}
   />
-{:else if readerState.audioReady && parsed}
+{:else if readerState.renderReady && parsed}
   <div class="content-panel" bind:this={contentEl}>
     <div class="content-inner">
       <button class="nav-link" onclick={goBack}>← Stories</button>

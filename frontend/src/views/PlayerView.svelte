@@ -15,7 +15,7 @@
    */
   async function unlock(): Promise<void> {
     await Tone.start();
-    appState.audioReady = true;
+    appState.renderReady = true;
 
     if (appState.scene?.id) sceneState.requestedSceneId = appState.scene.id;
     if (appState.ambiences?.length)
@@ -31,11 +31,11 @@
     sceneState.next = null;
     sceneState.isTransitioning = false;
     sceneState.requestedSceneId = null;
-    appState.audioReady = false;
+    appState.renderReady = false;
   });
 </script>
 
-{#if !appState.audioReady}
+{#if !appState.renderReady}
   <StoryGate onunlock={unlock} title="At the Grove of the Well" />
 {:else}
   <div class="player">

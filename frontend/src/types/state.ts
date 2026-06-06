@@ -22,7 +22,7 @@ export interface ActiveHandout {
 
 export interface AppState {
   socketConnected: boolean;
-  audioReady: boolean;
+  renderReady: boolean;
   debug: boolean;
   scene: ActiveScene | null;
   music: ActiveMusic | null;
