@@ -4,6 +4,7 @@
   import SceneRenderer from "@/components/scene/SceneRenderer.svelte";
   import StoryGate from "@/components/scene/StoryGate.svelte";
   import DebugOverlay from "@/components/player/DebugOverlay.svelte";
+  import VolumeOverlay from "@/components/player/VolumOverlay.svelte";
   import { appState } from "@/stores/appState.svelte";
   import { sceneState } from "@/stores/sceneState.svelte";
   import { ambienceEngine } from "@/lib/engines/ambienceEngine";
@@ -40,6 +41,7 @@
 {:else}
   <div class="player">
     <SceneRenderer slotState={sceneState} />
+    <VolumeOverlay />
     {#if appState.debug}<DebugOverlay />{/if}
   </div>
 {/if}
