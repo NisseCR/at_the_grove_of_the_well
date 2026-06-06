@@ -63,5 +63,4 @@ export interface SceneSlotState {
   current: Scene | null;
   next: Scene | null;
   isTransitioning: boolean;
-  requestedSceneId: string | null;
 }

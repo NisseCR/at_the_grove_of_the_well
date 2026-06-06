@@ -20,12 +20,19 @@ export interface ActiveHandout {
   label: string | null;
 }
 
-export interface AppState {
+/** Minimum shape required by AudioReactor. Both AppState and readerState satisfy this. */
+export interface ReactiveAudioState {
+  ambiences: { id: string; volume: number }[] | null;
+  music: ActiveMusic | null;
+  resetAudioVersion: number;
+}
+
+export interface AppState extends ReactiveAudioState {
   socketConnected: boolean;
   renderReady: boolean;
   debug: boolean;
   scene: ActiveScene | null;
-  music: ActiveMusic | null;
-  ambiences: ActiveAmbience[] | null;
   handout: ActiveHandout | null;
+  ambiences: ActiveAmbience[] | null;
+  clientConnectedVersion: number;
 }

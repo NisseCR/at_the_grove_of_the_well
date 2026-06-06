@@ -5,6 +5,9 @@
   import AudioPanel from "./AudioPanel.svelte";
   import Config from "./Config.svelte";
   import { AudioLines } from "@lucide/svelte";
+  import { untrack } from "svelte";
+  import { appState } from "$lib/stores/appState.svelte";
+  import { sendSync } from "$lib/services/transport";
 
   const projectName = import.meta.env.VITE_PROJECT_NAME as string;
 
@@ -12,6 +15,19 @@
   let activeTab = $state<Tab>("scenes");
 
   let panelCollapsed = $state(true);
+
+  // When a new client connects, push current state to all clients.
+  // Version starts at 0 so the initial effect run is a no-op.
+  // untrack: prevents scene/ambiences/music from being tracked as dependencies
+  // so that normal state changes don't re-trigger sendSync, which would create
+  // an infinite loop via the server echo.
+  $effect(() => {
+    if (!appState.clientConnectedVersion) return;
+    untrack(() => {
+      if (!appState.scene && !appState.ambiences && !appState.music) return;
+      sendSync();
+    });
+  });
 </script>
 
 <div class="controller">

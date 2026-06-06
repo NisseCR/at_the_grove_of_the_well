@@ -8,11 +8,13 @@
   import { readerApiClient } from "$lib/services/readerApiClient";
   import { parseReader } from "$lib/utils/readerParser";
   import SceneRenderer from "$lib/components/scene/SceneRenderer.svelte";
+  import AudioRenderer from "$lib/components/audio/AudioRenderer.svelte";
   import StoryGate from "$lib/components/scene/StoryGate.svelte";
   import type { ParsedReader } from "$lib/types/reader";
 
   let parsed = $state<ParsedReader | null>(null);
   let loading = $state(false);
+  let renderReady = $state(false);
   let contentEl: HTMLElement | null = $state(null);
 
   onMount(async () => {
@@ -26,8 +28,17 @@
     loading = false;
   });
 
+  /**
+   * Called by StoryGate after its fade animation completes. Starts Tone.js,
+   * applies frontmatter state into readerState, then mounts AudioReactor.
+   */
+  async function unlock(): Promise<void> {
+    await readerEngine.unlock();
+    renderReady = true;
+  }
+
   $effect(() => {
-    if (!contentEl || !readerState.renderReady) return;
+    if (!contentEl || !renderReady) return;
 
     function onScroll() {
       if (contentEl) readerEngine.checkTriggers(contentEl);
@@ -41,18 +52,19 @@
 </script>
 
 <div class="reader-bg">
-  <SceneRenderer slotState={readerState} />
+  <SceneRenderer
+    slotState={readerState}
+    requestedSceneId={readerState.requestedSceneId}
+  />
 </div>
 <div class="reader-overlay" style:opacity={readerState.overlayOpacity}></div>
 
 {#if loading}
   <div class="reader-status"><span>Loading…</span></div>
-{:else if !readerState.renderReady && parsed}
-  <StoryGate
-    onunlock={() => readerEngine.unlock()}
-    title={parsed?.frontmatter.title ?? ""}
-  />
-{:else if readerState.renderReady && parsed}
+{:else if !renderReady && parsed}
+  <StoryGate onunlock={unlock} title={parsed.frontmatter.title ?? ""} />
+{:else if renderReady && parsed}
+  <AudioRenderer state={readerState} />
   <div class="content-panel" bind:this={contentEl}>
     <div class="content-inner">
       <button class="nav-link" onclick={() => goto("/reader")}>← Stories</button

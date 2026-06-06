@@ -8,4 +8,6 @@ export const appState = $state<AppState>({
   music: null,
   ambiences: null,
   handout: null,
+  clientConnectedVersion: 0,
+  resetAudioVersion: 0,
 });

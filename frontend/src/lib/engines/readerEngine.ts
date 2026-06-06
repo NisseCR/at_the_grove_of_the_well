@@ -7,20 +7,26 @@ import type {
   ReaderFrontmatter,
   ReaderTrigger,
 } from "$lib/types/reader";
+import type { ActiveMusic } from "$lib/types/state";
 
 /**
  * ReaderEngine — coordinates audio-visual state for the immersive reader.
  * Mirrors the role of messageHandler in the player, but driven by scroll
  * triggers instead of WebSocket messages. No WebSocket involvement.
  *
- * Nothing starts until unlock() is called on a user gesture, matching
- * the same gate behaviour as PlayerView.
+ * Audio is driven reactively: applyFrontmatter and applyTrigger update
+ * readerState, and AudioReactor responds. Nothing starts until the page
+ * mounts AudioReactor after unlock().
  */
 class ReaderEngine {
   private parsed: ParsedReader | null = null;
   private lastTriggerIdx = -1;
 
-  /** Register a parsed story. Does not start audio or scene — waits for unlock(). */
+  /**
+   * Register a parsed story. Does not start audio or scene — waits for unlock().
+   *
+   * @param parsed - The parsed reader document to register.
+   */
   setStory(parsed: ParsedReader): void {
     this.parsed = parsed;
     this.lastTriggerIdx = -1;
@@ -28,12 +34,12 @@ class ReaderEngine {
 
   /**
    * Initialise Tone.js on the user's gesture, then apply the story's
-   * frontmatter state (scene + ambiences + playlist) — same sequencing as StoryGate.
+   * frontmatter state (scene + ambiences + playlist) into readerState.
+   * The page mounts AudioReactor after this resolves.
    */
   async unlock(): Promise<void> {
     await Tone.start();
-    readerState.renderReady = true;
-    if (this.parsed) await this.applyFrontmatter(this.parsed.frontmatter);
+    if (this.parsed) this.applyFrontmatter(this.parsed.frontmatter);
   }
 
   /**
@@ -43,7 +49,7 @@ class ReaderEngine {
    *
    * @param contentEl - The scrollable content container.
    */
-  async checkTriggers(contentEl: HTMLElement): Promise<void> {
+  checkTriggers(contentEl: HTMLElement): void {
     const rect = contentEl.getBoundingClientRect();
     const triggerLine = rect.top + rect.height * 0.3;
 
@@ -58,10 +64,10 @@ class ReaderEngine {
     this.lastTriggerIdx = newIdx;
 
     if (newIdx === -1) {
-      if (this.parsed) await this.applyFrontmatter(this.parsed.frontmatter);
+      if (this.parsed) this.applyFrontmatter(this.parsed.frontmatter);
     } else {
       const raw = sentinels[newIdx].dataset.trigger;
-      if (raw) await this.applyTrigger(JSON.parse(raw) as ReaderTrigger);
+      if (raw) this.applyTrigger(JSON.parse(raw) as ReaderTrigger);
     }
   }
 
@@ -76,37 +82,39 @@ class ReaderEngine {
     readerState.next = null;
     readerState.isTransitioning = false;
     readerState.requestedSceneId = null;
-    readerState.renderReady = false;
     readerState.overlayOpacity = 0;
+    readerState.ambiences = null;
+    readerState.music = null;
+    readerState.resetAudioVersion = 0;
     this.parsed = null;
     this.lastTriggerIdx = -1;
   }
 
-  private async applyFrontmatter(fm: ReaderFrontmatter): Promise<void> {
+  /**
+   * @param fm - Frontmatter from the parsed story.
+   */
+  private applyFrontmatter(fm: ReaderFrontmatter): void {
     if (fm.scene) readerState.requestedSceneId = fm.scene;
-    if (fm.ambiences !== undefined) {
-      await ambienceEngine.syncActive(fm.ambiences);
-    }
-    if (fm.playlist !== undefined) {
-      await musicEngine.setPlaylist(
-        fm.playlist?.id ?? null,
-        fm.playlist?.volume,
-      );
-    }
+    if (fm.ambiences !== undefined) readerState.ambiences = fm.ambiences;
+    if (fm.playlist !== undefined) readerState.music = playlistToMusic(fm.playlist);
   }
 
-  private async applyTrigger(trigger: ReaderTrigger): Promise<void> {
+  /**
+   * @param trigger - Trigger payload parsed from a sentinel element.
+   */
+  private applyTrigger(trigger: ReaderTrigger): void {
     if (trigger.scene) readerState.requestedSceneId = trigger.scene;
-    if (trigger.ambiences !== undefined) {
-      await ambienceEngine.syncActive(trigger.ambiences);
-    }
-    if (trigger.playlist !== undefined) {
-      await musicEngine.setPlaylist(
-        trigger.playlist?.id ?? null,
-        trigger.playlist?.volume,
-      );
-    }
+    if (trigger.ambiences !== undefined) readerState.ambiences = trigger.ambiences;
+    if (trigger.playlist !== undefined) readerState.music = playlistToMusic(trigger.playlist);
   }
+}
+
+/**
+ * @param playlist - PlaylistRef or null from frontmatter/trigger.
+ */
+function playlistToMusic(playlist: { id: string; volume: number } | null | undefined): ActiveMusic | null {
+  if (!playlist) return null;
+  return { id: playlist.id, label: null, volume: playlist.volume };
 }
 
 export const readerEngine = new ReaderEngine();

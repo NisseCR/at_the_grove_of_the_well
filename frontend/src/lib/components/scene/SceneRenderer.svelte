@@ -3,14 +3,19 @@
   import SceneAsset from "./SceneAsset.svelte";
   import type { Scene, SceneSlotState } from "$lib/types/scene";
 
-  let { slotState }: { slotState: SceneSlotState } = $props();
+  let {
+    slotState,
+    requestedSceneId,
+  }: {
+    slotState: SceneSlotState;
+    requestedSceneId: string | null;
+  } = $props();
 
   let currentContainer: HTMLElement | null = $state(null);
 
   $effect(() => {
-    const sceneId = slotState.requestedSceneId;
-    if (sceneId) {
-      sceneEngine.transitionScene(sceneId, () => currentContainer, slotState);
+    if (requestedSceneId) {
+      sceneEngine.transitionScene(requestedSceneId, () => currentContainer, slotState);
     }
   });
 
