@@ -5,10 +5,8 @@
   import { ambienceApiClient } from "$lib/services/ambienceApiClient";
   import type { AmbienceCategory } from "$lib/types/ambience";
   import CategoryHeader from "../CategoryHeader.svelte";
-  import VerticalNav from "../VerticalNav.svelte";
 
   let categories = $state<AmbienceCategory[]>([]);
-  let categoryEls = $state<HTMLElement[]>([]);
 
   onMount(async () => {
     categories = await ambienceApiClient.fetchAmbienceCategories();
@@ -34,46 +32,34 @@
   }
 </script>
 
-<div class="ambiences-layout">
-  <VerticalNav items={categories.map((c) => c.label)} elements={categoryEls} />
-
-  <div class="categories">
-    {#each categories as category, i}
-      <div class="category" bind:this={categoryEls[i]}>
-        <CategoryHeader
-          label={category.label}
-          src={category.thumb_url ?? category.url}
-        />
-        <div class="item-list">
-          {#each category.ambiences as entry}
-            <button
-              class="item-row"
-              class:active={isActive(entry.id)}
-              onclick={() =>
-                toggle(entry.id, `${category.label} / ${entry.label}`)}
-            >
-              {entry.label}
-            </button>
-          {/each}
-        </div>
+<div class="categories">
+  {#each categories as category}
+    <div class="category">
+      <CategoryHeader
+        label={category.label}
+        src={category.thumb_url ?? category.url}
+      />
+      <div class="item-list">
+        {#each category.ambiences as entry}
+          <button
+            class="item-row"
+            class:active={isActive(entry.id)}
+            onclick={() =>
+              toggle(entry.id, `${category.label} / ${entry.label}`)}
+          >
+            {entry.label}
+          </button>
+        {/each}
       </div>
-    {/each}
-  </div>
+    </div>
+  {/each}
 </div>
 
 <style>
-  .ambiences-layout {
-    display: flex;
-    gap: var(--space-4);
-    align-items: flex-start;
-  }
-
   .categories {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
-    min-width: 0;
   }
 
   .category {
