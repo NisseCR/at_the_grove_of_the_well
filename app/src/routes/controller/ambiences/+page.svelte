@@ -2,7 +2,7 @@
   import { appState } from "$lib/stores/appState.svelte";
   import { sendSetAmbiences } from "$lib/services/transport";
   import type { PageData } from "./$types";
-  import CategoryHeader from "../CategoryHeader.svelte";
+  import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
 
   let { data }: { data: PageData } = $props();
 
