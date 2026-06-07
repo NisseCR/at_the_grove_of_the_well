@@ -1,7 +1,15 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { adminApiClient } from "$lib/services/adminApiClient";
-  import type { SyncResult } from "$lib/services/adminApiClient";
+
+  interface SyncResult {
+    last_synced: string;
+    ambience_categories: number;
+    ambiences: number;
+    playlist_categories: number;
+    playlists: number;
+    scene_categories: number;
+    scenes: number;
+  }
 
   let syncing = $state(false);
   let result = $state<SyncResult | null>(null);
@@ -12,7 +20,9 @@
     error = null;
     result = null;
     try {
-      result = await adminApiClient.sync();
+      const res = await fetch('/api/admin/sync', { method: 'POST' });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      result = await res.json();
     } catch (e) {
       error = e instanceof Error ? e.message : "Sync failed";
     } finally {
