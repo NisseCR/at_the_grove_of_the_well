@@ -32,16 +32,20 @@
   }
 
   .story-label {
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
     text-transform: uppercase;
     opacity: 0.6;
-    margin: 0 0 0.5rem;
+    margin: 0 0 1.2rem;
   }
 
   .chapter-title {
-    font-size: 2.5rem;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 6vw, 4.5rem);
     font-weight: 600;
+    line-height: 1.15;
+    text-shadow: 0 2px 40px rgba(0, 0, 0, 0.95);
     margin: 0;
   }
 </style>

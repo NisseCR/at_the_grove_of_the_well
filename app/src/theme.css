@@ -34,7 +34,7 @@
      Glass surfaces use rgba so backdrop-filter shows through correctly.
      Text colors are opacity-based so they read well over both dark and
      image backgrounds without separate overrides.                           */
-  --color-bg: #090909;
+  --color-bg: #0a0806;
 
   --color-text: rgba(235, 228, 215, 0.9);
   --color-text-muted: rgba(235, 228, 215, 0.5);

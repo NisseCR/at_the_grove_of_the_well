@@ -10,7 +10,8 @@
   import AudioTrigger from "$lib/components/story/AudioTrigger.svelte";
 
   let { data }: { data: PageData } = $props();
-  const { frontmatter, segments } = data.chapter;
+  const frontmatter = $derived(data.chapter.frontmatter);
+  const segments = $derived(data.chapter.segments);
 
   let renderReady = $state(false);
   let activeTriggerIndex = $state(-1);
@@ -28,7 +29,7 @@
   }
 
   function onScroll(): void {
-    overlayOpacity = Math.min(window.scrollY / window.innerHeight, 0.75);
+    overlayOpacity = Math.min(window.scrollY / window.innerHeight, 0.85);
 
     const sentinels = document.querySelectorAll<HTMLElement>("[data-trigger]");
     const threshold = window.innerHeight * 0.5;
@@ -81,7 +82,7 @@
     position: fixed;
     inset: 0;
     z-index: 1;
-    background: black;
+    background: rgb(10, 8, 6);
     pointer-events: none;
   }
 </style>
