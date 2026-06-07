@@ -80,13 +80,10 @@ class AmbienceEngine {
   }
 
   /**
-   * Immediately stops and disposes all active stems, resets the AudioContext,
-   * then rebuilds from the given list of ids via syncActive. Use to recover
-   * from a drifted state where stems may be playing outside of active.
-   *
-   * @param ids - The ambience ids to activate after the reset.
+   * Immediately stops and disposes all active stems. Aborts any in-progress
+   * syncActive. Does not reset the AudioContext — call hardReset for that.
    */
-  async hardReset(entries: { id: string; volume: number }[]): Promise<void> {
+  reset(): void {
     this.syncToken?.abort();
     this.syncToken = null;
 
@@ -96,7 +93,17 @@ class AmbienceEngine {
       stem.gain.dispose();
     }
     this.active.clear();
+  }
 
+  /**
+   * Immediately stops all active stems, resets the AudioContext, then
+   * rebuilds from the given list of ids via syncActive. Use to recover
+   * from a drifted state where stems may be playing outside of active.
+   *
+   * @param entries - The ambience ids to activate after the reset.
+   */
+  async hardReset(entries: { id: string; volume: number }[]): Promise<void> {
+    this.reset();
     await audioEngine.reset();
     await this.syncActive(entries);
   }

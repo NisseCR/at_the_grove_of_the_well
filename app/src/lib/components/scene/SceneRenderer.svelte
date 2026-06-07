@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
   import { sceneEngine } from "$lib/engines/sceneEngine";
   import SceneAsset from "./SceneAsset.svelte";
   import type { Scene, SceneSlotState } from "$lib/types/scene";
@@ -12,6 +13,12 @@
   } = $props();
 
   let currentContainer: HTMLElement | null = $state(null);
+
+  onDestroy(() => {
+    slotState.current = null;
+    slotState.next = null;
+    slotState.isTransitioning = false;
+  });
 
   $effect(() => {
     if (requestedSceneId) {

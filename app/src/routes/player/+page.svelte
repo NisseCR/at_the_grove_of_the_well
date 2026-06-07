@@ -9,8 +9,6 @@
   import VolumeOverlay from "./VolumeOverlay.svelte";
   import { appState } from "$lib/stores/appState.svelte";
   import { sceneState } from "$lib/stores/sceneState.svelte";
-  import { ambienceEngine } from "$lib/engines/ambienceEngine";
-  import { musicEngine } from "$lib/engines/musicEngine";
 
   /**
    * Called by StoryGate after its fade animation completes. Starts Tone.js
@@ -24,11 +22,6 @@
   }
 
   onDestroy(() => {
-    musicEngine.reset();
-    ambienceEngine.syncActive([]);
-    sceneState.current = null;
-    sceneState.next = null;
-    sceneState.isTransitioning = false;
     appState.renderReady = false;
   });
 </script>

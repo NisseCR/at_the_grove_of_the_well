@@ -1,10 +1,15 @@
 <script lang="ts">
-  import { untrack } from "svelte";
+  import { untrack, onDestroy } from "svelte";
   import type { ReactiveAudioState } from "$lib/types/state";
   import { ambienceEngine } from "$lib/engines/ambienceEngine";
   import { musicEngine } from "$lib/engines/musicEngine";
 
   let { state }: { state: ReactiveAudioState } = $props();
+
+  onDestroy(() => {
+    ambienceEngine.reset();
+    musicEngine.reset();
+  });
 
   // Fires when the active ambience id list changes. untrack prevents the
   // syncActive call from creating a volume dependency on the full entries —
