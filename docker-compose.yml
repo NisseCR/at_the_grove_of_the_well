@@ -9,6 +9,7 @@ services:
       context: ./frontend
       args:
         PUBLIC_ASSETS_BASE: ${PUBLIC_ASSETS_BASE}
+    env_file: .env
     depends_on:
       - backend
     restart: unless-stopped
