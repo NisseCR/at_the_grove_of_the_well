@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { scrollFade } from '$lib/actions/scrollFade';
+
   let { storyLabel, chapterTitle, children }: {
     storyLabel: string;
     chapterTitle: string;
@@ -8,7 +10,7 @@
 </script>
 
 <section class="hero">
-  <div class="hero-titles">
+  <div class="hero-titles" use:scrollFade>
     <p class="story-label">{storyLabel}</p>
     <h1 class="chapter-title">{chapterTitle}</h1>
   </div>

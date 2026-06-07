@@ -1,12 +1,13 @@
 <script lang="ts">
   import type { ChapterBlock } from '$lib/types/story';
+  import { scrollReveal } from '$lib/actions/scrollReveal';
 
   let { block, dropCap = false }: { block: ChapterBlock; dropCap?: boolean } = $props();
 </script>
 
 {#if block.type === 'prose'}
   {#each block.paragraphs as spans, i}
-    <p class:drop-cap={dropCap && i === 0}>
+    <p use:scrollReveal class:drop-cap={dropCap && i === 0}>
       {#each spans as span}
         {#if span.bold && span.italic}<strong><em>{span.text}</em></strong
         >{:else if span.bold}<strong>{span.text}</strong
@@ -16,7 +17,7 @@
     </p>
   {/each}
 {:else if block.type === 'divider'}
-  <hr />
+  <hr use:scrollReveal />
 {/if}
 
 <style>
