@@ -1,14 +1,9 @@
 <script lang="ts">
-  let {
-    storyLabel,
-    chapterTitle,
-    renderReady,
-    onunlock,
-  }: {
+  import type { Snippet } from 'svelte';
+  let { storyLabel, chapterTitle, children }: {
     storyLabel: string;
     chapterTitle: string;
-    renderReady: boolean;
-    onunlock: () => void;
+    children?: Snippet;
   } = $props();
 </script>
 
@@ -16,10 +11,8 @@
   <div class="hero-titles">
     <p class="story-label">{storyLabel}</p>
     <h1 class="chapter-title">{chapterTitle}</h1>
-    {#if !renderReady}
-      <button class="begin-cta" onclick={onunlock}>Click to begin</button>
-    {/if}
   </div>
+  {@render children?.()}
 </section>
 
 <style>
@@ -49,21 +42,6 @@
   .chapter-title {
     font-size: 2.5rem;
     font-weight: 600;
-    margin: 0 0 2rem;
-  }
-
-  .begin-cta {
-    background: none;
-    border: 1px solid currentColor;
-    color: inherit;
-    padding: 0.5rem 1.5rem;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    opacity: 0.7;
-  }
-
-  .begin-cta:hover {
-    opacity: 1;
+    margin: 0;
   }
 </style>

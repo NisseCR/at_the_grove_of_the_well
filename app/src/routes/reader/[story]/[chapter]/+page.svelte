@@ -1,12 +1,13 @@
 <script lang="ts">
-  import * as Tone from 'tone';
-  import { onMount, onDestroy } from 'svelte';
-  import type { PageData } from './$types';
-  import type { SceneSlotState } from '$lib/types/scene';
-  import SceneRenderer from '$lib/components/scene/SceneRenderer.svelte';
-  import ChapterHero from '$lib/components/story/ChapterHero.svelte';
-  import ChapterContent from '$lib/components/story/ChapterContent.svelte';
-  import AudioTrigger from '$lib/components/story/AudioTrigger.svelte';
+  import * as Tone from "tone";
+  import { onMount, onDestroy } from "svelte";
+  import type { PageData } from "./$types";
+  import type { SceneSlotState } from "$lib/types/scene";
+  import SceneRenderer from "$lib/components/scene/SceneRenderer.svelte";
+  import ChapterHero from "$lib/components/story/ChapterHero.svelte";
+  import BeginCta from "$lib/components/story/BeginCta.svelte";
+  import ChapterContent from "$lib/components/story/ChapterContent.svelte";
+  import AudioTrigger from "$lib/components/story/AudioTrigger.svelte";
 
   let { data }: { data: PageData } = $props();
   const { frontmatter, segments } = data.chapter;
@@ -15,7 +16,11 @@
   let activeTriggerIndex = $state(-1);
   let overlayOpacity = $state(0);
 
-  const sceneSlot: SceneSlotState = $state({ current: null, next: null, isTransitioning: false });
+  const sceneSlot: SceneSlotState = $state({
+    current: null,
+    next: null,
+    isTransitioning: false,
+  });
 
   async function unlock(): Promise<void> {
     await Tone.start();
@@ -25,7 +30,7 @@
   function onScroll(): void {
     overlayOpacity = Math.min(window.scrollY / window.innerHeight, 0.75);
 
-    const sentinels = document.querySelectorAll<HTMLElement>('[data-trigger]');
+    const sentinels = document.querySelectorAll<HTMLElement>("[data-trigger]");
     const threshold = window.innerHeight * 0.5;
     let newIndex = -1;
     for (const el of sentinels) {
@@ -36,26 +41,32 @@
     if (newIndex !== activeTriggerIndex) activeTriggerIndex = newIndex;
   }
 
-  onMount(() => window.addEventListener('scroll', onScroll, { passive: true }));
-  onDestroy(() => window.removeEventListener('scroll', onScroll));
+  onMount(() => {
+    document.documentElement.style.overflowY = "scroll";
+    window.addEventListener("scroll", onScroll, { passive: true });
+  });
+
+  onDestroy(() => {
+    document.documentElement.style.overflowY = "";
+    window.removeEventListener("scroll", onScroll);
+  });
 </script>
+
+<ChapterHero storyLabel={data.storyLabel} chapterTitle={frontmatter.title}>
+  {#if !renderReady}
+    <BeginCta onunlock={unlock} />
+  {/if}
+</ChapterHero>
 
 {#if renderReady}
   <div class="scene-layer">
     <SceneRenderer slotState={sceneSlot} requestedSceneId={frontmatter.scene} />
   </div>
+
   <div class="dark-overlay" style:opacity={overlayOpacity}></div>
-{/if}
 
-<ChapterHero
-  storyLabel={data.storyLabel}
-  chapterTitle={frontmatter.title}
-  {renderReady}
-  onunlock={unlock}
-/>
-
-{#if renderReady}
   <ChapterContent {segments} />
+
   <AudioTrigger {frontmatter} {segments} {activeTriggerIndex} />
 {/if}
 
