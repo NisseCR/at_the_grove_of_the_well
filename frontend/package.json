@@ -10,7 +10,6 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
-    "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.63.0",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.12.3",
@@ -21,6 +20,7 @@
   },
   "dependencies": {
     "@lucide/svelte": "^1.17.0",
+    "@sveltejs/adapter-node": "^5.5.4",
     "bits-ui": "^2.18.1",
     "gsap": "^3.15.0",
     "marked": "^18.0.5",

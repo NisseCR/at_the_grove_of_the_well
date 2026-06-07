@@ -12,3 +12,10 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
