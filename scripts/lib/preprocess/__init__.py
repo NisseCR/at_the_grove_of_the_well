@@ -8,6 +8,7 @@ mirrored directory tree under OUTPUT_PATH.
 
 import logging
 import os
+import shutil
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".flac", ".aac", ".m4a", ".ogg"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 VIDEO_EXTENSIONS = {".webm", ".mp4", ".mov"}
+JSON_EXTENSIONS = {".json"}
 
 CACHE_FILENAME = "cache.json"
 
@@ -90,6 +92,11 @@ def run(source_root: Path) -> None:
                 out_path = _mirror_path(source_root, source_file, output_root, ".webm")
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 process_video(source_file, out_path)
+
+            elif suffix in JSON_EXTENSIONS:
+                out_path = _mirror_path(source_root, source_file, output_root, ".json")
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_file, out_path)
 
             else:
                 logger.warning("SKIP (unsupported): %s", cache_key)
