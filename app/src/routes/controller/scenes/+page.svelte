@@ -2,8 +2,8 @@
   import { appState } from "$lib/stores/appState.svelte";
   import { sendSetScene } from "$lib/services/transport";
   import type { PageData } from "./$types";
-  import CategoryHeader from "../CategoryHeader.svelte";
-  import ThumbnailTile from "../ThumbnailTile.svelte";
+  import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
+  import ThumbnailTile from "$lib/components/assets/ThumbnailTile.svelte";
 
   let { data }: { data: PageData } = $props();
 

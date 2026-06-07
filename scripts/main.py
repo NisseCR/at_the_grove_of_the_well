@@ -5,6 +5,7 @@ Usage:
     python main.py kebab      -- rename files/folders to kebab-case
     python main.py preprocess -- convert raw assets to CDN-ready formats
     python main.py sync       -- sync output directory to Cloudflare R2 via rclone
+    python main.py validate   -- validate scene JSON files against TypeScript types
 """
 
 import argparse
@@ -14,6 +15,7 @@ from lib.kebab import rename_tree
 from lib.logger import setup as setup_logging
 from lib.preprocess import run as run_preprocess
 from lib.sync import run as run_sync
+from lib.validate import run as run_validate
 
 
 def cmd_kebab(args: argparse.Namespace) -> None:
@@ -39,6 +41,15 @@ def cmd_sync(args: argparse.Namespace) -> None:
     run_sync(dry_run=args.dry_run)
 
 
+def cmd_validate(args: argparse.Namespace) -> None:
+    """Validate scene JSON files against the SceneConfig TypeScript type."""
+    source = Path(args.path)
+    if not source.is_dir():
+        print(f"Error: {source} is not a directory.")
+        raise SystemExit(1)
+    run_validate(source)
+
+
 def main() -> None:
     """Parse CLI arguments and dispatch to the appropriate subcommand."""
     parser = argparse.ArgumentParser(
@@ -57,6 +68,9 @@ def main() -> None:
     sync_parser = subparsers.add_parser("sync", help="Sync output directory to Cloudflare R2")
     sync_parser.add_argument("--dry-run", action="store_true", help="Preview sync without transferring files")
 
+    validate_parser = subparsers.add_parser("validate", help="Validate scene JSON files against TypeScript types")
+    validate_parser.add_argument("path", nargs="?", default="../source", help="Source directory containing scenes/ (default: ../source)")
+
     args = parser.parse_args()
 
     setup_logging()
@@ -65,6 +79,7 @@ def main() -> None:
         "kebab": cmd_kebab,
         "preprocess": cmd_preprocess,
         "sync": cmd_sync,
+        "validate": cmd_validate,
     }
 
     dispatch[args.command](args)

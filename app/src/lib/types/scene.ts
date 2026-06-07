@@ -64,3 +64,33 @@ export interface SceneSlotState {
   next: Scene | null;
   isTransitioning: boolean;
 }
+
+// ---------------------------------------------------------------------------
+// Scene JSON config — shape of files stored in R2 at scenes/{cat}/{scene}.json
+// ---------------------------------------------------------------------------
+
+interface SceneAssetConfig {
+  src: string;
+  type?: "image" | "video";
+  loop?: boolean;
+  opacity?: number;
+  brightness?: number;
+  grayscale?: number;
+  blur?: number;
+  flip?: boolean;
+  blend_mode?: BlendMode;
+}
+
+export interface BackgroundConfig extends SceneAssetConfig {
+  thumb_src?: string | null;
+}
+
+export interface LayerConfig extends SceneAssetConfig {}
+
+/** Shape of a scene JSON file. Category is implicit from the R2 folder structure. */
+export interface SceneConfig {
+  id?: string;
+  label?: string;
+  background: BackgroundConfig;
+  layers?: LayerConfig[];
+}

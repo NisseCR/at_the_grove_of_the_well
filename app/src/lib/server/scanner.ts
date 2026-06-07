@@ -1,6 +1,5 @@
 /**
- * R2 folder scanner. Builds in-memory AppData from the bucket folder structure
- * and scene JSON configs bundled at build time.
+ * R2 folder scanner. Builds in-memory AppData from the bucket folder structure.
  *
  * R2 folder conventions:
  *   ambiences/{category-slug}/{ambience-slug}.ogg
@@ -11,12 +10,13 @@
  *   playlists/{category-slug}/{playlist-slug}/cover.webp
  *   playlists/{category-slug}/{playlist-slug}/cover.thumb.webp
  *
- * Scene configs live in src/data/scenes/ as JSON files (not in R2).
- * Ambience and playlist slugs (filename stems) are used as stable entity IDs
- * and must be globally unique within their type.
+ *   scenes/{category-slug}/{scene-slug}.json
+ *
+ * Slugs (filename stems) are used as stable entity IDs and must be globally
+ * unique within their type.
  */
 
-import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "$env/dynamic/private";
 import { PUBLIC_ASSETS_BASE } from "$env/static/public";
 import type {
@@ -69,12 +69,11 @@ function toOrder(slug: string): number {
 }
 
 // ---------------------------------------------------------------------------
-// R2 listing
+// R2 client
 // ---------------------------------------------------------------------------
 
-/** Return every object key in the bucket, handling pagination. */
-async function listR2Keys(): Promise<string[]> {
-  const client = new S3Client({
+function createClient(): S3Client {
+  return new S3Client({
     region: "auto",
     endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     credentials: {
@@ -82,7 +81,10 @@ async function listR2Keys(): Promise<string[]> {
       secretAccessKey: env.R2_SECRET_KEY,
     },
   });
+}
 
+/** Return every object key in the bucket, handling pagination. */
+async function listR2Keys(client: S3Client): Promise<string[]> {
   const keys: string[] = [];
   let continuationToken: string | undefined;
   do {
@@ -234,36 +236,45 @@ function scanPlaylists(keys: string[]): {
 }
 
 // ---------------------------------------------------------------------------
-// Scenes — bundled at build time (scene configs are code, not runtime data)
+// Scenes — fetched from R2 at scenes/{category-slug}/{scene-slug}.json
 // ---------------------------------------------------------------------------
 
-const sceneModules = import.meta.glob("../../data/scenes/*.json", {
-  eager: true,
-});
+/** Fetch and parse scene JSON configs from R2, building scene + category structures. */
+async function scanScenes(
+  keys: string[],
+  client: S3Client,
+): Promise<{ categories: SceneCategory[]; scenes: Scene[] }> {
+  const sceneKeys = keys.filter((k) => {
+    const parts = k.split("/");
+    return (
+      parts.length === 3 && parts[0] === "scenes" && parts[2].endsWith(".json")
+    );
+  });
 
-/** Read scene JSON configs bundled at build time and build scene + category structures. */
-function scanScenes(): { categories: SceneCategory[]; scenes: Scene[] } {
   const scenes: Scene[] = [];
   const catScenes = new Map<string, SceneCategoryEntry[]>();
 
-  for (const [path, mod] of Object.entries(sceneModules)) {
+  for (const key of sceneKeys) {
+    const [, catSlug, filename] = key.split("/");
+    const sceneSlug = filename.slice(0, -5);
+
     try {
-      const raw = (mod as { default: Record<string, unknown> }).default;
-      const sceneId =
-        (raw.id as string | undefined) ??
-        path.split("/").pop()!.replace(".json", "");
-      const category = (raw.category as string | undefined) ?? "uncategorized";
+      const res = await client.send(
+        new GetObjectCommand({ Bucket: env.R2_BUCKET, Key: key }),
+      );
+      const body = await res.Body?.transformToString();
+      if (!body) continue;
+
+      const raw = JSON.parse(body) as Record<string, unknown>;
+      const sceneId = (raw.id as string | undefined) ?? sceneSlug;
 
       const bg = (raw.background as Record<string, unknown> | undefined) ?? {};
       const bgSrc = (bg.src as string | undefined) ?? "";
-
       const bgThumbSrc = (bg.thumb_src as string | null | undefined) ?? null;
+
       const background: BackgroundAsset = {
         id: bgSrc
-          ? bgSrc
-              .split("/")
-              .pop()!
-              .replace(/\.[^.]+$/, "")
+          ? bgSrc.split("/").pop()!.replace(/\.[^.]+$/, "")
           : sceneId,
         src: bgSrc,
         type: (bg.type as "image" | "video" | undefined) ?? "image",
@@ -286,10 +297,7 @@ function scanScenes(): { categories: SceneCategory[]; scenes: Scene[] } {
         const lSrc = (l.src as string | undefined) ?? "";
         return {
           id: lSrc
-            ? lSrc
-                .split("/")
-                .pop()!
-                .replace(/\.[^.]+$/, "")
+            ? lSrc.split("/").pop()!.replace(/\.[^.]+$/, "")
             : `${sceneId}-layer-${i}`,
           src: lSrc,
           url: lSrc ? assetUrl(lSrc) : undefined,
@@ -305,27 +313,22 @@ function scanScenes(): { categories: SceneCategory[]; scenes: Scene[] } {
         };
       });
 
-      scenes.push({
-        id: sceneId,
-        label: (raw.label as string | undefined) ?? toLabel(sceneId),
-        background,
-        layers,
-      });
-      if (!catScenes.has(category)) catScenes.set(category, []);
-      catScenes
-        .get(category)!
-        .push({ id: sceneId, label: scenes.at(-1)!.label });
+      const label = (raw.label as string | undefined) ?? toLabel(sceneSlug);
+      scenes.push({ id: sceneId, label, background, layers });
+
+      if (!catScenes.has(catSlug)) catScenes.set(catSlug, []);
+      catScenes.get(catSlug)!.push({ id: sceneId, label });
     } catch (err) {
-      console.warn(`Skipped scene ${path}:`, err);
+      console.warn(`Skipped scene ${key}:`, err);
     }
   }
 
   const categories: SceneCategory[] = [...catScenes.entries()]
     .sort((a, b) => toOrder(a[0]) - toOrder(b[0]))
-    .map(([cat, entries]) => ({
-      id: cat,
-      label: toLabel(cat),
-      order: toOrder(cat),
+    .map(([catSlug, entries]) => ({
+      id: toBase(catSlug),
+      label: toLabel(catSlug),
+      order: toOrder(catSlug),
       scenes: entries,
     }));
 
@@ -336,15 +339,16 @@ function scanScenes(): { categories: SceneCategory[]; scenes: Scene[] } {
 // Entry point
 // ---------------------------------------------------------------------------
 
-/** Scan R2 and read bundled scene configs, return a fully populated AppData snapshot. */
+/** Scan R2 for all assets and scene configs, return a fully populated AppData snapshot. */
 export async function scan(): Promise<AppData> {
   console.log("Starting R2 scan...");
-  const keys = await listR2Keys();
+  const client = createClient();
+  const keys = await listR2Keys(client);
   console.log(`Found ${keys.length} objects in R2`);
 
   const { categories: ambienceCategories, ambiences } = scanAmbiences(keys);
   const { categories: playlistCategories, playlists } = scanPlaylists(keys);
-  const { categories: sceneCategories, scenes } = scanScenes();
+  const { categories: sceneCategories, scenes } = await scanScenes(keys, client);
 
   console.log(
     `Scan complete — ${ambienceCategories.length} ambience categories, ${ambiences.length} ambiences, ` +

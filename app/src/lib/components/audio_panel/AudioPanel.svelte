@@ -2,8 +2,8 @@
   import { RotateCcw } from "@lucide/svelte";
   import { appState } from "$lib/stores/appState.svelte";
   import { sendResetAudio } from "$lib/services/transport";
-  import MusicRow from "./MusicRow.svelte";
-  import AmbienceRow from "./AmbienceRow.svelte";
+  import MusicRow from "$lib/components/audio_panel/MusicRow.svelte";
+  import AmbienceRow from "$lib/components/audio_panel/AmbienceRow.svelte";
 
   let { collapsed = $bindable(false) }: { collapsed: boolean } = $props();
 

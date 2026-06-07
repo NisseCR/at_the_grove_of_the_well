@@ -2,7 +2,7 @@
   import { onMount, untrack } from "svelte";
   import { page } from "$app/state";
   import { AudioLines } from "@lucide/svelte";
-  import AudioPanel from "./AudioPanel.svelte";
+  import AudioPanel from "$lib/components/audio_panel/AudioPanel.svelte";
   import { appState } from "$lib/stores/appState.svelte";
   import { connect, sendSync } from "$lib/services/transport";
 
@@ -41,11 +41,7 @@
         >
           Scenes
         </a>
-        <a
-          href="/controller/music"
-          class="tab"
-          class:active={tab === "music"}
-        >
+        <a href="/controller/music" class="tab" class:active={tab === "music"}>
           Music
         </a>
         <a
