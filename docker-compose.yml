@@ -1,22 +1,22 @@
 services:
-  backend:
-    build: ./backend
+  ws-relay:
+    build: ./ws-relay
     env_file: .env
     restart: unless-stopped
 
-  frontend:
+  app:
     build:
-      context: ./frontend
+      context: ./app
       args:
         PUBLIC_ASSETS_BASE: ${PUBLIC_ASSETS_BASE}
     env_file: .env
     depends_on:
-      - backend
+      - ws-relay
     restart: unless-stopped
 
   nginx:
     image: nginx:alpine
     depends_on:
-      - frontend
-      - backend
+      - app
+      - ws-relay
     restart: unless-stopped
