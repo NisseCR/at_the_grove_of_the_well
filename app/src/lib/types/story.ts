@@ -39,9 +39,19 @@ export interface ChapterTrigger {
   playlist: AudioRef | null;
 }
 
-/** One prose block between two triggers (or the start/end of the chapter). */
+export interface InlineSpan {
+  text: string;
+  bold?: true;
+  italic?: true;
+}
+
+export type ChapterBlock =
+  | { type: 'prose'; paragraphs: InlineSpan[][] }
+  | { type: 'divider' };
+
+/** One content block between two triggers (or the start/end of the chapter). */
 export interface ChapterSegment {
-  html: string;
+  blocks: ChapterBlock[];
   trigger?: ChapterTrigger;
 }
 

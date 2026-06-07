@@ -10,6 +10,8 @@ const empty: AppData = {
   playlists: [],
   scene_categories: [],
   scenes: [],
+  stories: [],
+  chapters: {},
   last_synced: null,
 };
 

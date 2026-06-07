@@ -27,6 +27,12 @@ GET {{base}}/api/music/playlist
 ### Single playlist by id
 GET {{base}}/api/music/playlist/borealis
 
+### All stories
+GET {{base}}/api/story
+
+### Single chapter by story + chapter slug
+GET {{base}}/api/story/abyssus/chapter-1
+
 ### Trigger R2 re-scan
 POST {{base}}/api/admin/sync
 Content-Type: application/json

@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from lib.cache import hash_file, is_cached, load_cache, save_cache
 from lib.preprocess.audio import process_audio
 from lib.preprocess.image import process_image
+from lib.preprocess.story import process_story
 from lib.preprocess.video import process_video
 
 load_dotenv()
@@ -100,9 +101,14 @@ def run(source_root: Path) -> None:
                 shutil.copy2(source_file, out_path)
 
             elif suffix in MARKDOWN_EXTENSIONS:
-                out_path = _mirror_path(source_root, source_file, output_root, ".md")
-                out_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source_file, out_path)
+                if "stories" in source_file.parts:
+                    out_path = _mirror_path(source_root, source_file, output_root, ".json")
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    process_story(source_file, out_path)
+                else:
+                    out_path = _mirror_path(source_root, source_file, output_root, ".md")
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source_file, out_path)
 
             else:
                 logger.warning("SKIP (unsupported): %s", cache_key)

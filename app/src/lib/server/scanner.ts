@@ -16,7 +16,11 @@
  * unique within their type.
  */
 
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  ListObjectsV2Command,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { env } from "$env/dynamic/private";
 import { PUBLIC_ASSETS_BASE } from "$env/static/public";
 import type {
@@ -38,6 +42,7 @@ import type {
   SceneCategory,
   SceneCategoryEntry,
 } from "$lib/types/scene";
+import type { Story, StoryChapter, ParsedChapter } from "$lib/types/story";
 import type { AppData } from "$lib/types/appData";
 
 /** Build a full CDN URL from a raw R2 object key. */
@@ -274,7 +279,10 @@ async function scanScenes(
 
       const background: BackgroundAsset = {
         id: bgSrc
-          ? bgSrc.split("/").pop()!.replace(/\.[^.]+$/, "")
+          ? bgSrc
+              .split("/")
+              .pop()!
+              .replace(/\.[^.]+$/, "")
           : sceneId,
         src: bgSrc,
         type: (bg.type as "image" | "video" | undefined) ?? "image",
@@ -297,7 +305,10 @@ async function scanScenes(
         const lSrc = (l.src as string | undefined) ?? "";
         return {
           id: lSrc
-            ? lSrc.split("/").pop()!.replace(/\.[^.]+$/, "")
+            ? lSrc
+                .split("/")
+                .pop()!
+                .replace(/\.[^.]+$/, "")
             : `${sceneId}-layer-${i}`,
           src: lSrc,
           url: lSrc ? assetUrl(lSrc) : undefined,
@@ -336,6 +347,67 @@ async function scanScenes(
 }
 
 // ---------------------------------------------------------------------------
+// Stories — index built from key listing, titles fetched from frontmatter
+// ---------------------------------------------------------------------------
+
+/** Fetch and parse each chapter MD, building the story index and parsed chapter map. */
+async function scanStories(
+  keys: string[],
+  client: S3Client,
+): Promise<{ stories: Story[]; chapters: Record<string, ParsedChapter> }> {
+  const chapterKeys = keys.filter((k) => {
+    const parts = k.split("/");
+    return (
+      parts.length === 3 && parts[0] === "stories" && parts[2].endsWith(".json")
+    );
+  });
+
+  type RawChapter = { rawSlug: string; title: string };
+  const storiesMap = new Map<string, RawChapter[]>();
+  const chapters: Record<string, ParsedChapter> = {};
+
+  for (const key of chapterKeys) {
+    const [, storySlug, filename] = key.split("/");
+    const chapterSlug = filename.slice(0, -5);
+
+    try {
+      const res = await client.send(
+        new GetObjectCommand({ Bucket: env.R2_BUCKET, Key: key }),
+      );
+      const body = await res.Body?.transformToString();
+      if (!body) continue;
+
+      const parsed = JSON.parse(body) as ParsedChapter;
+      const storyBase = toBase(storySlug);
+      const chapterBase = toBase(chapterSlug);
+
+      chapters[`${storyBase}/${chapterBase}`] = parsed;
+
+      if (!storiesMap.has(storySlug)) storiesMap.set(storySlug, []);
+      storiesMap
+        .get(storySlug)!
+        .push({ rawSlug: chapterSlug, title: parsed.frontmatter.title });
+    } catch (err) {
+      console.warn(`Skipped story chapter ${key}:`, err);
+    }
+  }
+
+  const stories: Story[] = [...storiesMap.entries()]
+    .sort((a, b) => toOrder(a[0]) - toOrder(b[0]))
+    .map(([storySlug, rawChapters]) => ({
+      slug: toBase(storySlug),
+      label: toLabel(storySlug),
+      chapters: rawChapters
+        .sort((a, b) => toOrder(a.rawSlug) - toOrder(b.rawSlug))
+        .map(
+          (c): StoryChapter => ({ slug: toBase(c.rawSlug), title: c.title }),
+        ),
+    }));
+
+  return { stories, chapters };
+}
+
+// ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
 
@@ -348,12 +420,18 @@ export async function scan(): Promise<AppData> {
 
   const { categories: ambienceCategories, ambiences } = scanAmbiences(keys);
   const { categories: playlistCategories, playlists } = scanPlaylists(keys);
-  const { categories: sceneCategories, scenes } = await scanScenes(keys, client);
+  const { categories: sceneCategories, scenes } = await scanScenes(
+    keys,
+    client,
+  );
+  const { stories, chapters } = await scanStories(keys, client);
 
+  const chapterCount = Object.keys(chapters).length;
   console.log(
     `Scan complete — ${ambienceCategories.length} ambience categories, ${ambiences.length} ambiences, ` +
       `${playlistCategories.length} playlist categories, ${playlists.length} playlists, ` +
-      `${sceneCategories.length} scene categories, ${scenes.length} scenes`,
+      `${sceneCategories.length} scene categories, ${scenes.length} scenes, ` +
+      `${stories.length} stories, ${chapterCount} chapters`,
   );
 
   return {
@@ -363,6 +441,8 @@ export async function scan(): Promise<AppData> {
     playlists,
     scene_categories: sceneCategories,
     scenes,
+    stories,
+    chapters,
     last_synced: new Date().toISOString(),
   };
 }
