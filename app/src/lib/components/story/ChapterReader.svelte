@@ -15,12 +15,13 @@
     activeTriggerIndex?: number;
   } = $props();
 
-  /** Find the last trigger sentinel above the viewport top — bidirectional. */
+  /** Find the last trigger sentinel above the mid-viewport line — bidirectional. */
   function onScroll() {
     const sentinels = document.querySelectorAll<HTMLElement>('[data-trigger]');
+    const threshold = window.innerHeight * 0.5;
     let newIndex = -1;
     for (const el of sentinels) {
-      if (el.getBoundingClientRect().top <= 0) {
+      if (el.getBoundingClientRect().top <= threshold) {
         newIndex = parseInt(el.dataset.trigger!);
       }
     }
