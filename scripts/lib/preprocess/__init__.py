@@ -26,6 +26,7 @@ AUDIO_EXTENSIONS = {".mp3", ".wav", ".flac", ".aac", ".m4a", ".ogg"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 VIDEO_EXTENSIONS = {".webm", ".mp4", ".mov"}
 JSON_EXTENSIONS = {".json"}
+MARKDOWN_EXTENSIONS = {".md"}
 
 CACHE_FILENAME = "cache.json"
 
@@ -95,6 +96,11 @@ def run(source_root: Path) -> None:
 
             elif suffix in JSON_EXTENSIONS:
                 out_path = _mirror_path(source_root, source_file, output_root, ".json")
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_file, out_path)
+
+            elif suffix in MARKDOWN_EXTENSIONS:
+                out_path = _mirror_path(source_root, source_file, output_root, ".md")
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source_file, out_path)
 
