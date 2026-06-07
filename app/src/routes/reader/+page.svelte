@@ -1,3 +1,20 @@
-<script lang="ts"></script>
+<script lang="ts">
+  import type { PageData } from './$types';
 
-<h1>Reader</h1>
+  let { data }: { data: PageData } = $props();
+</script>
+
+<main>
+  {#each data.stories as story}
+    <section>
+      <h2>{story.label}</h2>
+      <ul>
+        {#each story.chapters as chapter}
+          <li>
+            <a href="/reader/{story.slug}/{chapter.slug}">{chapter.title}</a>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/each}
+</main>
