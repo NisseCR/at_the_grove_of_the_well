@@ -1,0 +1,22 @@
+{
+  "id": "study",
+  "label": "Study",
+  "category": "urban",
+  "background": {
+    "src": "_shared/images/study.webp",
+    "type": "image",
+    "thumb_src": "_shared/images/study.thumb.webp"
+  },
+  "layers": [
+    {
+      "src": "_shared/videos/house-night.webm",
+      "type": "video",
+      "grayscale": 0.25
+    },
+    {
+      "src": "_shared/videos/lens-warm.webm",
+      "type": "video",
+      "brightness": 0.55
+    }
+  ]
+}

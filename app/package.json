@@ -1,0 +1,32 @@
+{
+  "name": "at_the_grove_of_the_well",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@sveltejs/kit": "^2.63.0",
+    "@tsconfig/svelte": "^5.0.8",
+    "@types/node": "^24.12.3",
+    "svelte": "^5.55.5",
+    "svelte-check": "^4.4.8",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1063.0",
+    "@lucide/svelte": "^1.17.0",
+    "@sveltejs/adapter-node": "^5.5.4",
+    "bits-ui": "^2.18.1",
+    "gsap": "^3.15.0",
+    "marked": "^18.0.5",
+    "svelte-dnd-action": "^0.9.69",
+    "svelte-sonner": "^1.1.1",
+    "tone": "^15.0.0"
+  }
+}

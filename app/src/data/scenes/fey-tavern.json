@@ -1,0 +1,11 @@
+{
+  "id": "fey-tavern",
+  "label": "Fey Tavern",
+  "category": "urban",
+  "background": {
+    "src": "_shared/videos/fey-tavern.webm",
+    "type": "video",
+    "thumb_src": "_shared/videos/fey-tavern.thumb.webp"
+  },
+  "layers": []
+}

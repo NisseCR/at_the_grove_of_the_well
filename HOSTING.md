@@ -42,13 +42,15 @@ git clone https://github.com/NisseCR/at_the_grove_of_the_well
 cd at_the_grove_of_the_well
 ```
 
-Create `.env` in repo root:
+Create `.env` in repo root (see `.env.example`):
 
 ```
-ASSETS_DIR=<path to assets on server>
-ALLOWED_ORIGINS=https://<your-domain>
-VITE_PROJECT_NAME=At the Grove of the Well
-CONTROLLER_PASSWORD=<your-password>
+PUBLIC_ASSETS_BASE=https://<your-cdn-url>
+ORIGIN=https://<your-domain>
+R2_ACCOUNT_ID=<your-account-id>
+R2_ACCESS_KEY=<your-access-key-id>
+R2_SECRET_KEY=<your-secret-access-key>
+R2_BUCKET=<your-bucket-name>
 ```
 
 Add Cloudflare Origin Certificate files to the server:

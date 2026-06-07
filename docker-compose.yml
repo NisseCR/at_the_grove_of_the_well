@@ -1,15 +1,22 @@
 services:
-  backend:
-    build: ./backend
+  ws-relay:
+    build: ./ws-relay
     env_file: .env
     restart: unless-stopped
 
-  frontend:
+  app:
     build:
-      context: ./frontend
+      context: ./app
       args:
-        VITE_PROJECT_NAME: ${VITE_PROJECT_NAME}
-        VITE_ASSETS_BASE: ${VITE_ASSETS_BASE}
+        PUBLIC_ASSETS_BASE: ${PUBLIC_ASSETS_BASE}
+    env_file: .env
     depends_on:
-      - backend
+      - ws-relay
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    depends_on:
+      - app
+      - ws-relay
     restart: unless-stopped
