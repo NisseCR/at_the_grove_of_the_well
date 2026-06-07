@@ -15,6 +15,9 @@ export function heroReveal(node: HTMLElement, params?: { onComplete?: () => void
   const labelText = label.textContent ?? '';
   const titleText = title.textContent ?? '';
 
+  // Lock height before clearing so the label never shifts position.
+  node.style.height = `${node.offsetHeight}px`;
+
   label.textContent = '';
   title.textContent = '';
 
@@ -35,6 +38,7 @@ export function heroReveal(node: HTMLElement, params?: { onComplete?: () => void
         ease: 'none',
         onComplete: () => {
           title.classList.remove('typing');
+          node.style.height = '';
           params?.onComplete?.();
         },
       });
