@@ -1,7 +1,7 @@
 {
   "id": "study",
   "label": "Study",
-  "category": "02-urban",
+  "category": "urban",
   "background": {
     "src": "_shared/images/study.webp",
     "type": "image",

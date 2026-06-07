@@ -1,6 +1,6 @@
-import { PUBLIC_ASSETS_BASE } from '$env/static/public';
+import { PUBLIC_ASSETS_BASE } from "$env/static/public";
 
-export const API_BASE = '/api';
+export const API_BASE = "/api";
 
 /**
  * @param src - R2 asset key (relative path within the bucket).
@@ -8,3 +8,8 @@ export const API_BASE = '/api';
 export function assetUrl(src: string): string {
   return `${PUBLIC_ASSETS_BASE}/${src}`;
 }
+
+/**
+ * TODO: delete this once apiClients are gone and scanner can define assetUrl
+ *
+ */

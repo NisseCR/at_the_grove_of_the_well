@@ -1,7 +1,7 @@
 {
   "id": "abyssus",
   "label": "Abyssus",
-  "category": "01-wilderness",
+  "category": "wilderness",
   "background": {
     "src": "_shared/images/abyssus.webp",
     "type": "image",

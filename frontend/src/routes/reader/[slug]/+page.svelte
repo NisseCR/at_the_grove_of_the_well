@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { marked } from "marked";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
@@ -201,4 +201,4 @@
   .nav-link:hover {
     color: var(--color-text);
   }
-</style>
+</style> -->

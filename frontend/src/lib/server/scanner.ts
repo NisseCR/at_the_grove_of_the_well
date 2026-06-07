@@ -108,7 +108,7 @@ function scanAmbiences(keys: string[]): { categories: AmbienceCategory[]; ambien
       const entries: AmbienceCategoryEntry[] = (catAmbs.get(catSlug) ?? [])
         .sort()
         .map(slug => ({ id: `${catBase}.${slug}`, label: toLabel(slug) }));
-      return { id: catSlug, label: toLabel(catSlug), src: meta.src, thumb_src: meta.thumb_src, url: assetUrl(meta.src), thumb_url: meta.thumb_src ? assetUrl(meta.thumb_src) : null, order: toOrder(catSlug), ambiences: entries };
+      return { id: toBase(catSlug), label: toLabel(catSlug), src: meta.src, thumb_src: meta.thumb_src, url: assetUrl(meta.src), thumb_url: meta.thumb_src ? assetUrl(meta.thumb_src) : null, order: toOrder(catSlug), ambiences: entries };
     });
 
   return { categories, ambiences: [...ambiences.values()] };
@@ -154,7 +154,7 @@ function scanPlaylists(keys: string[]): { categories: PlaylistCategory[]; playli
 
   const categories: PlaylistCategory[] = [...cats]
     .sort((a, b) => toOrder(a) - toOrder(b))
-    .map(catSlug => ({ id: catSlug, label: toLabel(catSlug), order: toOrder(catSlug), playlists: catEntries.get(catSlug) ?? [] }));
+    .map(catSlug => ({ id: toBase(catSlug), label: toLabel(catSlug), order: toOrder(catSlug), playlists: catEntries.get(catSlug) ?? [] }));
 
   return { categories, playlists };
 }

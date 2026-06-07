@@ -1,6 +1,6 @@
 import type { Stem } from "$lib/types/audio";
 import { audioEngine } from "$lib/engines/audioEngine";
-import { ambienceApiClient } from "$lib/services/ambienceApiClient";
+import type { Ambience } from "$lib/types/ambience";
 import { guardedAwait } from "$lib/utils/guardedAwait";
 
 const FADE_IN = 5.0;
@@ -136,7 +136,7 @@ class AmbienceEngine {
       for (const [id, volume] of incoming) {
         if (!this.active.has(id)) {
           const ambience = await guardedAwait(
-            ambienceApiClient.fetchAmbience(id),
+            fetch(`/api/ambience/${id}`).then<Ambience>(r => r.json()),
             token,
           );
           await guardedAwait(

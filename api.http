@@ -1,0 +1,32 @@
+@base = http://localhost
+
+### Ambience categories
+GET {{base}}/api/ambience/categories
+
+### All ambiences
+GET {{base}}/api/ambience
+
+### Single ambience by id
+GET {{base}}/api/ambience/precipitation.rain
+
+### Scene categories
+GET {{base}}/api/scene/categories
+
+### All scenes
+GET {{base}}/api/scene
+
+### Single scene by id
+GET {{base}}/api/scene/abyssus
+
+### Playlist categories
+GET {{base}}/api/music/playlist/categories
+
+### All playlists
+GET {{base}}/api/music/playlist
+
+### Single playlist by id
+GET {{base}}/api/music/playlist/borealis
+
+### Trigger R2 re-scan
+POST {{base}}/api/admin/sync
+Content-Type: application/json

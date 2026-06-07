@@ -1,7 +1,7 @@
 {
   "id": "fey-tavern",
   "label": "Fey Tavern",
-  "category": "02-urban",
+  "category": "urban",
   "background": {
     "src": "_shared/videos/fey-tavern.webm",
     "type": "video",

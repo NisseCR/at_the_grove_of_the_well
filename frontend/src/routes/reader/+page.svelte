@@ -1,13 +1,8 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { goto } from "$app/navigation";
-  import { readerApiClient } from "$lib/services/readerApiClient";
   import type { ReaderFile } from "$lib/types/reader";
 
   let stories = $state<ReaderFile[]>([]);
-
-  $effect(() => {
-    readerApiClient.list().then((s) => (stories = s));
-  });
 </script>
 
 <div class="index">
@@ -117,4 +112,4 @@
   .nav-link:hover {
     color: var(--color-text);
   }
-</style>
+</style> -->

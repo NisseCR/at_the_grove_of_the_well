@@ -1,4 +1,3 @@
-import { sceneApiClient } from "$lib/services/sceneApiClient";
 import { guardedAwait } from "$lib/utils/guardedAwait";
 import type { Scene, SceneSlotState } from "$lib/types/scene";
 import { tick } from "svelte";
@@ -77,7 +76,7 @@ class SceneEngine {
     state: SceneSlotState,
   ): Promise<Scene> {
     state.isTransitioning = true;
-    const config = await sceneApiClient.fetchScene(sceneId);
+    const config = await fetch(`/api/scene/${sceneId}`).then<Scene>(r => r.json());
     state.next = config;
     return config;
   }

@@ -1,6 +1,5 @@
 import * as Tone from "tone";
 import { audioEngine } from "$lib/engines/audioEngine";
-import { musicApiClient } from "$lib/services/musicApiClient";
 import type { Stem } from "$lib/types/audio";
 import type { Playlist } from "$lib/types/music";
 
@@ -69,7 +68,7 @@ class MusicEngine {
 
     if (id === null) return;
 
-    const playlist = await musicApiClient.fetchPlaylist(id);
+    const playlist = await fetch(`/api/music/playlist/${id}`).then<Playlist>(r => r.json());
     if (gen !== this.generation) return;
 
     this.playlist = playlist;
