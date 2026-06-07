@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack, onDestroy } from "svelte";
+  import { onDestroy } from "svelte";
   import type { ReactiveAudioState } from "$lib/types/state";
   import { ambienceEngine } from "$lib/engines/ambienceEngine";
   import { musicEngine } from "$lib/engines/musicEngine";
@@ -11,31 +11,35 @@
     musicEngine.reset();
   });
 
-  // Fires when the active ambience id list changes. untrack prevents the
-  // syncActive call from creating a volume dependency on the full entries —
-  // volume changes are handled by the effect below.
-  $effect(() => {
-    (state.ambiences ?? []).map((a) => a.id);
-    untrack(() => ambienceEngine.syncActive(state.ambiences ?? []));
-  });
+  // Plain let — not reactive, so reading inside $effect creates no dependency.
+  // Acts as a record of the previous run's IDs to distinguish ID changes from
+  // volume-only changes without firing both engine calls simultaneously.
+  let prevAmbienceIds: string[] = [];
 
-  // Fires when any individual ambience volume changes. setVolume is a no-op
-  // for ambiences not yet active, so ordering with syncActive is safe.
   $effect(() => {
-    if (!state.ambiences) return;
-    for (const a of state.ambiences) {
-      ambienceEngine.setVolume(a.id, a.volume);
+    const ambiences = state.ambiences ?? [];
+    const ids = ambiences.map((a) => a.id);
+    if (ids.join(",") !== prevAmbienceIds.join(",")) {
+      prevAmbienceIds = ids;
+      ambienceEngine.syncActive(ambiences);
+    } else {
+      for (const a of ambiences) ambienceEngine.setVolume(a.id, a.volume);
     }
   });
 
-  // Fires when the playlist id changes.
-  $effect(() => {
-    musicEngine.setPlaylist(state.music?.id ?? null);
-  });
+  // undefined as sentinel so the first run always triggers setPlaylist,
+  // even when the initial id is null.
+  let prevMusicId: string | null | undefined = undefined;
 
-  // Fires when the master music volume changes.
   $effect(() => {
-    musicEngine.setVolume(state.music?.volume ?? 0.5);
+    const id = state.music?.id ?? null;
+    const vol = state.music?.volume ?? 0.5;
+    if (id !== prevMusicId) {
+      prevMusicId = id;
+      musicEngine.setPlaylist(id, vol);
+    } else {
+      musicEngine.setVolume(vol);
+    }
   });
 
   // Reset audio: version counter acts as an event signal. Starts at 0 so
