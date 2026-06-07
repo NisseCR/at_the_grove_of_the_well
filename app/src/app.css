@@ -38,6 +38,22 @@ h1, h2, h3, h4 {
   line-height: 1.2;
 }
 
+/* ─── Typing cursor ──────────────────────────────────────────────────────────
+   Zero-width ::after so the cursor never displaces surrounding text.
+   Applied/removed via the heroReveal action.                                 */
+.typing::after {
+  content: '|';
+  display: inline-block;
+  width: 0;
+  overflow: visible;
+  animation: cursor-blink 0.7s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
 /* ─── Scrollbars ──────────────────────────────────────────────────────────────
    Thin gold thumb, transparent track. Both standard and webkit for coverage. */
 * {

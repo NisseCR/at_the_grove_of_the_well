@@ -21,8 +21,13 @@
     letter-spacing: 0.2em;
     text-transform: uppercase;
     cursor: pointer;
-    opacity: 0.7;
     white-space: nowrap;
+    animation: cta-appear 0.6s ease forwards;
+  }
+
+  @keyframes cta-appear {
+    from { opacity: 0; }
+    to   { opacity: 0.7; }
   }
 
   .begin-cta:hover {
