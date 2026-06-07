@@ -1,27 +1,17 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { appState } from "$lib/stores/appState.svelte";
   import { sendSetScene } from "$lib/services/transport";
-  import { sceneApiClient } from "$lib/services/sceneApiClient";
-  import type { Scene, SceneCategory } from "$lib/types/scene";
+  import type { PageData } from "./$types";
   import CategoryHeader from "../CategoryHeader.svelte";
   import ThumbnailTile from "../ThumbnailTile.svelte";
 
-  let categories = $state<SceneCategory[]>([]);
-  let scenes = $state<Scene[]>([]);
-
-  onMount(async () => {
-    [categories, scenes] = await Promise.all([
-      sceneApiClient.fetchSceneCategories(),
-      sceneApiClient.fetchScenes(),
-    ]);
-  });
+  let { data }: { data: PageData } = $props();
 
   /**
    * @param id - Scene ID to look up thumbnail for.
    */
   function thumbnailFor(id: string): string | undefined {
-    const bg = scenes.find((s) => s.id === id)?.background;
+    const bg = data.scenes.find((s) => s.id === id)?.background;
     return bg?.thumb_url ?? bg?.url ?? undefined;
   }
 
@@ -34,7 +24,7 @@
 </script>
 
 <div class="categories">
-  {#each categories as category}
+  {#each data.categories as category}
     <div class="category">
       <CategoryHeader label={category.label} />
       <div class="grid">

@@ -1,16 +1,10 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { appState } from "$lib/stores/appState.svelte";
   import { sendSetAmbiences } from "$lib/services/transport";
-  import { ambienceApiClient } from "$lib/services/ambienceApiClient";
-  import type { AmbienceCategory } from "$lib/types/ambience";
+  import type { PageData } from "./$types";
   import CategoryHeader from "../CategoryHeader.svelte";
 
-  let categories = $state<AmbienceCategory[]>([]);
-
-  onMount(async () => {
-    categories = await ambienceApiClient.fetchAmbienceCategories();
-  });
+  let { data }: { data: PageData } = $props();
 
   /**
    * @param id - Ambience ID to check against active ambiences.
@@ -33,7 +27,7 @@
 </script>
 
 <div class="categories">
-  {#each categories as category}
+  {#each data.categories as category}
     <div class="category">
       <CategoryHeader
         label={category.label}

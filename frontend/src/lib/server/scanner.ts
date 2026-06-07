@@ -18,6 +18,7 @@
 
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { env } from '$env/dynamic/private';
+import { assetUrl } from '$lib/config';
 import type { Ambience, AmbienceCategory, AmbienceCategoryEntry } from '$lib/types/ambience';
 import type { MusicTrack, Playlist, PlaylistCategory, PlaylistCategoryEntry } from '$lib/types/music';
 import type { BlendMode, BackgroundAsset, LayerAsset, Scene, SceneCategory, SceneCategoryEntry } from '$lib/types/scene';
@@ -94,7 +95,7 @@ function scanAmbiences(keys: string[]): { categories: AmbienceCategory[]; ambien
         console.warn(`Duplicate ambience '${ambSlug}' in '${catSlug}' — skipping`);
         continue;
       }
-      ambiences.set(id, { id, label: toLabel(ambSlug), loop: true, src: key });
+      ambiences.set(id, { id, label: toLabel(ambSlug), loop: true, src: key, url: assetUrl(key) });
       if (!catAmbs.has(catSlug)) catAmbs.set(catSlug, []);
       catAmbs.get(catSlug)!.push(ambSlug);
     }
@@ -107,7 +108,7 @@ function scanAmbiences(keys: string[]): { categories: AmbienceCategory[]; ambien
       const entries: AmbienceCategoryEntry[] = (catAmbs.get(catSlug) ?? [])
         .sort()
         .map(slug => ({ id: `${catBase}.${slug}`, label: toLabel(slug) }));
-      return { id: catSlug, label: toLabel(catSlug), src: meta.src, thumb_src: meta.thumb_src, order: toOrder(catSlug), ambiences: entries };
+      return { id: catSlug, label: toLabel(catSlug), src: meta.src, thumb_src: meta.thumb_src, url: assetUrl(meta.src), thumb_url: meta.thumb_src ? assetUrl(meta.thumb_src) : null, order: toOrder(catSlug), ambiences: entries };
     });
 
   return { categories, ambiences: [...ambiences.values()] };
@@ -147,7 +148,7 @@ function scanPlaylists(keys: string[]): { categories: PlaylistCategory[]; playli
     const slash = plKey.indexOf('/');
     const catSlug = plKey.slice(0, slash);
     const plSlug = plKey.slice(slash + 1);
-    playlists.push({ id: plSlug, label: toLabel(plSlug), src: meta.src, thumb_src: meta.thumb_src, tracks: meta.tracks });
+    playlists.push({ id: plSlug, label: toLabel(plSlug), src: meta.src, thumb_src: meta.thumb_src, url: assetUrl(meta.src), thumb_url: meta.thumb_src ? assetUrl(meta.thumb_src) : null, tracks: meta.tracks.map(t => ({ ...t, url: assetUrl(t.src) })) });
     catEntries.get(catSlug)!.push({ id: plSlug, label: toLabel(plSlug) });
   }
 
@@ -178,11 +179,14 @@ function scanScenes(): { categories: SceneCategory[]; scenes: Scene[] } {
       const bg = (raw.background as Record<string, unknown> | undefined) ?? {};
       const bgSrc = (bg.src as string | undefined) ?? '';
 
+      const bgThumbSrc = (bg.thumb_src as string | null | undefined) ?? null;
       const background: BackgroundAsset = {
         id: bgSrc ? bgSrc.split('/').pop()!.replace(/\.[^.]+$/, '') : sceneId,
         src: bgSrc,
         type: (bg.type as 'image' | 'video' | undefined) ?? 'image',
-        thumb_src: (bg.thumb_src as string | null | undefined) ?? null,
+        thumb_src: bgThumbSrc,
+        url: bgSrc ? assetUrl(bgSrc) : undefined,
+        thumb_url: bgThumbSrc ? assetUrl(bgThumbSrc) : null,
         loop: (bg.loop as boolean | undefined) ?? true,
         opacity: (bg.opacity as number | undefined) ?? 1.0,
         brightness: (bg.brightness as number | undefined) ?? 1.0,
@@ -198,6 +202,7 @@ function scanScenes(): { categories: SceneCategory[]; scenes: Scene[] } {
         return {
           id: lSrc ? lSrc.split('/').pop()!.replace(/\.[^.]+$/, '') : `${sceneId}-layer-${i}`,
           src: lSrc,
+          url: lSrc ? assetUrl(lSrc) : undefined,
           type: (l.type as 'image' | 'video' | undefined) ?? 'video',
           order: i,
           loop: (l.loop as boolean | undefined) ?? true,

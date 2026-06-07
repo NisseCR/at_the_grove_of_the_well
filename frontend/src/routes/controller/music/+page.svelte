@@ -1,27 +1,17 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { appState } from "$lib/stores/appState.svelte";
   import { sendSetPlaylist } from "$lib/services/transport";
-  import { musicApiClient } from "$lib/services/musicApiClient";
-  import type { Playlist, PlaylistCategory } from "$lib/types/music";
+  import type { PageData } from "./$types";
   import CategoryHeader from "../CategoryHeader.svelte";
   import ThumbnailTile from "../ThumbnailTile.svelte";
 
-  let categories = $state<PlaylistCategory[]>([]);
-  let playlists = $state<Playlist[]>([]);
-
-  onMount(async () => {
-    [categories, playlists] = await Promise.all([
-      musicApiClient.fetchPlaylistCategories(),
-      musicApiClient.fetchPlaylists(),
-    ]);
-  });
+  let { data }: { data: PageData } = $props();
 
   /**
    * @param id - Playlist ID to look up thumbnail for.
    */
   function thumbnailFor(id: string): string | undefined {
-    const p = playlists.find((p) => p.id === id);
+    const p = data.playlists.find((p) => p.id === id);
     return p?.thumb_url ?? p?.url ?? undefined;
   }
 
@@ -39,14 +29,14 @@
     if (isActive(id)) {
       sendSetPlaylist(null, null);
     } else {
-      const label = playlists.find((p) => p.id === id)?.label ?? null;
+      const label = data.playlists.find((p) => p.id === id)?.label ?? null;
       sendSetPlaylist(id, label);
     }
   }
 </script>
 
 <div class="categories">
-  {#each categories as category}
+  {#each data.categories as category}
     <div class="category">
       <CategoryHeader label={category.label} />
       <div class="grid">
