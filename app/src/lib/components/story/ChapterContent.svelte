@@ -33,7 +33,7 @@
   }
 
   .chapter-prose {
-    font-family: 'IM Fell English', Georgia, serif;
+    font-family: 'EB Garamond', Georgia, serif;
     font-size: clamp(18px, 1.15vw, 20px);
     line-height: 1.9;
     letter-spacing: 0.01em;

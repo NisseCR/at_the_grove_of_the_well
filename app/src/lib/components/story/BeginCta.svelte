@@ -19,6 +19,7 @@
     padding: 0.5rem 1.5rem;
     font-size: 0.75rem;
     letter-spacing: 0.2em;
+    margin-right: -0.2em;
     text-transform: uppercase;
     cursor: pointer;
     white-space: nowrap;
