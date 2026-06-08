@@ -16,12 +16,7 @@
 
       <button class="card" onclick={() => goto("/controller/scenes")}>
         <span class="card-label">Controller</span>
-        <span class="card-desc">Set scenes, ambiences and music</span>
-      </button>
-
-      <button class="card" onclick={() => goto("/sync")}>
-        <span class="card-label">Sync</span>
-        <span class="card-desc">Reload content from R2</span>
+        <span class="card-desc">Set audio and visuals</span>
       </button>
     </nav>
   </div>
@@ -66,7 +61,10 @@
 
   .cards {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--space-4);
+    padding-inline: var(--space-6);
   }
 
   .card {
@@ -80,6 +78,8 @@
     backdrop-filter: blur(var(--blur-md));
     -webkit-backdrop-filter: blur(var(--blur-md));
     min-width: 180px;
+    flex: 1 1 180px;
+    max-width: 260px;
     text-align: center;
     transition:
       background var(--ease-fast),

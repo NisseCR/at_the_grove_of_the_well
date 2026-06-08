@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
+  import { toast } from "svelte-sonner";
   import type { ReactiveAudioState } from "$lib/types/state";
   import { ambienceEngine } from "$lib/engines/ambienceEngine";
   import { musicEngine } from "$lib/engines/musicEngine";
@@ -21,7 +22,7 @@
     const ids = ambiences.map((a) => a.id);
     if (ids.join(",") !== prevAmbienceIds.join(",")) {
       prevAmbienceIds = ids;
-      ambienceEngine.syncActive(ambiences);
+      ambienceEngine.syncActive(ambiences).catch(() => toast.error("Ambience failed to load"));
     } else {
       for (const a of ambiences) ambienceEngine.setVolume(a.id, a.volume);
     }
@@ -36,7 +37,7 @@
     const vol = state.music?.volume ?? 0.5;
     if (id !== prevMusicId) {
       prevMusicId = id;
-      musicEngine.setPlaylist(id, vol);
+      musicEngine.setPlaylist(id, vol).catch(() => toast.error("Music failed to load"));
     } else {
       musicEngine.setVolume(vol);
     }
@@ -46,7 +47,7 @@
   // the initial mount run is a no-op.
   $effect(() => {
     if (!state.resetAudioVersion) return;
-    ambienceEngine.hardReset(state.ambiences ?? []);
-    musicEngine.hardReset(state.music?.id ?? null);
+    ambienceEngine.hardReset(state.ambiences ?? []).catch(() => toast.error("Audio reset failed"));
+    musicEngine.hardReset(state.music?.id ?? null).catch(() => toast.error("Music reset failed"));
   });
 </script>

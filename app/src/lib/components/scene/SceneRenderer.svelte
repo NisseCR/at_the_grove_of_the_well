@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
+  import { toast } from "svelte-sonner";
   import { sceneEngine } from "$lib/engines/sceneEngine";
   import SceneAsset from "./SceneAsset.svelte";
   import type { Scene, SceneSlotState } from "$lib/types/scene";
@@ -22,7 +23,9 @@
 
   $effect(() => {
     if (requestedSceneId) {
-      sceneEngine.transitionScene(requestedSceneId, () => currentContainer, slotState);
+      sceneEngine
+        .transitionScene(requestedSceneId, () => currentContainer, slotState)
+        .catch(() => toast.error("Scene failed to load"));
     }
   });
 

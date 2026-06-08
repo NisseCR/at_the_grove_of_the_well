@@ -1,9 +1,13 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  import { scrollFade } from '$lib/actions/scrollFade';
-  import { heroReveal } from '$lib/actions/heroReveal';
+  import type { Snippet } from "svelte";
+  import { scrollFade } from "$lib/actions/scrollFade";
+  import { heroReveal } from "$lib/actions/heroReveal";
 
-  let { storyLabel, chapterTitle, children }: {
+  let {
+    storyLabel,
+    chapterTitle,
+    children,
+  }: {
     storyLabel: string;
     chapterTitle: string;
     children?: Snippet;
@@ -12,13 +16,19 @@
   let ctaReady = $state(false);
 
   function onTypingComplete() {
-    setTimeout(() => { ctaReady = true; }, 600);
+    setTimeout(() => {
+      ctaReady = true;
+    }, 600);
   }
 </script>
 
 <section class="hero">
-  <div class="hero-titles" use:heroReveal={{ onComplete: onTypingComplete }} use:scrollFade>
-    <p class="story-label">{storyLabel}</p>
+  <div
+    class="hero-titles"
+    use:heroReveal={{ onComplete: onTypingComplete }}
+    use:scrollFade
+  >
+    <p class="story-label">story · {storyLabel}</p>
     <h1 class="chapter-title">{chapterTitle}</h1>
   </div>
   {#if ctaReady}
@@ -43,7 +53,7 @@
   }
 
   .story-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 13px;
     letter-spacing: 0.3em;
     text-transform: uppercase;
@@ -52,7 +62,7 @@
   }
 
   .chapter-title {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: clamp(2.5rem, 7vw, 5.5rem);
     font-weight: 600;
     line-height: 1.15;
