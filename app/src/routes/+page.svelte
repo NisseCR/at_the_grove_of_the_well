@@ -1,7 +1,5 @@
 <script lang="ts">
   import { Lock } from "@lucide/svelte";
-  import type { PageData } from "./$types";
-  let { data }: { data: PageData } = $props();
 </script>
 
 <div class="home">
@@ -13,16 +11,16 @@
     <nav class="cards">
       <a href="/player" class="card">
         <span class="card-label">Player</span>
-        <span class="card-desc">The audio-visual experience</span>
+        <span class="card-desc">The audio-visual VTT experience</span>
       </a>
 
       <a href="/reader" class="card">
         <span class="card-label">Reader</span>
-        <span class="card-desc">An immersive reading experience</span>
+        <span class="card-desc">The immersive reading experience</span>
       </a>
 
       <a href="/controller/scenes" class="card" data-sveltekit-reload>
-        {#if !data.isAuthed}<Lock size={13} class="lock-icon" />{/if}
+        <Lock size={13} class="lock-icon" />
         <span class="card-label">Controller</span>
         <span class="card-desc">Control scenes, ambiences and music</span>
       </a>
