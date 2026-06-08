@@ -1,4 +1,3 @@
-
 <script lang="ts">
   import { Lock } from "@lucide/svelte";
   import type { PageData } from "./$types";
@@ -17,12 +16,15 @@
         <span class="card-desc">The audio-visual experience</span>
       </a>
 
+      <a href="/reader" class="card">
+        <span class="card-label">Reader</span>
+        <span class="card-desc">An immersive reading experience</span>
+      </a>
+
       <a href="/controller/scenes" class="card" data-sveltekit-reload>
-        <span class="card-label">
-          Controller
-          {#if !data.isAuthed}<Lock size={13} class="lock-icon" />{/if}
-        </span>
-        <span class="card-desc">Set audio and visuals</span>
+        {#if !data.isAuthed}<Lock size={13} class="lock-icon" />{/if}
+        <span class="card-label">Controller</span>
+        <span class="card-desc">Control scenes, ambiences and music</span>
       </a>
     </nav>
   </div>
@@ -67,13 +69,15 @@
 
   .cards {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     gap: var(--space-4);
     padding-inline: var(--space-6);
+    width: 100%;
   }
 
   .card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
@@ -83,9 +87,7 @@
     border-radius: var(--radius-lg);
     backdrop-filter: blur(var(--blur-md));
     -webkit-backdrop-filter: blur(var(--blur-md));
-    min-width: 220px;
-    flex: 1 1 220px;
-    max-width: 340px;
+    width: min(380px, 100%);
     text-align: center;
     text-decoration: none;
     transition:
@@ -103,15 +105,17 @@
     font-size: var(--text-base);
     color: var(--color-text);
     letter-spacing: var(--tracking-wide);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
   }
 
   .card-desc {
     font-size: var(--text-xs);
     color: var(--color-text-muted);
-    white-space: nowrap;
+  }
+
+  :global(.lock-icon) {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    color: var(--color-text-faint);
   }
 </style>
