@@ -1,4 +1,10 @@
 
+<script lang="ts">
+  import { Lock } from "@lucide/svelte";
+  import type { PageData } from "./$types";
+  let { data }: { data: PageData } = $props();
+</script>
+
 <div class="home">
   <div class="bg"></div>
 
@@ -12,7 +18,10 @@
       </a>
 
       <a href="/controller/scenes" class="card" data-sveltekit-reload>
-        <span class="card-label">Controller</span>
+        <span class="card-label">
+          Controller
+          {#if !data.isAuthed}<Lock size={13} class="lock-icon" />{/if}
+        </span>
         <span class="card-desc">Set audio and visuals</span>
       </a>
     </nav>
@@ -94,6 +103,10 @@
     font-size: var(--text-base);
     color: var(--color-text);
     letter-spacing: var(--tracking-wide);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
   }
 
   .card-desc {
