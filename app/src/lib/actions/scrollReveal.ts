@@ -13,7 +13,7 @@ export function scrollReveal(node: HTMLElement) {
 
   const trigger = ScrollTrigger.create({
     trigger: node,
-    start: "top 82%",
+    start: "top 88%",
     once: true,
     onEnter: () => {
       gsap.to(node, { opacity: 1, duration: 1.2, ease: "power2.out" });
