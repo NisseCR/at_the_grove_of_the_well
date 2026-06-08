@@ -1,6 +1,3 @@
-<script lang="ts">
-  import { goto } from "$app/navigation";
-</script>
 
 <div class="home">
   <div class="bg"></div>
@@ -9,15 +6,15 @@
     <h1 class="title">At the Grove of the Well</h1>
 
     <nav class="cards">
-      <button class="card" onclick={() => goto("/player")}>
+      <a href="/player" class="card">
         <span class="card-label">Player</span>
         <span class="card-desc">The audio-visual experience</span>
-      </button>
+      </a>
 
-      <button class="card" onclick={() => goto("/controller/scenes")}>
+      <a href="/controller/scenes" class="card" data-sveltekit-reload>
         <span class="card-label">Controller</span>
         <span class="card-desc">Set audio and visuals</span>
-      </button>
+      </a>
     </nav>
   </div>
 </div>
