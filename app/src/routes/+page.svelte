@@ -74,10 +74,11 @@
     border-radius: var(--radius-lg);
     backdrop-filter: blur(var(--blur-md));
     -webkit-backdrop-filter: blur(var(--blur-md));
-    min-width: 180px;
-    flex: 1 1 180px;
-    max-width: 260px;
+    min-width: 220px;
+    flex: 1 1 220px;
+    max-width: 340px;
     text-align: center;
+    text-decoration: none;
     transition:
       background var(--ease-fast),
       border-color var(--ease-fast);
@@ -98,5 +99,6 @@
   .card-desc {
     font-size: var(--text-xs);
     color: var(--color-text-muted);
+    white-space: nowrap;
   }
 </style>
