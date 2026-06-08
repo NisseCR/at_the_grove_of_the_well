@@ -1,12 +1,14 @@
 <script lang="ts">
-  import type { ChapterSegment } from '$lib/types/story';
-  import ProseBlock from './ProseBlock.svelte';
+  import type { ChapterSegment } from "$lib/types/story";
+  import ProseBlock from "./ProseBlock.svelte";
 
   let { segments }: { segments: ChapterSegment[] } = $props();
 
   const dropCap = $derived(
-    segments[0]?.blocks[0]?.type === 'prose' &&
-    !/^["""'''«‹]/.test(segments[0].blocks[0].paragraphs[0]?.[0]?.text?.[0] ?? '')
+    segments[0]?.blocks[0]?.type === "prose" &&
+      !/^["""'''«‹]/.test(
+        segments[0].blocks[0].paragraphs[0]?.[0]?.text?.[0] ?? "",
+      ),
   );
 </script>
 
@@ -27,17 +29,20 @@
   .content {
     position: relative;
     z-index: 2;
-    max-width: 600px;
+    max-width: 67ch;
     margin: 0 auto;
     padding: 4rem 1.5rem 12rem;
   }
 
   .chapter-prose {
-    font-family: 'EB Garamond', Georgia, serif;
-    font-size: clamp(18px, 1.15vw, 20px);
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: clamp(20px, 1.5vw, 23px);
     line-height: 1.9;
     letter-spacing: 0.01em;
-    font-feature-settings: 'liga' 1, 'kern' 1, 'clig' 1;
+    font-feature-settings:
+      "liga" 1,
+      "kern" 1,
+      "clig" 1;
   }
 
   .chapter-prose :global(p) {
@@ -47,7 +52,9 @@
     hyphens: none;
     overflow-wrap: normal;
     word-break: normal;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 0, 0, 0.6);
+    text-shadow:
+      0 1px 12px rgba(0, 0, 0, 0.9),
+      0 0 40px rgba(0, 0, 0, 0.6);
   }
 
   .chapter-prose :global(p + p) {
@@ -62,7 +69,7 @@
   }
 
   .chapter-prose :global(hr)::before {
-    content: '* * *';
+    content: "* * *";
     letter-spacing: 0.5em;
   }
 
