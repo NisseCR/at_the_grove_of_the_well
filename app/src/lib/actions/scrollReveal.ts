@@ -1,5 +1,5 @@
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,10 +13,10 @@ export function scrollReveal(node: HTMLElement) {
 
   const trigger = ScrollTrigger.create({
     trigger: node,
-    start: 'top 88%',
+    start: "top 82%",
     once: true,
     onEnter: () => {
-      gsap.to(node, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+      gsap.to(node, { opacity: 1, duration: 1.2, ease: "power2.out" });
     },
   });
 
