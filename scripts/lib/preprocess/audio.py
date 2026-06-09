@@ -4,23 +4,18 @@ Audio preprocessing.
 Loudness-normalises to -16 LUFS and resamples to 48 kHz. Output is always
 OGG/Vorbis. Requires ffmpeg on PATH.
 
-Modes
------
-``"music"``   — two-pass loudnorm, raises and lowers to hit the target.
-``"ambience"``— only lowers loudness if above target; quiet sources are left alone.
+All audio is normalised identically. Volume balance between music and ambience
+is handled at playback time by the audio engine (see app/src/lib/config/audio.ts).
 """
 
 import json
 import subprocess
 from pathlib import Path
-from typing import Literal
 
 SAMPLE_RATE = 48000
 LUFS_TARGET = -16.0
 TRUE_PEAK = -1.5
 LRA = 11
-
-NormMode = Literal["music", "ambience"]
 
 
 def _loudnorm_filter(extra: str = "") -> str:
@@ -68,35 +63,7 @@ def _apply_normalization(input_path: Path, output_path: Path, measured: dict) ->
     )
 
 
-def _resample_only(input_path: Path, output_path: Path) -> None:
-    """Resample to the target rate without any loudness adjustment."""
-    subprocess.run(
-        [
-            "ffmpeg", "-i", str(input_path),
-            "-map", "0:a",
-            "-ar", str(SAMPLE_RATE),
-            "-c:a", "libvorbis",
-            "-q:a", "6",
-            "-y", str(output_path),
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-
-
-def process_audio(source: Path, dest: Path, mode: NormMode = "music") -> None:
-    """
-    Convert a source audio file to OGG and write it to dest.
-
-    ``"music"`` mode normalises both up and down to the target LUFS.
-    ``"ambience"`` mode only reduces loudness if the source is above target;
-    quiet sources are resampled without gain change.
-    """
+def process_audio(source: Path, dest: Path) -> None:
+    """Convert a source audio file to OGG and write it to dest, normalised to LUFS_TARGET."""
     measured = _measure_loudness(source)
-    measured_lufs = float(measured["input_i"])
-
-    if mode == "ambience" and measured_lufs <= LUFS_TARGET:
-        _resample_only(source, dest)
-    else:
-        _apply_normalization(source, dest, measured)
+    _apply_normalization(source, dest, measured)

@@ -6,6 +6,7 @@ import type {
   ReaderSegment,
   ReaderTrigger,
 } from "$lib/types/reader";
+import { DEFAULT_AMBIENCE_VOLUME, DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
 /**
  * Parse a block of `key: value` lines into a plain object.
@@ -30,7 +31,7 @@ function parseKeyValues(raw: string): Record<string, string> {
  */
 function parseAmbienceRef(raw: string): AmbienceRef {
   const atIdx = raw.indexOf("@");
-  if (atIdx === -1) return { id: raw, volume: 0.5 };
+  if (atIdx === -1) return { id: raw, volume: DEFAULT_AMBIENCE_VOLUME };
   return {
     id: raw.slice(0, atIdx),
     volume: parseFloat(raw.slice(atIdx + 1)) || 1,
@@ -46,7 +47,7 @@ function parseAmbienceRef(raw: string): AmbienceRef {
 function parsePlaylistRef(raw: string): PlaylistRef | null {
   if (raw === "none") return null;
   const atIdx = raw.indexOf("@");
-  if (atIdx === -1) return { id: raw, volume: 0.5 };
+  if (atIdx === -1) return { id: raw, volume: DEFAULT_MUSIC_VOLUME };
   return {
     id: raw.slice(0, atIdx),
     volume: parseFloat(raw.slice(atIdx + 1)) || 1,

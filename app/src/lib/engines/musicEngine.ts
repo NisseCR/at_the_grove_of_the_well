@@ -2,6 +2,7 @@ import * as Tone from "tone";
 import { audioEngine } from "$lib/engines/audioEngine";
 import type { Stem } from "$lib/types/audio";
 import type { Playlist } from "$lib/types/music";
+import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
 const FADE_IN = 3.0;
 const FADE_OUT = 3.0;
@@ -29,7 +30,7 @@ class MusicEngine {
   private trackIndex = 0;
 
   /** Target gain for the current playlist. Set on setPlaylist, used by fadeInMaster. */
-  private targetVolume = 0.5;
+  private targetVolume = DEFAULT_MUSIC_VOLUME;
 
   /**
    * Incremented every time setPlaylist or reset is called. Each async
@@ -53,7 +54,7 @@ class MusicEngine {
    * @param id     - Playlist id to start, or null to stop music.
    * @param volume - Target gain for the fade-in (0–1). Defaults to 0.5.
    */
-  async setPlaylist(id: string | null, volume = 0.5): Promise<void> {
+  async setPlaylist(id: string | null, volume = DEFAULT_MUSIC_VOLUME): Promise<void> {
     this.targetVolume = volume;
     const gen = ++this.generation;
 

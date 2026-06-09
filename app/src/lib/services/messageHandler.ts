@@ -1,5 +1,6 @@
 import type { TransportMessage } from "$lib/types/message";
 import { appState } from "$lib/stores/appState.svelte";
+import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
 /**
  * @param message - Incoming WebSocket message from the relay.
@@ -28,7 +29,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
 
     case "SET_PLAYLIST": {
       const { id, label } = message.payload;
-      appState.music = { id, label, volume: appState.music?.volume ?? 0.5 };
+      appState.music = { id, label, volume: appState.music?.volume ?? DEFAULT_MUSIC_VOLUME };
       break;
     }
 

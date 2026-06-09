@@ -4,6 +4,7 @@
   import type { ReactiveAudioState } from "$lib/types/state";
   import { ambienceEngine } from "$lib/engines/ambienceEngine";
   import { musicEngine } from "$lib/engines/musicEngine";
+  import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
   let { state }: { state: ReactiveAudioState } = $props();
 
@@ -34,7 +35,7 @@
 
   $effect(() => {
     const id = state.music?.id ?? null;
-    const vol = state.music?.volume ?? 0.5;
+    const vol = state.music?.volume ?? DEFAULT_MUSIC_VOLUME;
     if (id !== prevMusicId) {
       prevMusicId = id;
       musicEngine.setPlaylist(id, vol).catch(() => toast.error("Music failed to load"));

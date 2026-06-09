@@ -81,9 +81,7 @@ def run(source_root: Path) -> None:
             if suffix in AUDIO_EXTENSIONS:
                 out_path = _mirror_path(source_root, source_file, output_root, ".ogg")
                 out_path.parent.mkdir(parents=True, exist_ok=True)
-                # Ambience folder uses gentle normalisation; playlists use full two-pass
-                mode = "ambience" if "ambiences" in source_file.parts else "music"
-                process_audio(source_file, out_path, mode=mode)
+                process_audio(source_file, out_path)
 
             elif suffix in IMAGE_EXTENSIONS:
                 out_path = _mirror_path(source_root, source_file, output_root, ".webp")

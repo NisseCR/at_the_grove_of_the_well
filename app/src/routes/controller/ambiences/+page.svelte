@@ -1,6 +1,7 @@
 <script lang="ts">
   import { appState } from "$lib/stores/appState.svelte";
   import { sendSetAmbiences } from "$lib/services/transport";
+  import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
   import type { PageData } from "./$types";
   import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
 
@@ -21,7 +22,7 @@
     const current = appState.ambiences ?? [];
     const next = isActive(id)
       ? current.filter((a) => a.id !== id)
-      : [...current, { id, label, volume: 0.5 }];
+      : [...current, { id, label, volume: DEFAULT_AMBIENCE_VOLUME }];
     sendSetAmbiences(next);
   }
 </script>
