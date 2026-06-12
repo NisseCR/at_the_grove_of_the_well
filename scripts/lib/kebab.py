@@ -75,7 +75,11 @@ def rename_tree(root: Path, dry_run: bool = False) -> None:
 
         new_path = path.parent / new_name
 
-        if new_path.exists():
+        # On case-insensitive filesystems (Windows/macOS), new_path.exists() is True
+        # for a case-only rename because the OS sees the same file. Only treat it
+        # as a collision when the target is a genuinely different file.
+        is_case_only_rename = new_name.lower() == path.name.lower()
+        if new_path.exists() and not is_case_only_rename:
             collisions.append((path, new_path))
             continue
 
