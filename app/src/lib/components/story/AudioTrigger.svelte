@@ -1,6 +1,7 @@
 <script lang="ts">
-  import type { ChapterFrontmatter, ChapterSegment } from '$lib/types/story';
-  import type { ReactiveAudioState } from '$lib/types/state';
+  import type { ChapterFrontmatter, ChapterSegment, AudioRef } from '$lib/types/story';
+  import type { AmbienceAudioState, ReactiveAudioState } from '$lib/types/state';
+  import { DEFAULT_MUSIC_VOLUME } from '$lib/config/audio';
   import AudioRenderer from '$lib/components/audio/AudioRenderer.svelte';
 
   let {
@@ -13,27 +14,40 @@
     activeTriggerIndex: number;
   } = $props();
 
+  /** Converts AudioRef[] to AmbienceAudioState. volumes default to 1 (full pass-through). */
+  function refsToAmbiences(refs: AudioRef[] | null): AmbienceAudioState {
+    const list = refs ?? [];
+    return {
+      activeIds: list.map((r) => r.id),
+      targetGains: Object.fromEntries(list.map((r) => [r.id, r.volume])),
+      volumes: Object.fromEntries(list.map((r) => [r.id, 1.0])),
+      labels: {},
+    };
+  }
+
   const localAudio: ReactiveAudioState = $state({
-    ambiences: null,
-    music: null,
+    ambiences: refsToAmbiences(null),
+    music: {
+      activeId: null,
+      targetGain: DEFAULT_MUSIC_VOLUME,
+      volume: 1.0,
+      label: null,
+    },
     resetAudioVersion: 0,
   });
 
   // Apply full audio state snapshot whenever the active trigger changes.
   // activeTriggerIndex === -1 means above all triggers — use frontmatter defaults.
   $effect(() => {
-    if (activeTriggerIndex === -1) {
-      localAudio.ambiences = frontmatter.ambiences;
-      localAudio.music = frontmatter.playlist
-        ? { id: frontmatter.playlist.id, label: null, volume: frontmatter.playlist.volume }
-        : null;
-    } else {
-      const trigger = segments[activeTriggerIndex].trigger!;
-      localAudio.ambiences = trigger.ambiences;
-      localAudio.music = trigger.playlist
-        ? { id: trigger.playlist.id, label: null, volume: trigger.playlist.volume }
-        : null;
-    }
+    const source =
+      activeTriggerIndex === -1
+        ? { ambiences: frontmatter.ambiences, playlist: frontmatter.playlist }
+        : segments[activeTriggerIndex].trigger!;
+
+    localAudio.ambiences = refsToAmbiences(source.ambiences);
+    localAudio.music = source.playlist
+      ? { activeId: source.playlist.id, targetGain: source.playlist.volume, volume: 1.0, label: null }
+      : { activeId: null, targetGain: DEFAULT_MUSIC_VOLUME, volume: 1.0, label: null };
   });
 </script>
 

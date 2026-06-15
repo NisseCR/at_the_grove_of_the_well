@@ -22,15 +22,20 @@ class AudioEngine {
    * preloading it first if necessary. The player is not started — the caller
    * is responsible for configuring and starting it.
    *
+   * Signal chain: player → rampGain(0) → volumeGain(1) → destination.
+   * rampGain is driven by transition() fades; volumeGain is driven by setVolume().
+   *
    * @param url - Remote URL of the audio file.
-   * @returns A stem with a gain node connected to the destination at volume 0.
+   * @returns A stem with rampGain at 0 and volumeGain at 1, connected to destination.
    */
   async createStem(url: string): Promise<Stem> {
     await this.preload(url);
     const player = new Tone.Player(this.cache.get(url)!);
-    const gain = new Tone.Gain(0).toDestination();
-    player.connect(gain);
-    return { player, gain, url };
+    const volumeGain = new Tone.Gain(1).toDestination();
+    const rampGain = new Tone.Gain(0);
+    rampGain.connect(volumeGain);
+    player.connect(rampGain);
+    return { player, rampGain, volumeGain, url };
   }
 
   /**

@@ -21,7 +21,7 @@
   $effect(() => {
     if (!appState.clientConnectedVersion) return;
     untrack(() => {
-      if (!appState.scene && !appState.ambiences && !appState.music) return;
+      if (!appState.scene && appState.ambiences.activeIds.length === 0 && !appState.music.activeId) return;
       sendSync();
     });
   });

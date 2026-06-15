@@ -12,9 +12,9 @@
     sendSetAmbiences,
     sendSetAmbienceVolume,
   } from "$lib/services/transport";
-  import type { ActiveAmbience } from "$lib/types/state";
+  import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
 
-  const { ambience }: { ambience: ActiveAmbience } = $props();
+  const { id }: { id: string } = $props();
 
   function volumeIcon(v: number) {
     if (v === 0) return VolumeX;
@@ -24,33 +24,40 @@
   }
 
   function onDismiss(): void {
-    const next = (appState.ambiences ?? []).filter((a) => a.id !== ambience.id);
-    sendSetAmbiences(next);
+    const nextIds = appState.ambiences.activeIds.filter((i) => i !== id);
+    sendSetAmbiences(
+      nextIds.map((i) => ({
+        id: i,
+        label: appState.ambiences.labels[i] ?? null,
+        volume: appState.ambiences.targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
+      })),
+    );
   }
 
   function onVolumeChange(value: number): void {
     const clamped = Math.min(1, Math.max(0, value));
-    const entry = appState.ambiences?.find((a) => a.id === ambience.id);
-    if (entry) entry.volume = clamped;
-    sendSetAmbienceVolume(ambience.id, clamped);
+    appState.ambiences.volumes[id] = clamped;
+    sendSetAmbienceVolume(id, clamped);
   }
 
   function onVolumeWheel(e: WheelEvent): void {
     e.preventDefault();
-    onVolumeChange(ambience.volume - e.deltaY * 0.001);
+    onVolumeChange(volume - e.deltaY * 0.001);
   }
 
-  const VolumeIcon = $derived(volumeIcon(ambience.volume));
+  const label = $derived(appState.ambiences.labels[id] ?? id);
+  const volume = $derived(appState.ambiences.volumes[id] ?? 1.0);
+  const VolumeIcon = $derived(volumeIcon(volume));
 </script>
 
 <div class="row">
   <div class="row-header">
     <AudioLines class="icon name-icon" size={13} />
-    <span class="audio-name">{ambience.label ?? ambience.id}</span>
+    <span class="audio-name">{label}</span>
     <button
       class="dismiss"
       onclick={onDismiss}
-      aria-label="Remove {ambience.label ?? ambience.id}"
+      aria-label="Remove {label}"
     >
       <X size={16} />
     </button>
@@ -63,7 +70,7 @@
       min="0"
       max="1"
       step="0.01"
-      value={ambience.volume}
+      value={volume}
       oninput={(e) =>
         onVolumeChange((e.currentTarget as HTMLInputElement).valueAsNumber)}
     />

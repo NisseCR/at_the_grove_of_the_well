@@ -15,24 +15,23 @@
 
   function onVolumeChange(value: number): void {
     const clamped = Math.min(1, Math.max(0, value));
-    if (appState.music) appState.music.volume = clamped;
+    appState.music.volume = clamped;
     sendSetMusicVolume(clamped);
   }
 
   function onVolumeWheel(e: WheelEvent): void {
     e.preventDefault();
-    onVolumeChange((appState.music?.volume ?? 0.5) - e.deltaY * 0.001);
+    onVolumeChange(appState.music.volume - e.deltaY * 0.001);
   }
 
-  const volume = $derived(appState.music!.volume);
+  const volume = $derived(appState.music.volume);
   const VolumeIcon = $derived(volumeIcon(volume));
 </script>
 
 <div class="row">
   <div class="row-header">
     <Music class="icon name-icon" size={13} />
-    <span class="audio-name">{appState.music!.label ?? appState.music!.id}</span
-    >
+    <span class="audio-name">{appState.music.label ?? appState.music.activeId}</span>
     <button
       class="dismiss"
       onclick={() => sendSetPlaylist(null)}

@@ -1,6 +1,33 @@
 import type { TransportMessage } from "$lib/types/message";
+import type { AmbienceAudioState, AmbienceWireEntry } from "$lib/types/state";
 import { appState } from "$lib/stores/appState.svelte";
 import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
+
+/**
+ * Converts a wire ambience list to AmbienceAudioState.
+ * Carries over any existing per-id volume overrides from prevVolumes so that
+ * local slider positions survive ambience list changes (e.g. toggling a second
+ * ambience on does not reset the first one's local volume).
+ *
+ * @param list       - Wire entries from the incoming message.
+ * @param prevVolumes - The existing client-local volumes to preserve.
+ */
+function wireToAmbiences(
+  list: AmbienceWireEntry[],
+  prevVolumes: Record<string, number>,
+): AmbienceAudioState {
+  const activeIds: string[] = [];
+  const targetGains: Record<string, number> = {};
+  const volumes: Record<string, number> = {};
+  const labels: Record<string, string | null> = {};
+  for (const { id, volume, label } of list) {
+    activeIds.push(id);
+    targetGains[id] = volume;
+    volumes[id] = prevVolumes[id] ?? 1.0;  // preserve existing override, default new ids to unity
+    labels[id] = label;
+  }
+  return { activeIds, targetGains, volumes, labels };
+}
 
 /**
  * @param message - Incoming WebSocket message from the relay.
@@ -14,33 +41,29 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SET_AMBIENCES": {
-      appState.ambiences = message.payload.ambiences;
+      appState.ambiences = wireToAmbiences(
+        message.payload.ambiences,
+        appState.ambiences.volumes,
+      );
       break;
     }
 
     case "SET_AMBIENCE_VOLUME": {
       const { id, volume } = message.payload;
-      if (appState.ambiences) {
-        const entry = appState.ambiences.find((a) => a.id === id);
-        if (entry) entry.volume = volume;
-      }
+      appState.ambiences.volumes[id] = volume;
       break;
     }
 
     case "SET_PLAYLIST": {
-      const { id, label } = message.payload;
-      appState.music = { id, label, volume: appState.music?.volume ?? DEFAULT_MUSIC_VOLUME };
+      const { id, label, volume } = message.payload;
+      appState.music.activeId = id;
+      appState.music.label = label;
+      appState.music.targetGain = volume;
       break;
     }
 
     case "SET_MUSIC_VOLUME": {
-      if (!appState.music)
-        appState.music = {
-          id: null,
-          label: null,
-          volume: message.payload.volume,
-        };
-      else appState.music.volume = message.payload.volume;
+      appState.music.volume = message.payload.volume;
       break;
     }
 
@@ -62,8 +85,13 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SYNC": {
       const { scene, ambiences, music } = message.payload;
       appState.scene = scene ? { id: scene.id, label: null } : null;
-      appState.ambiences = ambiences ?? null;
-      appState.music = music ? { ...music, label: music.label ?? null } : null;
+      appState.ambiences = wireToAmbiences(ambiences ?? [], appState.ambiences.volumes);
+      appState.music = {
+        activeId: music?.id ?? null,
+        targetGain: music?.volume ?? DEFAULT_MUSIC_VOLUME,
+        volume: appState.music.volume,
+        label: music?.label ?? null,
+      };
       break;
     }
   }

@@ -1,4 +1,5 @@
 import type { TransportMessage } from "$lib/types/message";
+import type { AmbienceWireEntry } from "$lib/types/state";
 import { handleMessage } from "$lib/services/messageHandler";
 import { appState } from "$lib/stores/appState.svelte";
 
@@ -53,9 +54,7 @@ export function sendSetScene(
   send({ type: "SET_SCENE", payload: { sceneId, label } });
 }
 
-export function sendSetAmbiences(
-  ambiences: { id: string; label: string | null; volume: number }[],
-): void {
+export function sendSetAmbiences(ambiences: AmbienceWireEntry[]): void {
   send({ type: "SET_AMBIENCES", payload: { ambiences } });
 }
 
@@ -67,7 +66,10 @@ export function sendSetPlaylist(
   id: string | null,
   label: string | null = null,
 ): void {
-  send({ type: "SET_PLAYLIST", payload: { id, label } });
+  send({
+    type: "SET_PLAYLIST",
+    payload: { id, label, volume: appState.music.targetGain },
+  });
 }
 
 export function sendSetMusicVolume(volume: number): void {
@@ -83,12 +85,19 @@ export function sendSetDebug(debug: boolean): void {
 }
 
 export function sendSync(): void {
+  const { ambiences, music } = appState;
   send({
     type: "SYNC",
     payload: {
       scene: appState.scene,
-      ambiences: appState.ambiences,
-      music: appState.music,
+      ambiences: ambiences.activeIds.map((id) => ({
+        id,
+        label: ambiences.labels[id] ?? null,
+        volume: ambiences.targetGains[id],
+      })),
+      music: music.activeId
+        ? { id: music.activeId, label: music.label, volume: music.targetGain }
+        : null,
     },
   });
 }

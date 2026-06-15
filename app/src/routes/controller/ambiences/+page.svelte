@@ -11,7 +11,7 @@
    * @param id - Ambience ID to check against active ambiences.
    */
   function isActive(id: string): boolean {
-    return appState.ambiences?.some((a) => a.id === id) ?? false;
+    return appState.ambiences.activeIds.includes(id);
   }
 
   /**
@@ -19,11 +19,17 @@
    * @param label - Display label for the ambience.
    */
   function toggle(id: string, label: string): void {
-    const current = appState.ambiences ?? [];
+    const { activeIds, targetGains, labels } = appState.ambiences;
     const next = isActive(id)
-      ? current.filter((a) => a.id !== id)
-      : [...current, { id, label, volume: DEFAULT_AMBIENCE_VOLUME }];
-    sendSetAmbiences(next);
+      ? activeIds.filter((i) => i !== id)
+      : [...activeIds, id];
+    sendSetAmbiences(
+      next.map((i) => ({
+        id: i,
+        label: i === id ? label : (labels[i] ?? null),
+        volume: targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
+      })),
+    );
   }
 </script>
 

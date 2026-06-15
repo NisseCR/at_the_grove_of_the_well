@@ -6,19 +6,24 @@ import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
 const FADE_IN = 3.0;
 const FADE_OUT = 3.0;
-const FADE_VOLUME = 0.1;
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 class MusicEngine {
   /**
-   * Shared gain node that persists across track changes within a playlist.
-   * All track players route through this node, so fading it affects the
-   * whole playlist without touching individual players. Lazy-initialised
-   * on first use, disposed only on reset().
+   * Shared ramp gain node that persists across track changes within a playlist.
+   * All track players route through this node. Fades drive this node only.
+   * Lazy-initialised on first use, disposed only on reset().
    */
-  private masterGain: Tone.Gain | null = null;
+  private masterRampGain: Tone.Gain | null = null;
+
+  /**
+   * Shared volume gain node in series after masterRampGain.
+   * setVolume() sets this instantly; never ramped.
+   * Lazy-initialised together with masterRampGain, disposed together.
+   */
+  private masterVolumeGain: Tone.Gain | null = null;
 
   /** The currently playing Tone.Player. Swapped on every track change. */
   private player: Tone.Player | null = null;
@@ -29,36 +34,36 @@ class MusicEngine {
   /** Index into playlist.tracks pointing at the current or next track to play. */
   private trackIndex = 0;
 
-  /** Target gain for the current playlist. Set on setPlaylist, used by fadeInMaster. */
-  private targetVolume = DEFAULT_MUSIC_VOLUME;
+  /** Target gain for the current playlist. Set on transition(), used by fadeInMaster. */
+  private targetGain = DEFAULT_MUSIC_VOLUME;
 
   /**
-   * Incremented every time setPlaylist or reset is called. Each async
+   * Incremented every time transition() or reset() is called. Each async
    * operation captures the generation at the time it starts and checks
-   * it before proceeding — if the value has changed, a newer call has
-   * superseded this one and the operation returns early.
+   * it before proceeding.
    */
   private generation = 0;
 
   // ─── Public API ────────────────────────────────────────────────────────────
 
   /**
-   * Switches to the given playlist, or stops music if id is null.
+   * Switches to the given playlist at the given targetGain, or stops music if
+   * id is null. If the same playlist is already playing, fades masterRampGain
+   * to the new targetGain without restarting playback.
    *
-   * If a playlist is currently playing, masterGain fades to 0 first and
-   * we wait for the fade to complete before starting the new one — a
-   * sequential fade, not a crossfade. If setPlaylist is called again
-   * during this wait, the generation check exits early and the newer
-   * call takes over.
-   *
-   * @param id     - Playlist id to start, or null to stop music.
-   * @param volume - Target gain for the fade-in (0–1). Defaults to 0.5.
+   * @param id         - Playlist id to start, or null to stop music.
+   * @param targetGain - Target ramp gain for the fade-in (0–1).
    */
-  async setPlaylist(id: string | null, volume = DEFAULT_MUSIC_VOLUME): Promise<void> {
-    this.targetVolume = volume;
+  async transition(id: string | null, targetGain = DEFAULT_MUSIC_VOLUME): Promise<void> {
+    this.targetGain = targetGain;
     const gen = ++this.generation;
 
-    if (this.playlist && this.masterGain) {
+    if (id !== null && this.playlist?.id === id && this.masterRampGain) {
+      audioEngine.fadeTo(this.masterRampGain, targetGain, FADE_IN);
+      return;
+    }
+
+    if (this.playlist && this.masterRampGain) {
       await this.fadeOutCurrent();
       if (gen !== this.generation) return;
     }
@@ -77,26 +82,30 @@ class MusicEngine {
   }
 
   /**
-   * Fades masterGain to the given volume. No-ops if no playlist is active.
+   * Sets masterVolumeGain instantly (no ramp). No-ops if no music is active.
    *
-   * @param volume - Target gain value (0–1).
+   * @param volume - Target multiplier (0–1).
    */
   setVolume(volume: number): void {
-    if (this.masterGain) {
-      audioEngine.fadeTo(this.masterGain, volume, FADE_VOLUME);
+    if (this.masterVolumeGain) {
+      this.masterVolumeGain.gain.setValueAtTime(volume, Tone.now());
     }
   }
 
   /**
-   * Immediately stops all playback and disposes masterGain.
+   * Immediately stops all playback and disposes both master gain nodes.
    * Increments generation to cancel any in-flight async operations.
    */
   reset(): void {
     this.generation++;
     this.stopPlayer();
-    if (this.masterGain) {
-      this.masterGain.dispose();
-      this.masterGain = null;
+    if (this.masterRampGain) {
+      this.masterRampGain.dispose();
+      this.masterRampGain = null;
+    }
+    if (this.masterVolumeGain) {
+      this.masterVolumeGain.dispose();
+      this.masterVolumeGain = null;
     }
     this.playlist = null;
     this.trackIndex = 0;
@@ -106,11 +115,11 @@ class MusicEngine {
    * Resets all playback state and restarts from the given playlist id.
    * Call this after audioEngine.reset() has created a fresh AudioContext.
    *
-   * @param playlistId - Playlist to restart, or null to leave music silent.
+   * @param id - Playlist to restart, or null to leave music silent.
    */
-  async hardReset(playlistId: string | null): Promise<void> {
+  async hardReset(id: string | null): Promise<void> {
     this.reset();
-    await this.setPlaylist(playlistId);
+    await this.transition(id);
   }
 
   // ─── Playback ──────────────────────────────────────────────────────────────
@@ -120,8 +129,7 @@ class MusicEngine {
    * stem loading, audio routing, advance registration, and fade-in.
    *
    * @param gen    - Generation value at call time; guards against superseded calls.
-   * @param fadeIn - Whether to fade masterGain in on start. False for auto-advance
-   *                 since masterGain is already at the right level.
+   * @param fadeIn - Whether to fade masterRampGain in on start.
    */
   private async playTrack(gen: number, fadeIn: boolean): Promise<void> {
     if (!this.playlist) return;
@@ -131,12 +139,13 @@ class MusicEngine {
     const stem = await audioEngine.createStem(track.url!);
     if (gen !== this.generation) {
       stem.player.dispose();
-      stem.gain.dispose();
+      stem.rampGain.dispose();
+      stem.volumeGain.dispose();
       return;
     }
 
-    const masterGain = this.getOrCreateMasterGain();
-    const player = this.wireStemToMaster(stem, masterGain);
+    const masterRampGain = this.getOrCreateMasterGains();
+    const player = this.wireStemToMaster(stem, masterRampGain);
     this.player = player;
     this.registerAdvance(gen, player);
     player.start();
@@ -144,66 +153,60 @@ class MusicEngine {
     if (fadeIn) this.fadeInMaster();
   }
 
-  /**
-   * Fades masterGain to 0 and waits for the fade to complete.
-   * The caller is responsible for checking generation afterwards.
-   */
+  /** Fades masterRampGain to 0 and waits for the fade to complete. */
   private async fadeOutCurrent(): Promise<void> {
-    audioEngine.fadeTo(this.masterGain!, 0, FADE_OUT);
+    audioEngine.fadeTo(this.masterRampGain!, 0, FADE_OUT);
     await sleep(FADE_OUT * 1000);
   }
 
-  /**
-   * Fades masterGain in to the target volume set by the most recent setPlaylist call.
-   */
+  /** Fades masterRampGain in to the targetGain set by the most recent transition() call. */
   private fadeInMaster(): void {
-    audioEngine.fadeTo(this.masterGain!, this.targetVolume, FADE_IN);
+    audioEngine.fadeTo(this.masterRampGain!, this.targetGain, FADE_IN);
   }
 
   // ─── Audio graph ───────────────────────────────────────────────────────────
 
   /**
-   * Returns the existing masterGain, or creates and connects a new one at gain 0.
-   * If the stored masterGain is on a stale AudioContext (e.g. a reset happened
-   * between the context closing and musicEngine.reset() nulling this field),
-   * it is disposed and replaced with a fresh node on the current context.
+   * Returns the existing masterRampGain (creating both master nodes if needed).
+   * If the stored nodes are on a stale AudioContext they are disposed and replaced.
    */
-  private getOrCreateMasterGain(): Tone.Gain {
-    if (this.masterGain && this.masterGain.context !== Tone.getContext()) {
-      this.masterGain.dispose();
-      this.masterGain = null;
+  private getOrCreateMasterGains(): Tone.Gain {
+    if (this.masterRampGain && this.masterRampGain.context !== Tone.getContext()) {
+      this.masterRampGain.dispose();
+      this.masterRampGain = null;
+      this.masterVolumeGain?.dispose();
+      this.masterVolumeGain = null;
     }
-    if (!this.masterGain) {
-      this.masterGain = new Tone.Gain(0).toDestination();
+    if (!this.masterRampGain) {
+      this.masterVolumeGain = new Tone.Gain(1).toDestination();
+      this.masterRampGain = new Tone.Gain(0);
+      this.masterRampGain.connect(this.masterVolumeGain);
     }
-    return this.masterGain;
+    return this.masterRampGain;
   }
 
   /**
-   * Disposes the stem's own gain node and rewires the player directly
-   * to masterGain, making masterGain the single volume control for all
-   * tracks in the playlist.
+   * Disposes the stem's own gain nodes and rewires the player directly to
+   * masterRampGain, making the master chain the sole volume control.
    *
-   * @param stem       - The stem returned by audioEngine.createStem.
-   * @param masterGain - The shared gain node to connect the player to.
-   * @returns The player, now routed through masterGain.
+   * @param stem           - The stem returned by audioEngine.createStem.
+   * @param masterRampGain - The shared ramp gain node to connect the player to.
+   * @returns The player, now routed through the master chain.
    */
-  private wireStemToMaster(stem: Stem, masterGain: Tone.Gain): Tone.Player {
-    stem.gain.dispose();
+  private wireStemToMaster(stem: Stem, masterRampGain: Tone.Gain): Tone.Player {
+    stem.rampGain.dispose();
+    stem.volumeGain.dispose();
     stem.player.disconnect();
-    stem.player.connect(masterGain);
+    stem.player.connect(masterRampGain);
     return stem.player;
   }
 
   // ─── Player lifecycle ──────────────────────────────────────────────────────
 
   /**
-   * Registers an onstop callback on the player that advances to the next track
-   * when the buffer ends naturally.
-   *
-   * onstop fires on both natural buffer end and explicit stop() calls. The guard
-   * `this.player !== player` distinguishes them: stopPlayer() sets this.player = null
-   * before calling stop(), so the callback no-ops on explicit stops.
+   * Registers an onstop callback that advances to the next track when the
+   * buffer ends naturally. The guard `this.player !== player` distinguishes
+   * natural end from explicit stop() calls.
    *
    * @param gen    - Generation at the time the player was created.
    * @param player - The player to register the callback on.
@@ -222,8 +225,7 @@ class MusicEngine {
   /**
    * Disposes the current player and clears the reference.
    * Sets this.player = null before calling stop() so that the onstop callback
-   * knows to no-op when it fires as a result of the explicit stop.
-   * Does not touch masterGain — volume state is preserved across track changes.
+   * no-ops on the resulting stop event.
    */
   private stopPlayer(): void {
     if (this.player) {
