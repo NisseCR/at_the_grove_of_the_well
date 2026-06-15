@@ -20,7 +20,7 @@
     return {
       activeIds: list.map((r) => r.id),
       targetGains: Object.fromEntries(list.map((r) => [r.id, r.volume])),
-      volumes: Object.fromEntries(list.map((r) => [r.id, 1.0])),
+      volumes: {},
       labels: {},
     };
   }
