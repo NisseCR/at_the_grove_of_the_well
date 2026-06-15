@@ -57,8 +57,14 @@
       0 0 40px rgba(0, 0, 0, 0.6);
   }
 
-  .chapter-prose :global(p + p) {
+  .chapter-prose :global(p + p),
+  .chapter-prose :global(.trigger-sentinel + p) {
     text-indent: 1.6em;
+  }
+
+  /* no indent when the sentinel follows a divider — sentinel is invisible but still breaks p+p */
+  .chapter-prose :global(hr + .trigger-sentinel + p) {
+    text-indent: 0;
   }
 
   .chapter-prose :global(hr) {
