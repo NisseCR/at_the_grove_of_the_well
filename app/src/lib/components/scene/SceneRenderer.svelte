@@ -14,6 +14,15 @@
   } = $props();
 
   let currentContainer: HTMLElement | null = $state(null);
+  let isMobile = $state(false);
+
+  $effect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    isMobile = mq.matches;
+    const handler = (e: MediaQueryListEvent) => (isMobile = e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  });
 
   onDestroy(() => {
     slotState.current = null;
@@ -43,9 +52,11 @@
 {#if slotState.current}
   <div class="scene-slot" bind:this={currentContainer}>
     <SceneAsset asset={slotState.current.background} zIndex={0} />
-    {#each sortedLayers(slotState.current) as layer (layer.id)}
-      <SceneAsset asset={layer} zIndex={layer.order + 1} />
-    {/each}
+    {#if !isMobile}
+      {#each sortedLayers(slotState.current) as layer (layer.id)}
+        <SceneAsset asset={layer} zIndex={layer.order + 1} />
+      {/each}
+    {/if}
   </div>
 {/if}
 
