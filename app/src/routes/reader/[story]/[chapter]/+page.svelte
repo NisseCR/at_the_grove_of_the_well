@@ -8,6 +8,7 @@
   import BeginCta from "$lib/components/story/BeginCta.svelte";
   import ChapterContent from "$lib/components/story/ChapterContent.svelte";
   import AudioTrigger from "$lib/components/story/AudioTrigger.svelte";
+  import ChapterNav from "$lib/components/story/ChapterNav.svelte";
 
   let { data }: { data: PageData } = $props();
   const frontmatter = $derived(data.chapter.frontmatter);
@@ -67,6 +68,8 @@
   <div class="dark-overlay" style:opacity={overlayOpacity}></div>
 
   <ChapterContent {segments} />
+
+  <ChapterNav storySlug={data.storySlug} prev={data.prev} next={data.next} />
 
   <AudioTrigger {frontmatter} {segments} {activeTriggerIndex} />
 {/if}
