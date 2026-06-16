@@ -31,6 +31,10 @@ function getObserver(): IntersectionObserver {
 }
 
 export function scrollReveal(node: HTMLElement) {
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    return {};
+  }
+
   node.style.opacity = "0";
   node.style.transition = "opacity 1.2s ease-out";
 
