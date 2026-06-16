@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Tone from "tone";
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, tick } from "svelte";
   import type { PageData } from "./$types";
   import type { SceneSlotState } from "$lib/types/scene";
   import SceneRenderer from "$lib/components/scene/SceneRenderer.svelte";
@@ -31,17 +31,38 @@
 
   function onScroll(): void {
     overlayOpacity = Math.min(window.scrollY / window.innerHeight, 0.85);
-
-    const sentinels = document.querySelectorAll<HTMLElement>("[data-trigger]");
-    const threshold = window.innerHeight * 0.5;
-    let newIndex = -1;
-    for (const el of sentinels) {
-      if (el.getBoundingClientRect().top <= threshold) {
-        newIndex = parseInt(el.dataset.trigger!);
-      }
-    }
-    if (newIndex !== activeTriggerIndex) activeTriggerIndex = newIndex;
   }
+
+  $effect(() => {
+    if (!renderReady) return;
+    const active = new Set<number>();
+    let observer: IntersectionObserver;
+
+    tick().then(() => {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const index = parseInt((entry.target as HTMLElement).dataset.trigger!);
+            if (entry.isIntersecting) {
+              active.add(index);
+            } else if (entry.boundingClientRect.top > 0) {
+              // Element retreated below the threshold — user scrolled back up.
+              active.delete(index);
+            }
+            // If top <= 0 the element scrolled above the viewport; keep it active.
+          }
+          activeTriggerIndex = active.size > 0 ? Math.max(...active) : -1;
+        },
+        { rootMargin: "0px 0px -50% 0px" },
+      );
+
+      document
+        .querySelectorAll<HTMLElement>("[data-trigger]")
+        .forEach((el) => observer.observe(el));
+    });
+
+    return () => observer?.disconnect();
+  });
 
   onMount(() => {
     document.documentElement.style.overflowY = "scroll";
