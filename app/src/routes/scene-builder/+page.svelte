@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import SceneAsset from "$lib/components/scene/SceneAsset.svelte";
-  import { configToScene, sceneToConfig } from "$lib/utils/sceneBuilder";
+  import { configToScene, sceneToConfig } from "./sceneBuilder";
   import type { Scene, SceneSlotState } from "$lib/types/scene";
 
   // ── Split pane ──────────────────────────────────────────────────────────────
