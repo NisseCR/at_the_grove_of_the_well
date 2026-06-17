@@ -1,13 +1,9 @@
 /**
- * Awaits a promise and then throws an AbortError if the token was aborted
- * during the await. Use between async steps in an abortable pipeline to
- * cancel superseded operations cleanly.
+ * Awaits a promise, then checks the token. It throws an AbortError if it was
+ * aborted during the await. Place between async steps in an abortable pipeline
+ * so a superseded operation cancels cleanly rather than continuing past a stale checkpoint.
  *
- * @param promise  - The promise to await.
- * @param token    - The AbortController token for the current pipeline.
- * @param onAbort  - Optional cleanup to run before throwing if aborted.
- * @returns The resolved value of the promise.
- * @throws DOMException with name "AbortError" if the token was aborted.
+ * @throws DOMException("AbortError") if the token was aborted.
  */
 export async function guardedAwait<T>(
   promise: Promise<T>,

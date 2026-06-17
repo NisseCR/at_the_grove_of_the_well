@@ -10,6 +10,7 @@ export class LruCache<K, V> {
     return this.map.get(key);
   }
 
+  /** Existing keys are deleted before re-insertion so the updated entry sorts as most recent. */
   set(key: K, value: V): void {
     if (this.map.has(key)) {
       this.map.delete(key);
@@ -31,12 +32,14 @@ export class LruCache<K, V> {
     this.map.clear();
   }
 
+  /** Re-inserting moves the key to the end of Map's insertion-order iteration. */
   private promoteToRecent(key: K): void {
     const value = this.map.get(key)!;
     this.map.delete(key);
     this.map.set(key, value);
   }
 
+  /** The first key in iteration order is the oldest insertion, which is used the least recently. */
   private evictIfFull(): void {
     if (this.map.size < this.maxSize) return;
     const leastRecentlyUsed = this.map.keys().next().value!;

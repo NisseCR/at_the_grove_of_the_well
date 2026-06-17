@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appState } from "$lib/stores/appState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
   import { sendSetScene } from "$lib/services/transport";
   import type { PageData } from "./$types";
   import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";

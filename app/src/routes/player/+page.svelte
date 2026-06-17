@@ -7,8 +7,8 @@
   import AudioRenderer from "$lib/components/audio/AudioRenderer.svelte";
   import DebugOverlay from "./DebugOverlay.svelte";
   import VolumeOverlay from "./VolumeOverlay.svelte";
-  import { appState } from "$lib/stores/appState.svelte";
-  import { sceneState } from "$lib/stores/sceneState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
+  import { sceneState } from "$lib/state/sceneState.svelte";
 
   /**
    * Called by StoryGate after its fade animation completes. Starts Tone.js

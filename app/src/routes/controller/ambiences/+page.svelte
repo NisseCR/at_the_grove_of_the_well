@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appState } from "$lib/stores/appState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
   import { sendSetAmbiences } from "$lib/services/transport";
   import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
   import type { PageData } from "./$types";

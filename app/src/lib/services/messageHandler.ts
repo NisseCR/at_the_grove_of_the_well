@@ -1,6 +1,6 @@
 import type { TransportMessage } from "$lib/types/message";
 import type { AmbienceAudioState, AmbienceWireEntry } from "$lib/types/state";
-import { appState } from "$lib/stores/appState.svelte";
+import { appState } from "$lib/state/appState.svelte";
 import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
 /**
@@ -23,7 +23,7 @@ function wireToAmbiences(
   for (const { id, volume, label } of list) {
     activeIds.push(id);
     targetGains[id] = volume;
-    volumes[id] = prevVolumes[id] ?? 1.0;  // preserve existing override, default new ids to unity
+    volumes[id] = prevVolumes[id] ?? 1.0; // preserve existing override, default new ids to unity
     labels[id] = label;
   }
   return { activeIds, targetGains, volumes, labels };
@@ -85,7 +85,10 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SYNC": {
       const { scene, ambiences, music } = message.payload;
       appState.scene = scene ? { id: scene.id, label: null } : null;
-      appState.ambiences = wireToAmbiences(ambiences ?? [], appState.ambiences.volumes);
+      appState.ambiences = wireToAmbiences(
+        ambiences ?? [],
+        appState.ambiences.volumes,
+      );
       appState.music = {
         activeId: music?.id ?? null,
         targetGain: music?.volume ?? DEFAULT_MUSIC_VOLUME,

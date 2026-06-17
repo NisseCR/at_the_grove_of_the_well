@@ -7,7 +7,7 @@
     VolumeX,
     X,
   } from "@lucide/svelte";
-  import { appState } from "$lib/stores/appState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
   import {
     sendSetAmbiences,
     sendSetAmbienceVolume,
@@ -54,11 +54,7 @@
   <div class="row-header">
     <AudioLines class="icon name-icon" size={13} />
     <span class="audio-name">{label}</span>
-    <button
-      class="dismiss"
-      onclick={onDismiss}
-      aria-label="Remove {label}"
-    >
+    <button class="dismiss" onclick={onDismiss} aria-label="Remove {label}">
       <X size={16} />
     </button>
   </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { RotateCcw } from "@lucide/svelte";
-  import { appState } from "$lib/stores/appState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
   import { sendResetAudio } from "$lib/services/transport";
   import MusicRow from "$lib/components/audio_panel/MusicRow.svelte";
   import AmbienceRow from "$lib/components/audio_panel/AmbienceRow.svelte";

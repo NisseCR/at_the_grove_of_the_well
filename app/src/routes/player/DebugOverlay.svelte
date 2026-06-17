@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { appState } from "$lib/stores/appState.svelte";
-  import { sceneState } from "$lib/stores/sceneState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
+  import { sceneState } from "$lib/state/sceneState.svelte";
 </script>
 
 <div class="debug">

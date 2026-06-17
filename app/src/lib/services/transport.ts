@@ -1,7 +1,7 @@
 import type { TransportMessage } from "$lib/types/message";
 import type { AmbienceWireEntry } from "$lib/types/state";
 import { handleMessage } from "$lib/services/messageHandler";
-import { appState } from "$lib/stores/appState.svelte";
+import { appState } from "$lib/state/appState.svelte";
 
 const RECONNECT_DELAY = 3000;
 
@@ -18,7 +18,7 @@ export function connect(): void {
   )
     return;
 
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const wsUrl = `${protocol}//${window.location.host}/api/control/ws`;
   websocket = new WebSocket(wsUrl);
 

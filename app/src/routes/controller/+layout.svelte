@@ -3,7 +3,7 @@
   import { page } from "$app/state";
   import { AudioLines } from "@lucide/svelte";
   import AudioPanel from "$lib/components/audio_panel/AudioPanel.svelte";
-  import { appState } from "$lib/stores/appState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
   import { connect, sendSync } from "$lib/services/transport";
 
   const { children } = $props();
@@ -21,7 +21,12 @@
   $effect(() => {
     if (!appState.clientConnectedVersion) return;
     untrack(() => {
-      if (!appState.scene && appState.ambiences.activeIds.length === 0 && !appState.music.activeId) return;
+      if (
+        !appState.scene &&
+        appState.ambiences.activeIds.length === 0 &&
+        !appState.music.activeId
+      )
+        return;
       sendSync();
     });
   });

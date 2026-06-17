@@ -1,10 +1,7 @@
 <script lang="ts">
   import { Music, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
-  import { appState } from "$lib/stores/appState.svelte";
-  import {
-    sendSetPlaylist,
-    sendSetMusicVolume,
-  } from "$lib/services/transport";
+  import { appState } from "$lib/state/appState.svelte";
+  import { sendSetPlaylist, sendSetMusicVolume } from "$lib/services/transport";
 
   function volumeIcon(v: number) {
     if (v === 0) return VolumeX;
@@ -31,7 +28,9 @@
 <div class="row">
   <div class="row-header">
     <Music class="icon name-icon" size={13} />
-    <span class="audio-name">{appState.music.label ?? appState.music.activeId}</span>
+    <span class="audio-name"
+      >{appState.music.label ?? appState.music.activeId}</span
+    >
     <button
       class="dismiss"
       onclick={() => sendSetPlaylist(null)}

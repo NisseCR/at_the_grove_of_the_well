@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Tabs } from "bits-ui";
-  import { appState } from "$lib/stores/appState.svelte";
+  import { appState } from "$lib/state/appState.svelte";
   import { sendSetDebug } from "$lib/services/transport";
   import { toast } from "svelte-sonner";
 
@@ -64,11 +64,21 @@
     {#if syncResult}
       <table>
         <tbody>
-          <tr><td>Ambience categories</td><td>{syncResult.ambience_categories}</td></tr>
+          <tr
+            ><td>Ambience categories</td><td
+              >{syncResult.ambience_categories}</td
+            ></tr
+          >
           <tr><td>Ambiences</td><td>{syncResult.ambiences}</td></tr>
-          <tr><td>Playlist categories</td><td>{syncResult.playlist_categories}</td></tr>
+          <tr
+            ><td>Playlist categories</td><td
+              >{syncResult.playlist_categories}</td
+            ></tr
+          >
           <tr><td>Playlists</td><td>{syncResult.playlists}</td></tr>
-          <tr><td>Scene categories</td><td>{syncResult.scene_categories}</td></tr>
+          <tr
+            ><td>Scene categories</td><td>{syncResult.scene_categories}</td></tr
+          >
           <tr><td>Scenes</td><td>{syncResult.scenes}</td></tr>
         </tbody>
       </table>
