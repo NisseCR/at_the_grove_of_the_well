@@ -1,81 +1,76 @@
 import * as Tone from "tone";
 import type { Stem } from "$lib/types/audio";
+import { LruCache } from "$lib/utils/lruCache";
+import createDebug from "debug";
+
+const log = createDebug("audio:engine");
 
 class AudioEngine {
-  private cache = new Map<string, Tone.ToneAudioBuffer>();
+  private cache = new LruCache<string, Tone.ToneAudioBuffer>(2);
 
   /**
-   * Fetches and decodes audio at the given URL, storing the buffer in the
-   * cache so subsequent stem creation does not re-download the file.
-   * No-ops if the URL is already cached.
-   *
-   * @param url - Remote URL of the audio file to preload.
+   * {@link Tone.ToneAudioBuffer.load} returns {@link AudioBuffer}, thus it is necessary to wrap it in a {@link Tone.ToneAudioBuffer}.
    */
-  async preload(url: string): Promise<void> {
-    if (this.cache.has(url)) return;
+  async preloadStem(url: string): Promise<void> {
+    if (this.cache.has(url)) {
+      log("cached %s", url);
+      return;
+    }
     const audioBuffer = await Tone.ToneAudioBuffer.load(url);
     this.cache.set(url, new Tone.ToneAudioBuffer(audioBuffer));
+    log("loaded %s", url);
   }
 
   /**
-   * Creates a new {@link Stem} from the cached buffer for the given URL,
-   * preloading it first if necessary. The player is not started — the caller
-   * is responsible for configuring and starting it.
-   *
    * Signal chain: player → rampGain(0) → volumeGain(1) → destination.
-   * rampGain is driven by transition() fades; volumeGain is driven by setVolume().
-   *
-   * @param url - Remote URL of the audio file.
-   * @returns A stem with rampGain at 0 and volumeGain at 1, connected to destination.
    */
   async createStem(url: string): Promise<Stem> {
-    await this.preload(url);
-    const player = new Tone.Player(this.cache.get(url)!);
-    const volumeGain = new Tone.Gain(1).toDestination();
+    await this.preloadStem(url);
+    const audioBuffer = this.cache.get(url);
+
+    const player = new Tone.Player(audioBuffer);
+    const volumeGain = new Tone.Gain(1);
     const rampGain = new Tone.Gain(0);
-    rampGain.connect(volumeGain);
-    player.connect(rampGain);
+
+    player.chain(rampGain, volumeGain, Tone.getDestination());
+    log("created stem for %s", url);
     return { player, rampGain, volumeGain, url };
   }
 
+  async disposeStem(stem: Stem): Promise<void> {
+    stem.player.stop();
+    stem.player.dispose();
+    stem.rampGain.dispose();
+    stem.volumeGain.dispose();
+    log("disposed stem for %s", stem.url);
+  }
+
   /**
-   * Fades a gain node to a target value over the given duration.
-   * Anchors the current value with `cancelAndHoldAtTime` before ramping so
+   * Anchor the current value with {@link AudioParam.cancelAndHoldAtTime} before ramping so
    * that calling this mid-fade starts from the actual current level rather
    * than snapping to the last scheduled value.
-   *
-   * @param gain     - The gain node to ramp.
-   * @param target   - Target gain value (0–1).
-   * @param duration - Ramp duration in seconds.
    */
-  fadeTo(gain: Tone.Gain, target: number, duration: number): void {
+  fadeGainTo(gain: Tone.Gain, target: number, duration: number): void {
     const now = Tone.now();
-    const param = gain.gain;
-    param.cancelAndHoldAtTime(now);
-    param.linearRampToValueAtTime(target, now + duration);
+    gain.gain.cancelAndHoldAtTime(now);
+    gain.gain.linearRampToValueAtTime(target, now + duration);
   }
 
   /**
-   * Evicts the decoded buffer for the given URL from the cache.
-   * Call this when a stem is permanently removed from a scene to free memory.
-   *
-   * @param url - Remote URL whose cached buffer should be released.
-   */
-  dispose(url: string): void {
-    this.cache.delete(url);
-  }
-
-  /**
-   * Closes the current AudioContext, creates a fresh one, and clears the
-   * buffer cache. All existing nodes become invalid after this call —
-   * callers must dispose their stems before calling reset.
+   * Create a fresh {@link AudioContext} to reset potential drift in created audio stems.
+   * All existing nodes become invalid after this call, so callers must dispose their stems before calling reset.
    */
   async reset(): Promise<void> {
-    const ctx = Tone.getContext().rawContext as AudioContext;
-    if (ctx.state !== "closed") await ctx.close();
+    const context = Tone.getContext().rawContext as AudioContext;
+    if (context.state !== "closed") {
+      await context.close();
+    }
+
     Tone.setContext(new Tone.Context());
     await Tone.start();
+
     this.cache.clear();
+    log("reset audio context");
   }
 }
 

@@ -54,12 +54,15 @@ class MusicEngine {
    * @param id         - Playlist id to start, or null to stop music.
    * @param targetGain - Target ramp gain for the fade-in (0–1).
    */
-  async transition(id: string | null, targetGain = DEFAULT_MUSIC_VOLUME): Promise<void> {
+  async transition(
+    id: string | null,
+    targetGain = DEFAULT_MUSIC_VOLUME,
+  ): Promise<void> {
     this.targetGain = targetGain;
     const gen = ++this.generation;
 
     if (id !== null && this.playlist?.id === id && this.masterRampGain) {
-      audioEngine.fadeTo(this.masterRampGain, targetGain, FADE_IN);
+      audioEngine.fadeGainTo(this.masterRampGain, targetGain, FADE_IN);
       return;
     }
 
@@ -74,7 +77,9 @@ class MusicEngine {
 
     if (id === null) return;
 
-    const playlist = await fetch(`/api/music/playlist/${id}`).then<Playlist>(r => r.json());
+    const playlist = await fetch(`/api/music/playlist/${id}`).then<Playlist>(
+      (r) => r.json(),
+    );
     if (gen !== this.generation) return;
 
     this.playlist = playlist;
@@ -155,13 +160,13 @@ class MusicEngine {
 
   /** Fades masterRampGain to 0 and waits for the fade to complete. */
   private async fadeOutCurrent(): Promise<void> {
-    audioEngine.fadeTo(this.masterRampGain!, 0, FADE_OUT);
+    audioEngine.fadeGainTo(this.masterRampGain!, 0, FADE_OUT);
     await sleep(FADE_OUT * 1000);
   }
 
   /** Fades masterRampGain in to the targetGain set by the most recent transition() call. */
   private fadeInMaster(): void {
-    audioEngine.fadeTo(this.masterRampGain!, this.targetGain, FADE_IN);
+    audioEngine.fadeGainTo(this.masterRampGain!, this.targetGain, FADE_IN);
   }
 
   // ─── Audio graph ───────────────────────────────────────────────────────────
@@ -171,7 +176,10 @@ class MusicEngine {
    * If the stored nodes are on a stale AudioContext they are disposed and replaced.
    */
   private getOrCreateMasterGains(): Tone.Gain {
-    if (this.masterRampGain && this.masterRampGain.context !== Tone.getContext()) {
+    if (
+      this.masterRampGain &&
+      this.masterRampGain.context !== Tone.getContext()
+    ) {
       this.masterRampGain.dispose();
       this.masterRampGain = null;
       this.masterVolumeGain?.dispose();

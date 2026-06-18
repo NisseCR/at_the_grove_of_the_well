@@ -18,7 +18,7 @@
   let activeTriggerIndex = $state(-1);
   let overlayOpacity = $state(0);
 
-  const sceneSlot: SceneSlotState = $state({
+  let sceneSlot: SceneSlotState = $state({
     current: null,
     next: null,
     isTransitioning: false,
@@ -83,7 +83,7 @@
 
 {#if renderReady}
   <div class="scene-layer">
-    <SceneRenderer slotState={sceneSlot} requestedSceneId={frontmatter.scene} />
+    <SceneRenderer bind:slotState={sceneSlot} requestedSceneId={frontmatter.scene} />
   </div>
 
   <div class="dark-overlay" style:opacity={overlayOpacity}></div>

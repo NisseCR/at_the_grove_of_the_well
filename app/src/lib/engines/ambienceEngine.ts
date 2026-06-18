@@ -23,7 +23,9 @@ class AmbienceEngine {
    *
    * @param entries - The complete list of ambiences (id + targetGain) that should be active.
    */
-  async transition(entries: { id: string; targetGain: number }[]): Promise<void> {
+  async transition(
+    entries: { id: string; targetGain: number }[],
+  ): Promise<void> {
     const token = this.createToken();
 
     try {
@@ -35,10 +37,14 @@ class AmbienceEngine {
 
       for (const [id, targetGain] of incoming) {
         if (this.active.has(id)) {
-          audioEngine.fadeTo(this.active.get(id)!.rampGain, targetGain, FADE_IN);
+          audioEngine.fadeGainTo(
+            this.active.get(id)!.rampGain,
+            targetGain,
+            FADE_IN,
+          );
         } else {
           const ambience = await guardedAwait(
-            fetch(`/api/ambience/${id}`).then<Ambience>(r => r.json()),
+            fetch(`/api/ambience/${id}`).then<Ambience>((r) => r.json()),
             token,
           );
           await guardedAwait(
@@ -66,14 +72,11 @@ class AmbienceEngine {
     if (!stem) return;
 
     this.active.delete(id);
-    audioEngine.fadeTo(stem.rampGain, 0, FADE_OUT);
+    audioEngine.fadeGainTo(stem.rampGain, 0, FADE_OUT);
 
     setTimeout(
       () => {
-        stem.player.stop();
-        stem.player.dispose();
-        stem.rampGain.dispose();
-        stem.volumeGain.dispose();
+        audioEngine.disposeStem(stem);
       },
       (FADE_OUT + 0.1) * 1000,
     );
@@ -101,10 +104,7 @@ class AmbienceEngine {
     this.syncToken = null;
 
     for (const stem of this.active.values()) {
-      stem.player.stop();
-      stem.player.dispose();
-      stem.rampGain.dispose();
-      stem.volumeGain.dispose();
+      audioEngine.disposeStem(stem);
     }
     this.active.clear();
   }
@@ -115,7 +115,9 @@ class AmbienceEngine {
    *
    * @param entries - The ambiences to activate after the reset.
    */
-  async hardReset(entries: { id: string; targetGain: number }[]): Promise<void> {
+  async hardReset(
+    entries: { id: string; targetGain: number }[],
+  ): Promise<void> {
     this.reset();
     await audioEngine.reset();
     await this.transition(entries);
@@ -144,7 +146,7 @@ class AmbienceEngine {
     stem.player.loop = loop;
     stem.player.start();
     this.active.set(id, stem);
-    audioEngine.fadeTo(stem.rampGain, targetGain, FADE_IN);
+    audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
   }
 }
 
