@@ -1,4 +1,8 @@
 services:
+  ws-relay:
+    ports:
+      - "8000:8000"
+
   app:
     environment:
       ORIGIN: http://localhost
