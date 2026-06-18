@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "type": "firefox",
+      "request": "launch",
+      "name": "Debug in Firefox",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/app/src",
+      "firefoxExecutable": "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+    }
+  ]
+}
