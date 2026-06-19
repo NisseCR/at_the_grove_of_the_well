@@ -21,7 +21,6 @@ import {
   ListObjectsV2Command,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
-import { env } from "$env/dynamic/private";
 import { PUBLIC_ASSETS_BASE } from "$env/static/public";
 import type {
   Ambience,
@@ -80,10 +79,10 @@ function toOrder(slug: string): number {
 function createClient(): S3Client {
   return new S3Client({
     region: "auto",
-    endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: env.R2_ACCESS_KEY,
-      secretAccessKey: env.R2_SECRET_KEY,
+      accessKeyId: process.env.R2_ACCESS_KEY!,
+      secretAccessKey: process.env.R2_SECRET_KEY!,
     },
   });
 }
@@ -95,7 +94,7 @@ async function listR2Keys(client: S3Client): Promise<string[]> {
   do {
     const res = await client.send(
       new ListObjectsV2Command({
-        Bucket: env.R2_BUCKET,
+        Bucket: process.env.R2_BUCKET,
         ContinuationToken: continuationToken,
       }),
     );
@@ -265,7 +264,7 @@ async function scanScenes(
 
     try {
       const res = await client.send(
-        new GetObjectCommand({ Bucket: env.R2_BUCKET, Key: key }),
+        new GetObjectCommand({ Bucket: process.env.R2_BUCKET, Key: key }),
       );
       const body = await res.Body?.transformToString();
       if (!body) continue;
@@ -372,7 +371,7 @@ async function scanStories(
 
     try {
       const res = await client.send(
-        new GetObjectCommand({ Bucket: env.R2_BUCKET, Key: key }),
+        new GetObjectCommand({ Bucket: process.env.R2_BUCKET, Key: key }),
       );
       const body = await res.Body?.transformToString();
       if (!body) continue;
