@@ -5,7 +5,13 @@
       "request": "launch",
       "name": "Debug in Firefox",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/app/src",
+      "webRoot": "${workspaceFolder}/app",
+      "pathMappings": [
+        {
+          "url": "/@fs",
+          "path": ""
+        }
+      ],
       "firefoxExecutable": "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
     }
   ]

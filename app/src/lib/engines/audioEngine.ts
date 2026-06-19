@@ -1,9 +1,9 @@
 import * as Tone from "tone";
 import type { Stem } from "$lib/types/audio";
 import { LruCache } from "$lib/utils/lruCache";
-import createDebug from "debug";
+import { createLogger } from "$lib/utils/logger";
 
-const log = createDebug("audio:engine");
+const log = createLogger("audio:engine");
 
 class AudioEngine {
   private cache = new LruCache<string, Tone.ToneAudioBuffer>(2);
@@ -13,12 +13,12 @@ class AudioEngine {
    */
   async preloadStem(url: string): Promise<void> {
     if (this.cache.has(url)) {
-      log("cached %s", url);
+      log.debug("cached", url);
       return;
     }
     const audioBuffer = await Tone.ToneAudioBuffer.load(url);
     this.cache.set(url, new Tone.ToneAudioBuffer(audioBuffer));
-    log("loaded %s", url);
+    log.debug("loaded", url);
   }
 
   /**
@@ -33,7 +33,7 @@ class AudioEngine {
     const rampGain = new Tone.Gain(0);
 
     player.chain(rampGain, volumeGain, Tone.getDestination());
-    log("created stem for %s", url);
+    log.debug("created stem for", url);
     return { player, rampGain, volumeGain, url };
   }
 
@@ -42,7 +42,7 @@ class AudioEngine {
     stem.player.dispose();
     stem.rampGain.dispose();
     stem.volumeGain.dispose();
-    log("disposed stem for %s", stem.url);
+    log.debug("disposed stem for", stem.url);
   }
 
   /**
@@ -54,6 +54,7 @@ class AudioEngine {
     const now = Tone.now();
     gain.gain.cancelAndHoldAtTime(now);
     gain.gain.linearRampToValueAtTime(target, now + duration);
+    log.debug("fadeGainTo", { current: gain.gain.value, target, duration });
   }
 
   /**
@@ -70,7 +71,7 @@ class AudioEngine {
     await Tone.start();
 
     this.cache.clear();
-    log("reset audio context");
+    log.debug("reset audio context");
   }
 }
 

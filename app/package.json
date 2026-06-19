@@ -27,7 +27,6 @@
     "@lucide/svelte": "^1.17.0",
     "@sveltejs/adapter-node": "^5.5.4",
     "bits-ui": "^2.18.1",
-    "debug": "^4.4.3",
     "gsap": "^3.15.0",
     "svelte-sonner": "^1.1.1",
     "tone": "^15.0.0"
