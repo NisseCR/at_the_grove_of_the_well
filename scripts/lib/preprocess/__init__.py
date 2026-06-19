@@ -79,7 +79,7 @@ def run(source_root: Path) -> None:
 
         try:
             if suffix in AUDIO_EXTENSIONS:
-                out_path = _mirror_path(source_root, source_file, output_root, ".ogg")
+                out_path = _mirror_path(source_root, source_file, output_root, ".webm")
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 process_audio(source_file, out_path)
 

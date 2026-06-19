@@ -1,38 +1,28 @@
 import * as Tone from "tone";
 import type { Stem } from "$lib/types/audio";
-import { LruCache } from "$lib/utils/lruCache";
 import { createLogger } from "$lib/utils/logger";
 
 const log = createLogger("audio:engine");
 
 class AudioEngine {
-  private cache = new LruCache<string, Tone.ToneAudioBuffer>(2);
-
-  /**
-   * {@link Tone.ToneAudioBuffer.load} returns {@link AudioBuffer}, thus it is necessary to wrap it in a {@link Tone.ToneAudioBuffer}.
-   */
-  async preloadStem(url: string): Promise<void> {
-    if (this.cache.has(url)) {
-      log.debug("cached", url);
-      return;
-    }
-    const audioBuffer = await Tone.ToneAudioBuffer.load(url);
-    this.cache.set(url, new Tone.ToneAudioBuffer(audioBuffer));
-    log.debug("loaded", url);
-  }
-
   /**
    * Signal chain: player → rampGain(0) → volumeGain(1) → destination.
    */
   async createStem(url: string): Promise<Stem> {
-    await this.preloadStem(url);
-    const audioBuffer = this.cache.get(url);
+    const t0 = performance.now();
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    const t1 = performance.now();
+    const audioBuffer =
+      await Tone.getContext().rawContext.decodeAudioData(arrayBuffer);
+    const t2 = performance.now();
+    log.debug(`fetch: ${t1 - t0}ms | decode: ${t2 - t1}ms`, url);
+    const player = new Tone.Player(new Tone.ToneAudioBuffer(audioBuffer));
 
-    const player = new Tone.Player(audioBuffer);
     const volumeGain = new Tone.Gain(1);
     const rampGain = new Tone.Gain(0);
-
     player.chain(rampGain, volumeGain, Tone.getDestination());
+
     log.debug("created stem for", url);
     return { player, rampGain, volumeGain, url };
   }
@@ -42,6 +32,7 @@ class AudioEngine {
     stem.player.dispose();
     stem.rampGain.dispose();
     stem.volumeGain.dispose();
+
     log.debug("disposed stem for", stem.url);
   }
 
@@ -70,7 +61,6 @@ class AudioEngine {
     Tone.setContext(new Tone.Context());
     await Tone.start();
 
-    this.cache.clear();
     log.debug("reset audio context");
   }
 }

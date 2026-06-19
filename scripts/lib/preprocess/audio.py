@@ -2,7 +2,7 @@
 Audio preprocessing.
 
 Loudness-normalises to -16 LUFS and resamples to 48 kHz. Output is always
-OGG/Vorbis. Requires ffmpeg on PATH.
+WebM/Opus. Requires ffmpeg on PATH.
 
 All audio is normalised identically. Volume balance between music and ambience
 is handled at playback time by the audio engine (see app/src/lib/config/audio.ts).
@@ -53,8 +53,8 @@ def _apply_normalization(input_path: Path, output_path: Path, measured: dict) ->
             "-map", "0:a",
             "-af", _loudnorm_filter(extra),
             "-ar", str(SAMPLE_RATE),
-            "-c:a", "libvorbis",
-            "-q:a", "6",
+            "-c:a", "libopus",
+            "-b:a", "128k",
             "-y", str(output_path),
         ],
         capture_output=True,
