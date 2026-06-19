@@ -2,11 +2,11 @@
  * R2 folder scanner. Builds in-memory AppData from the bucket folder structure.
  *
  * R2 folder conventions:
- *   ambiences/{category-slug}/{ambience-slug}.ogg
+ *   ambiences/{category-slug}/{ambience-slug}.webm
  *   ambiences/{category-slug}/cover.webp
  *   ambiences/{category-slug}/cover.thumb.webp
  *
- *   playlists/{category-slug}/{playlist-slug}/{track-slug}.ogg
+ *   playlists/{category-slug}/{playlist-slug}/{track-slug}.webm
  *   playlists/{category-slug}/{playlist-slug}/cover.webp
  *   playlists/{category-slug}/{playlist-slug}/cover.thumb.webp
  *
@@ -59,6 +59,14 @@ function toLabel(slug: string): string {
     .replace(/^\d+-/, "")
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Return the filename stem if it has a recognised audio extension, otherwise null. */
+function audioStem(filename: string): string | null {
+  for (const ext of [".webm", ".ogg"]) {
+    if (filename.endsWith(ext)) return filename.slice(0, -ext.length);
+  }
+  return null;
 }
 
 /** Strip leading numeric prefix, keeping hyphens. Used for stable IDs. */
@@ -129,8 +137,9 @@ function scanAmbiences(keys: string[]): {
       cats.get(catSlug)!.src = key;
     } else if (filename === "cover.thumb.webp") {
       cats.get(catSlug)!.thumb_src = key;
-    } else if (filename.endsWith(".ogg")) {
-      const ambSlug = filename.slice(0, -4);
+    } else {
+      const ambSlug = audioStem(filename);
+      if (!ambSlug) continue;
       const id = `${toBase(catSlug)}.${ambSlug}`;
       if (ambiences.has(id)) {
         console.warn(
@@ -200,8 +209,10 @@ function scanPlaylists(keys: string[]): {
     const pl = plData.get(plKey)!;
     if (filename === "cover.webp") pl.src = key;
     else if (filename === "cover.thumb.webp") pl.thumb_src = key;
-    else if (filename.endsWith(".ogg"))
-      pl.tracks.push({ id: filename.slice(0, -4), src: key });
+    else {
+      const stem = audioStem(filename);
+      if (stem) pl.tracks.push({ id: stem, src: key });
+    }
   }
 
   for (const pl of plData.values())
