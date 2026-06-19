@@ -9,16 +9,7 @@ class AudioEngine {
    * Signal chain: player → rampGain(0) → volumeGain(1) → destination.
    */
   async createStem(url: string): Promise<Stem> {
-    const t0 = performance.now();
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-    const t1 = performance.now();
-    const audioBuffer =
-      await Tone.getContext().rawContext.decodeAudioData(arrayBuffer);
-    const t2 = performance.now();
-    log.debug(`fetch: ${t1 - t0}ms | decode: ${t2 - t1}ms`, url);
-    const player = new Tone.Player(new Tone.ToneAudioBuffer(audioBuffer));
-
+    const player = await new Tone.Player().load(url);
     const volumeGain = new Tone.Gain(1);
     const rampGain = new Tone.Gain(0);
     player.chain(rampGain, volumeGain, Tone.getDestination());
