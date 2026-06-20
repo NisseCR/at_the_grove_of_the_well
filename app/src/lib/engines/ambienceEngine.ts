@@ -4,79 +4,47 @@ import type { AmbienceId, TargetGain } from "$lib/types/state";
 import { audioEngine } from "$lib/engines/audioEngine";
 import type { Ambience } from "$lib/types/ambience";
 import { guardedAwait } from "$lib/utils/guardedAwait";
+import { createLogger } from "$lib/utils/logger";
+
+const log = createLogger("audio:ambience");
 
 const FADE_IN = 5.0;
 const FADE_OUT = 5.0;
 
 class AmbienceEngine {
   /** Currently playing ambience stems keyed by ambience id. */
-  private active = new Map<AmbienceId, Stem>();
+  private activeAmbiences = new Map<AmbienceId, Stem>();
+
   /** Token for the current transition call; aborted when a new transition supersedes it. */
   private syncToken: AbortController | null = null;
 
   /**
-   * Reconciles the set of active stems against the given list of entries.
-   * For removed ids: fades rampGain to 0 and disposes. For existing ids with
-   * a changed targetGain: fades rampGain to the new value (cinematic transition).
-   * For new ids: fetches, starts, and fades rampGain from 0 to targetGain.
-   * Supersedes any in-progress transition — guards between each async step so
+   * Supersede any in-progress transitions by guarding between each async step so
    * a newer call cancels the pipeline cleanly.
-   *
-   * @param entries - Map of ambience id to targetGain for all ambiences that should be active.
    */
-  async transition(entries: Map<AmbienceId, TargetGain>): Promise<void> {
+  async transition(entryAmbiences: Map<AmbienceId, TargetGain>): Promise<void> {
     const token = this.createToken();
 
     try {
-      for (const id of this.active.keys()) {
-        if (!entries.has(id)) this.deactivate(id);
+      for (const id of this.activeAmbiences.keys()) {
+        if (!entryAmbiences.has(id)) {
+          this.deactivateAmbience(id);
+        }
       }
 
-      for (const [id, targetGain] of entries) {
-        if (this.active.has(id)) {
-          audioEngine.fadeGainTo(
-            this.active.get(id)!.rampGain,
-            targetGain,
-            FADE_IN,
-          );
+      for (const [id, targetGain] of entryAmbiences) {
+        if (!this.activeAmbiences.has(id)) {
+          this.activateAmbience(id, targetGain, token);
         } else {
-          const ambience = await guardedAwait(
-            fetch(`/api/ambience/${id}`).then<Ambience>((r) => r.json()),
-            token,
-          );
-          await guardedAwait(
-            this.activate(id, ambience.url!, targetGain, ambience.loop),
-            token,
-            () => this.deactivate(id),
-          );
+          this.updateAmbience(id, targetGain);
         }
       }
     } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
+      if (e instanceof DOMException && e.name === "AbortError") {
+        return;
+      }
       throw e;
     }
-  }
-
-  /**
-   * Fades rampGain to 0 and disposes the stem. The stem is removed from the
-   * active map immediately so a concurrent transition can activate a fresh stem
-   * while this one fades out.
-   *
-   * @param id - Ambience id of the stem to deactivate.
-   */
-  deactivate(id: AmbienceId): void {
-    const stem = this.active.get(id);
-    if (!stem) return;
-
-    this.active.delete(id);
-    audioEngine.fadeGainTo(stem.rampGain, 0, FADE_OUT);
-
-    setTimeout(
-      () => {
-        audioEngine.disposeStem(stem);
-      },
-      (FADE_OUT + 0.1) * 1000,
-    );
   }
 
   /**
@@ -87,9 +55,9 @@ class AmbienceEngine {
    * @param volume - Target multiplier (0–1).
    */
   setVolume(id: AmbienceId, volume: number): void {
-    const stem = this.active.get(id);
+    const stem = this.activeAmbiences.get(id);
     if (!stem) return;
-    stem.volumeGain.gain.setValueAtTime(volume, Tone.now());
+    stem.volumeGain.node.gain.setValueAtTime(volume, Tone.now());
   }
 
   /**
@@ -100,10 +68,10 @@ class AmbienceEngine {
     this.syncToken?.abort();
     this.syncToken = null;
 
-    for (const stem of this.active.values()) {
+    for (const stem of this.activeAmbiences.values()) {
       audioEngine.disposeStem(stem);
     }
-    this.active.clear();
+    this.activeAmbiences.clear();
   }
 
   /**
@@ -135,10 +103,48 @@ class AmbienceEngine {
   }
 
   /**
+   * Stem is removed from the active map immediately so a concurrent transition can
+   * activate a fresh stem while this one fades out.
+   */
+  private async deactivateAmbience(id: AmbienceId): Promise<void> {
+    log.debug(`deactivating ambience ${id}`);
+
+    const stem = this.activeAmbiences.get(id);
+    if (!stem) return;
+
+    this.activeAmbiences.delete(id);
+    await audioEngine.fadeGainTo(stem.rampGain, 0, FADE_OUT);
+    await audioEngine.disposeStem(stem);
+  }
+
+  private updateAmbience(id: AmbienceId, targetGain: TargetGain): void {
+    const stem = this.activeAmbiences.get(id)!;
+    if (stem.rampGain.target !== targetGain)
+      audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
+  }
+
+  private async activateAmbience(
+    id: AmbienceId,
+    targetGain: TargetGain,
+    token: AbortController,
+  ): Promise<void> {
+    const ambience = await guardedAwait(
+      fetch(`/api/ambience/${id}`).then<Ambience>((r) => r.json()),
+      token,
+    );
+
+    await guardedAwait(
+      this.configureAmbienceStem(id, ambience.url!, targetGain, ambience.loop),
+      token,
+      () => this.deactivateAmbience(id),
+    );
+  }
+
+  /**
    * Starts a new stem for the given id and fades rampGain in to targetGain.
    * Only called from transition() for ids not yet in the active map.
    */
-  private async activate(
+  private async configureAmbienceStem(
     id: AmbienceId,
     url: string,
     targetGain: TargetGain,
@@ -147,7 +153,7 @@ class AmbienceEngine {
     const stem = await audioEngine.createStem(url);
     stem.player.loop = loop;
     stem.player.start();
-    this.active.set(id, stem);
+    this.activeAmbiences.set(id, stem);
     audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
   }
 }

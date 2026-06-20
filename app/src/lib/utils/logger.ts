@@ -1,5 +1,6 @@
 const COLORS: Record<string, string> = {
   "audio:engine": "color: #7dd3fc; font-weight: bold",
+  "audio:ambience": "color: #86efac; font-weight: bold",
 };
 
 const DEFAULT_COLOR = "color: #a78bfa; font-weight: bold";
