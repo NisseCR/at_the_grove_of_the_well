@@ -6,7 +6,7 @@
   import type { Scene, SceneSlotState } from "$lib/types/scene";
 
   let {
-    slotState,
+    slotState = $bindable(),
     requestedSceneId,
   }: {
     slotState: SceneSlotState;

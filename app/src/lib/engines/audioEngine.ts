@@ -36,23 +36,30 @@ class AudioEngine {
     const now = Tone.now();
     gain.gain.cancelAndHoldAtTime(now);
     gain.gain.linearRampToValueAtTime(target, now + duration);
-    log.debug("fadeGainTo", { current: gain.gain.value, target, duration });
+    log.debug(`fade gain: ${gain.gain.value} -> ${target} over ${duration}s`);
+  }
+
+  async closeAudioContext(): Promise<void> {
+    const context = Tone.getContext().rawContext as AudioContext;
+    if (context.state !== "closed") {
+      await context.close();
+      log.debug("closed audio context");
+    } else {
+      log.debug("audio context already closed");
+    }
   }
 
   /**
    * Create a fresh {@link AudioContext} to reset potential drift in created audio stems.
    * All existing nodes become invalid after this call, so callers must dispose their stems before calling reset.
    */
-  async reset(): Promise<void> {
-    const context = Tone.getContext().rawContext as AudioContext;
-    if (context.state !== "closed") {
-      await context.close();
-    }
+  async refreshAudioContext(): Promise<void> {
+    this.closeAudioContext();
 
     Tone.setContext(new Tone.Context());
     await Tone.start();
 
-    log.debug("reset audio context");
+    log.debug("refreshed audio context");
   }
 }
 

@@ -119,7 +119,7 @@ class AmbienceEngine {
     entries: { id: string; targetGain: number }[],
   ): Promise<void> {
     this.reset();
-    await audioEngine.reset();
+    await audioEngine.refreshAudioContext();
     await this.transition(entries);
   }
 
