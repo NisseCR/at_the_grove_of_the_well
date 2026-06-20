@@ -20,13 +20,13 @@ function wireToAmbiences(
   const targetGains: Record<string, number> = {};
   const volumes: Record<string, number> = {};
   const labels: Record<string, string | null> = {};
-  for (const { id, volume, label } of list) {
+  for (const { id, targetGain: volume, label } of list) {
     activeIds.push(id);
     targetGains[id] = volume;
     volumes[id] = prevVolumes[id] ?? 1.0; // preserve existing override, default new ids to unity
     labels[id] = label;
   }
-  return { activeIds, targetGains, volumes, labels };
+  return { ids: activeIds, targetGains, volumeGains: volumes, labels };
 }
 
 /**
@@ -35,7 +35,7 @@ function wireToAmbiences(
 export async function handleMessage(message: TransportMessage): Promise<void> {
   switch (message.type) {
     case "SET_SCENE": {
-      const { sceneId, label } = message.payload;
+      const { id: sceneId, label } = message.payload;
       appState.scene = { id: sceneId, label };
       break;
     }
@@ -43,27 +43,27 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SET_AMBIENCES": {
       appState.ambiences = wireToAmbiences(
         message.payload.ambiences,
-        appState.ambiences.volumes,
+        appState.ambiences.volumeGains,
       );
       break;
     }
 
     case "SET_AMBIENCE_VOLUME": {
       const { id, volume } = message.payload;
-      appState.ambiences.volumes[id] = volume;
+      appState.ambiences.volumeGains[id] = volume;
       break;
     }
 
     case "SET_PLAYLIST": {
-      const { id, label, volume } = message.payload;
-      appState.music.activeId = id;
-      appState.music.label = label;
-      appState.music.targetGain = volume;
+      const { id, label, targetGain: volume } = message.payload;
+      appState.playlists.id = id;
+      appState.playlists.label = label;
+      appState.playlists.targetGain = volume;
       break;
     }
 
     case "SET_MUSIC_VOLUME": {
-      appState.music.volume = message.payload.volume;
+      appState.playlists.volumeGain = message.payload.volume;
       break;
     }
 
@@ -83,16 +83,16 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SYNC": {
-      const { scene, ambiences, music } = message.payload;
+      const { scene, ambiences, playlists: music } = message.payload;
       appState.scene = scene ? { id: scene.id, label: null } : null;
       appState.ambiences = wireToAmbiences(
         ambiences ?? [],
-        appState.ambiences.volumes,
+        appState.ambiences.volumeGains,
       );
-      appState.music = {
-        activeId: music?.id ?? null,
-        targetGain: music?.volume ?? DEFAULT_MUSIC_VOLUME,
-        volume: appState.music.volume,
+      appState.playlists = {
+        id: music?.id ?? null,
+        targetGain: music?.targetGain ?? DEFAULT_MUSIC_VOLUME,
+        volumeGain: appState.playlists.volumeGain,
         label: music?.label ?? null,
       };
       break;

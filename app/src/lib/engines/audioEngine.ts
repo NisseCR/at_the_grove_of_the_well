@@ -1,5 +1,6 @@
 import * as Tone from "tone";
 import type { Stem } from "$lib/types/audio";
+import type { TargetGain } from "$lib/types/state";
 import { createLogger } from "$lib/utils/logger";
 
 const log = createLogger("audio:engine");
@@ -32,7 +33,7 @@ class AudioEngine {
    * that calling this mid-fade starts from the actual current level rather
    * than snapping to the last scheduled value.
    */
-  fadeGainTo(gain: Tone.Gain, target: number, duration: number): void {
+  fadeGainTo(gain: Tone.Gain, target: TargetGain, duration: number): void {
     const now = Tone.now();
     gain.gain.cancelAndHoldAtTime(now);
     gain.gain.linearRampToValueAtTime(target, now + duration);

@@ -1,54 +1,42 @@
+export type SceneId = string;
+export type HandoutId = string;
+export type AmbienceId = string;
+export type PlaylistId = string;
+export type TargetGain = number;
+export type VolumeGain = number;
+
 export interface ActiveScene {
-  id: string;
+  id: SceneId;
   label: string | null;
 }
 
 export interface ActiveHandout {
-  id: string;
+  id: HandoutId;
   label: string | null;
 }
 
 export interface AmbienceAudioState {
-  activeIds: string[];
-  /** Content-authored loudness per ambience — drives rampGain fades via transition(). */
-  targetGains: Record<string, number>;
-  /** Per-client slider multiplier — drives volumeGain instantly via setVolume(). */
-  volumes: Record<string, number>;
-  labels: Record<string, string | null>;
+  ids: AmbienceId[];
+  targetGains: Record<AmbienceId, TargetGain>;
+  volumeGains: Record<AmbienceId, VolumeGain>;
+  labels: Record<AmbienceId, string | null>;
 }
 
-export interface MusicAudioState {
-  activeId: string | null;
-  /** Content-authored loudness — drives masterRampGain fades via transition(). */
-  targetGain: number;
-  /** Per-client slider multiplier — drives masterVolumeGain instantly via setVolume(). */
-  volume: number;
+export interface PlaylistAudioState {
+  id: PlaylistId | null;
+  targetGain: TargetGain;
+  volumeGain: VolumeGain;
   label: string | null;
-}
-
-/** Wire format for a single ambience in WebSocket payloads. */
-export interface AmbienceWireEntry {
-  id: string;
-  label: string | null;
-  /** Maps to targetGain in local state — client volume is not sent over wire. */
-  volume: number;
-}
-
-/** Wire format for music in WebSocket payloads. */
-export interface MusicWireEntry {
-  id: string | null;
-  label: string | null;
-  /** Maps to targetGain in local state. */
-  volume: number;
 }
 
 /** Minimum shape required by AudioRenderer. Both AppState and AudioTrigger satisfy this. */
 export interface ReactiveAudioState {
   ambiences: AmbienceAudioState;
-  music: MusicAudioState;
+  playlists: PlaylistAudioState;
   resetAudioVersion: number;
 }
 
+/** Full application state interface. */
 export interface AppState extends ReactiveAudioState {
   socketConnected: boolean;
   renderReady: boolean;

@@ -32,7 +32,7 @@
   <div class="player">
     <AudioRenderer state={appState} />
     <SceneRenderer
-      bind:slotState={sceneState}
+      slotState={sceneState}
       requestedSceneId={appState.scene?.id ?? null}
     />
     <VolumeOverlay />

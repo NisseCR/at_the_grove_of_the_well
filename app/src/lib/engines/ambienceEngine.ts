@@ -1,5 +1,6 @@
 import * as Tone from "tone";
 import type { Stem } from "$lib/types/audio";
+import type { AmbienceId, TargetGain } from "$lib/types/state";
 import { audioEngine } from "$lib/engines/audioEngine";
 import type { Ambience } from "$lib/types/ambience";
 import { guardedAwait } from "$lib/utils/guardedAwait";
@@ -9,7 +10,7 @@ const FADE_OUT = 5.0;
 
 class AmbienceEngine {
   /** Currently playing ambience stems keyed by ambience id. */
-  private active = new Map<string, Stem>();
+  private active = new Map<AmbienceId, Stem>();
   /** Token for the current transition call; aborted when a new transition supersedes it. */
   private syncToken: AbortController | null = null;
 
@@ -21,21 +22,17 @@ class AmbienceEngine {
    * Supersedes any in-progress transition — guards between each async step so
    * a newer call cancels the pipeline cleanly.
    *
-   * @param entries - The complete list of ambiences (id + targetGain) that should be active.
+   * @param entries - Map of ambience id to targetGain for all ambiences that should be active.
    */
-  async transition(
-    entries: { id: string; targetGain: number }[],
-  ): Promise<void> {
+  async transition(entries: Map<AmbienceId, TargetGain>): Promise<void> {
     const token = this.createToken();
 
     try {
-      const incoming = new Map(entries.map((e) => [e.id, e.targetGain]));
-
       for (const id of this.active.keys()) {
-        if (!incoming.has(id)) this.deactivate(id);
+        if (!entries.has(id)) this.deactivate(id);
       }
 
-      for (const [id, targetGain] of incoming) {
+      for (const [id, targetGain] of entries) {
         if (this.active.has(id)) {
           audioEngine.fadeGainTo(
             this.active.get(id)!.rampGain,
@@ -67,7 +64,7 @@ class AmbienceEngine {
    *
    * @param id - Ambience id of the stem to deactivate.
    */
-  deactivate(id: string): void {
+  deactivate(id: AmbienceId): void {
     const stem = this.active.get(id);
     if (!stem) return;
 
@@ -89,7 +86,7 @@ class AmbienceEngine {
    * @param id     - Ambience id of the stem to adjust.
    * @param volume - Target multiplier (0–1).
    */
-  setVolume(id: string, volume: number): void {
+  setVolume(id: AmbienceId, volume: number): void {
     const stem = this.active.get(id);
     if (!stem) return;
     stem.volumeGain.gain.setValueAtTime(volume, Tone.now());
@@ -113,11 +110,9 @@ class AmbienceEngine {
    * Immediately stops all active stems, resets the AudioContext, then
    * re-activates via transition().
    *
-   * @param entries - The ambiences to activate after the reset.
+   * @param entries - Map of ambience id to targetGain to activate after the reset.
    */
-  async hardReset(
-    entries: { id: string; targetGain: number }[],
-  ): Promise<void> {
+  async hardReset(entries: Map<AmbienceId, TargetGain>): Promise<void> {
     this.reset();
     await audioEngine.refreshAudioContext();
     await this.transition(entries);
@@ -125,6 +120,13 @@ class AmbienceEngine {
 
   // ─── Private ───────────────────────────────────────────────────────────────
 
+  /**
+   * Callers must capture the return value in a local variable. Using
+   * `this.syncToken` directly across `await` boundaries is unsafe: a concurrent
+   * `transition()` call replaces `this.syncToken` mid-flight, so later
+   * `guardedAwait` calls would receive the new (unaborted) token and the old
+   * transition would keep running instead of cancelling.
+   */
   private createToken(): AbortController {
     this.syncToken?.abort();
     const token = new AbortController();
@@ -137,9 +139,9 @@ class AmbienceEngine {
    * Only called from transition() for ids not yet in the active map.
    */
   private async activate(
-    id: string,
+    id: AmbienceId,
     url: string,
-    targetGain: number,
+    targetGain: TargetGain,
     loop = true,
   ): Promise<void> {
     const stem = await audioEngine.createStem(url);

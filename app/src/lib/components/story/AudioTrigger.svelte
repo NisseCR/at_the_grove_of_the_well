@@ -1,8 +1,15 @@
 <script lang="ts">
-  import type { ChapterFrontmatter, ChapterSegment, AudioRef } from '$lib/types/story';
-  import type { AmbienceAudioState, ReactiveAudioState } from '$lib/types/state';
-  import { DEFAULT_MUSIC_VOLUME } from '$lib/config/audio';
-  import AudioRenderer from '$lib/components/audio/AudioRenderer.svelte';
+  import type {
+    ChapterFrontmatter,
+    ChapterSegment,
+    AudioRef,
+  } from "$lib/types/story";
+  import type {
+    AmbienceAudioState,
+    ReactiveAudioState,
+  } from "$lib/types/state";
+  import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
+  import AudioRenderer from "$lib/components/audio/AudioRenderer.svelte";
 
   let {
     frontmatter,
@@ -18,9 +25,9 @@
   function refsToAmbiences(refs: AudioRef[] | null): AmbienceAudioState {
     const list = refs ?? [];
     return {
-      activeIds: list.map((r) => r.id),
+      ids: list.map((r) => r.id),
       targetGains: Object.fromEntries(list.map((r) => [r.id, r.volume])),
-      volumes: {},
+      volumeGains: {},
       labels: {},
     };
   }
@@ -45,9 +52,19 @@
         : segments[activeTriggerIndex].trigger!;
 
     localAudio.ambiences = refsToAmbiences(source.ambiences);
-    localAudio.music = source.playlist
-      ? { activeId: source.playlist.id, targetGain: source.playlist.volume, volume: 1.0, label: null }
-      : { activeId: null, targetGain: DEFAULT_MUSIC_VOLUME, volume: 1.0, label: null };
+    localAudio.playlists = source.playlist
+      ? {
+          id: source.playlist.id,
+          targetGain: source.playlist.volume,
+          volumeGain: 1.0,
+          label: null,
+        }
+      : {
+          id: null,
+          targetGain: DEFAULT_MUSIC_VOLUME,
+          volumeGain: 1.0,
+          label: null,
+        };
   });
 </script>
 

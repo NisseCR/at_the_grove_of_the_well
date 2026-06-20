@@ -1,5 +1,5 @@
 import type { Scene } from "$lib/types/scene";
-import type { MusicAudioState, AmbienceAudioState } from "$lib/types/state";
+import type { PlaylistAudioState, AmbienceAudioState } from "$lib/types/state";
 import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
 export const readerState = $state({
@@ -9,16 +9,16 @@ export const readerState = $state({
   requestedSceneId: null as string | null,
   overlayOpacity: 0,
   ambiences: {
-    activeIds: [],
+    ids: [],
     targetGains: {},
-    volumes: {},
+    volumeGains: {},
     labels: {},
   } as AmbienceAudioState,
   music: {
-    activeId: null,
+    id: null,
     targetGain: DEFAULT_MUSIC_VOLUME,
-    volume: 1.0,
+    volumeGain: 1.0,
     label: null,
-  } as MusicAudioState,
+  } as PlaylistAudioState,
   resetAudioVersion: 0,
 });

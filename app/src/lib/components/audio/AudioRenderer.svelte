@@ -3,6 +3,7 @@
   import { toast } from "svelte-sonner";
   import type { ReactiveAudioState } from "$lib/types/state";
   import { ambienceEngine } from "$lib/engines/ambienceEngine";
+  import type { AmbienceId, TargetGain } from "$lib/types/state";
   import { musicEngine } from "$lib/engines/musicEngine";
   import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
 
@@ -16,33 +17,45 @@
   // Fires when activeIds or targetGains change — covers both ambience activation
   // and cinematic volume transitions from triggers or SET_AMBIENCE_VOLUME.
   $effect(() => {
-    const ids = state.ambiences.activeIds;
-    const gains = state.ambiences.targetGains;
-    const entries = ids.map((id) => ({
-      id,
-      targetGain: gains[id] ?? DEFAULT_AMBIENCE_VOLUME,
-    }));
-    ambienceEngine.transition(entries).catch(() => toast.error("Ambience failed to load"));
+    const ids = state.ambiences.ids;
+    const targetGains = state.ambiences.targetGains;
+
+    const ambiences = new Map<AmbienceId, TargetGain>(
+      ids.map((activeId) => [
+        activeId,
+        targetGains[activeId] ?? DEFAULT_AMBIENCE_VOLUME,
+      ]),
+    );
+
+    ambienceEngine
+      .transition(ambiences)
+      .catch(() => toast.error("Ambience failed to load"));
   });
 
   // Fires only on local slider mutations — sets volumeGain instantly without
   // interfering with any ongoing rampGain fade.
   $effect(() => {
-    const volumes = state.ambiences.volumes;
-    for (const [id, vol] of Object.entries(volumes)) ambienceEngine.setVolume(id, vol);
+    const volumeGains = state.ambiences.volumeGains;
+
+    for (const [id, volume] of Object.entries(volumeGains))
+      ambienceEngine.setVolume(id, volume);
+    // TODO only changed volume.
   });
 
   // Fires when activeId or targetGain change — covers playlist swaps and
   // cinematic volume transitions from SET_MUSIC_VOLUME.
   $effect(() => {
-    const id = state.music.activeId;
-    const gain = state.music.targetGain;
-    musicEngine.transition(id, gain).catch(() => toast.error("Music failed to load"));
+    const id = state.playlists.id;
+    const targetGain = state.playlists.targetGain;
+
+    musicEngine
+      .transition(id, targetGain)
+      .catch(() => toast.error("Music failed to load"));
   });
 
   // Fires only on local slider mutations — sets masterVolumeGain instantly.
   $effect(() => {
-    musicEngine.setVolume(state.music.volume);
+    musicEngine.setVolume(state.playlists.volumeGain);
   });
 
   // Reset audio: version counter acts as an event signal. Starts at 0 so
@@ -50,13 +63,22 @@
   // ambience/music changes don't re-trigger a full reset.
   $effect(() => {
     if (!state.resetAudioVersion) return;
+
     untrack(() => {
-      const entries = state.ambiences.activeIds.map((id) => ({
-        id,
-        targetGain: state.ambiences.targetGains[id] ?? DEFAULT_AMBIENCE_VOLUME,
-      }));
-      ambienceEngine.hardReset(entries).catch(() => toast.error("Audio reset failed"));
-      musicEngine.hardReset(state.music.activeId).catch(() => toast.error("Music reset failed"));
+      const ambiences = new Map<AmbienceId, TargetGain>(
+        state.ambiences.ids.map((id) => [
+          id,
+          state.ambiences.targetGains[id] ?? DEFAULT_AMBIENCE_VOLUME,
+        ]),
+      );
+
+      ambienceEngine
+        .hardReset(ambiences)
+        .catch(() => toast.error("Audio reset failed"));
+
+      musicEngine
+        .hardReset(state.playlists.id)
+        .catch(() => toast.error("Music reset failed"));
     });
   });
 </script>

@@ -1,5 +1,10 @@
-import type { TransportMessage } from "$lib/types/message";
-import type { AmbienceWireEntry } from "$lib/types/state";
+import type {
+  TransportMessage,
+  SceneWireEntry,
+  AmbienceWireEntry,
+  PlaylistWriteEntry,
+} from "$lib/types/message";
+import type { AmbienceId, VolumeGain } from "$lib/types/state";
 import { handleMessage } from "$lib/services/messageHandler";
 import { appState } from "$lib/state/appState.svelte";
 
@@ -47,33 +52,27 @@ export function send(msg: TransportMessage): void {
   }
 }
 
-export function sendSetScene(
-  sceneId: string,
-  label: string | null = null,
-): void {
-  send({ type: "SET_SCENE", payload: { sceneId, label } });
+export function sendSetScene(scene: SceneWireEntry): void {
+  send({ type: "SET_SCENE", payload: scene });
 }
 
 export function sendSetAmbiences(ambiences: AmbienceWireEntry[]): void {
-  send({ type: "SET_AMBIENCES", payload: { ambiences } });
+  send({ type: "SET_AMBIENCES", payload: ambiences });
 }
 
-export function sendSetAmbienceVolume(id: string, volume: number): void {
+export function sendSetAmbienceVolume(
+  id: AmbienceId,
+  volume: VolumeGain,
+): void {
   send({ type: "SET_AMBIENCE_VOLUME", payload: { id, volume } });
 }
 
-export function sendSetPlaylist(
-  id: string | null,
-  label: string | null = null,
-): void {
-  send({
-    type: "SET_PLAYLIST",
-    payload: { id, label, volume: appState.music.targetGain },
-  });
+export function sendSetPlaylist(playlist: PlaylistWriteEntry): void {
+  send({ type: "SET_PLAYLIST", payload: playlist });
 }
 
-export function sendSetMusicVolume(volume: number): void {
-  send({ type: "SET_MUSIC_VOLUME", payload: { volume } });
+export function sendSetPlaylistVolume(volume: VolumeGain): void {
+  send({ type: "SET_PLAYLIST_VOLUME", payload: { volume } });
 }
 
 export function sendResetAudio(): void {
@@ -85,19 +84,30 @@ export function sendSetDebug(debug: boolean): void {
 }
 
 export function sendSync(): void {
-  const { ambiences, music } = appState;
+  const { scene, ambiences, playlists } = appState;
+
+  const sceneEntry = scene;
+
+  const ambienceEntries: AmbienceWireEntry[] = ambiences.ids.map((id) => ({
+    id,
+    label: ambiences.labels[id] ?? null,
+    targetGain: ambiences.targetGains[id],
+  }));
+
+  const playlistEntry: PlaylistWriteEntry | null = playlists.id
+    ? {
+        id: playlists.id,
+        label: playlists.label,
+        targetGain: playlists.targetGain,
+      }
+    : null;
+
   send({
     type: "SYNC",
     payload: {
-      scene: appState.scene,
-      ambiences: ambiences.activeIds.map((id) => ({
-        id,
-        label: ambiences.labels[id] ?? null,
-        volume: ambiences.targetGains[id],
-      })),
-      music: music.activeId
-        ? { id: music.activeId, label: music.label, volume: music.targetGain }
-        : null,
+      scene: sceneEntry,
+      ambiences: ambienceEntries,
+      playlists: playlistEntry,
     },
   });
 }

@@ -1,7 +1,10 @@
 <script lang="ts">
   import { Music, Volume, Volume1, Volume2, VolumeX, X } from "@lucide/svelte";
   import { appState } from "$lib/state/appState.svelte";
-  import { sendSetPlaylist, sendSetMusicVolume } from "$lib/services/transport";
+  import {
+    sendSetPlaylist,
+    sendSetPlaylistVolume,
+  } from "$lib/services/transport";
 
   function volumeIcon(v: number) {
     if (v === 0) return VolumeX;
@@ -12,16 +15,16 @@
 
   function onVolumeChange(value: number): void {
     const clamped = Math.min(1, Math.max(0, value));
-    appState.music.volume = clamped;
-    sendSetMusicVolume(clamped);
+    appState.playlists.volumeGain = clamped;
+    sendSetPlaylistVolume(clamped);
   }
 
   function onVolumeWheel(e: WheelEvent): void {
     e.preventDefault();
-    onVolumeChange(appState.music.volume - e.deltaY * 0.001);
+    onVolumeChange(appState.playlists.volumeGain - e.deltaY * 0.001);
   }
 
-  const volume = $derived(appState.music.volume);
+  const volume = $derived(appState.playlists.volumeGain);
   const VolumeIcon = $derived(volumeIcon(volume));
 </script>
 
@@ -29,7 +32,7 @@
   <div class="row-header">
     <Music class="icon name-icon" size={13} />
     <span class="audio-name"
-      >{appState.music.label ?? appState.music.activeId}</span
+      >{appState.playlists.label ?? appState.playlists.id}</span
     >
     <button
       class="dismiss"

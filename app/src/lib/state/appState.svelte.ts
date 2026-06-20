@@ -8,15 +8,15 @@ export const appState = $state<AppState>({
   scene: null,
   handout: null,
   ambiences: {
-    activeIds: [],
+    ids: [],
     targetGains: {},
-    volumes: {},
+    volumeGains: {},
     labels: {},
   },
-  music: {
-    activeId: null,
+  playlists: {
+    id: null,
     targetGain: DEFAULT_MUSIC_VOLUME,
-    volume: 1.0,
+    volumeGain: 1.0,
     label: null,
   },
   clientConnectedVersion: 0,

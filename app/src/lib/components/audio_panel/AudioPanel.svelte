@@ -7,8 +7,8 @@
 
   let { collapsed = $bindable(false) }: { collapsed: boolean } = $props();
 
-  const hasMusic = $derived(appState.music.activeId != null);
-  const hasAmbiences = $derived(appState.ambiences.activeIds.length > 0);
+  const hasMusic = $derived(appState.playlists.id != null);
+  const hasAmbiences = $derived(appState.ambiences.ids.length > 0);
 </script>
 
 <aside class="audio-panel" class:collapsed>
@@ -30,7 +30,7 @@
     {#if hasAmbiences}
       <section class="section">
         <span class="section-label">Ambiences</span>
-        {#each appState.ambiences.activeIds as id (id)}
+        {#each appState.ambiences.ids as id (id)}
           <AmbienceRow {id} />
         {/each}
       </section>

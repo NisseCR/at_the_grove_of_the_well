@@ -23,8 +23,8 @@
     untrack(() => {
       if (
         !appState.scene &&
-        appState.ambiences.activeIds.length === 0 &&
-        !appState.music.activeId
+        appState.ambiences.ids.length === 0 &&
+        !appState.playlists.id
       )
         return;
       sendSync();

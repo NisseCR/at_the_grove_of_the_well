@@ -19,7 +19,7 @@
    * @param id - Playlist ID to check against active music.
    */
   function isActive(id: string): boolean {
-    return appState.music.activeId === id;
+    return appState.playlists.id === id;
   }
 
   /**

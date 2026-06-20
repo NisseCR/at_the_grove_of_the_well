@@ -24,7 +24,7 @@
   }
 
   function onDismiss(): void {
-    const nextIds = appState.ambiences.activeIds.filter((i) => i !== id);
+    const nextIds = appState.ambiences.ids.filter((i) => i !== id);
     sendSetAmbiences(
       nextIds.map((i) => ({
         id: i,
@@ -36,7 +36,7 @@
 
   function onVolumeChange(value: number): void {
     const clamped = Math.min(1, Math.max(0, value));
-    appState.ambiences.volumes[id] = clamped;
+    appState.ambiences.volumeGains[id] = clamped;
     sendSetAmbienceVolume(id, clamped);
   }
 
@@ -46,7 +46,7 @@
   }
 
   const label = $derived(appState.ambiences.labels[id] ?? id);
-  const volume = $derived(appState.ambiences.volumes[id] ?? 1.0);
+  const volume = $derived(appState.ambiences.volumeGains[id] ?? 1.0);
   const VolumeIcon = $derived(volumeIcon(volume));
 </script>
 

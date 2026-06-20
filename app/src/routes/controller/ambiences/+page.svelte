@@ -11,7 +11,7 @@
    * @param id - Ambience ID to check against active ambiences.
    */
   function isActive(id: string): boolean {
-    return appState.ambiences.activeIds.includes(id);
+    return appState.ambiences.ids.includes(id);
   }
 
   /**
@@ -19,7 +19,7 @@
    * @param label - Display label for the ambience.
    */
   function toggle(id: string, label: string): void {
-    const { activeIds, targetGains, labels } = appState.ambiences;
+    const { ids: activeIds, targetGains, labels } = appState.ambiences;
     const next = isActive(id)
       ? activeIds.filter((i) => i !== id)
       : [...activeIds, id];
