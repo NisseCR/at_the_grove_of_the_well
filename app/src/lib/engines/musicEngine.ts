@@ -1,6 +1,6 @@
 import * as Tone from "tone";
 import { audioEngine } from "$lib/engines/audioEngine";
-import type { Stem } from "$lib/types/audio";
+import type { GainControl, Stem } from "$lib/types/audio";
 import type { Playlist } from "$lib/types/music";
 import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
@@ -16,7 +16,7 @@ class MusicEngine {
    * All track players route through this node. Fades drive this node only.
    * Lazy-initialised on first use, disposed only on reset().
    */
-  private masterRampGain: Tone.Gain | null = null;
+  private masterRampGain: GainControl | null = null;
 
   /**
    * Shared volume gain node in series after masterRampGain.
@@ -62,7 +62,8 @@ class MusicEngine {
     const gen = ++this.generation;
 
     if (id !== null && this.playlist?.id === id && this.masterRampGain) {
-      audioEngine.fadeGainTo(this.masterRampGain, targetGain, FADE_IN);
+      if (this.masterRampGain.target !== targetGain)
+        audioEngine.fadeGainTo(this.masterRampGain, targetGain, FADE_IN);
       return;
     }
 
@@ -105,7 +106,7 @@ class MusicEngine {
     this.generation++;
     this.stopPlayer();
     if (this.masterRampGain) {
-      this.masterRampGain.dispose();
+      this.masterRampGain.node.dispose();
       this.masterRampGain = null;
     }
     if (this.masterVolumeGain) {
@@ -144,8 +145,8 @@ class MusicEngine {
     const stem = await audioEngine.createStem(track.url!);
     if (gen !== this.generation) {
       stem.player.dispose();
-      stem.rampGain.dispose();
-      stem.volumeGain.dispose();
+      stem.rampGain.node.dispose();
+      stem.volumeGain.node.dispose();
       return;
     }
 
@@ -175,20 +176,20 @@ class MusicEngine {
    * Returns the existing masterRampGain (creating both master nodes if needed).
    * If the stored nodes are on a stale AudioContext they are disposed and replaced.
    */
-  private getOrCreateMasterGains(): Tone.Gain {
+  private getOrCreateMasterGains(): GainControl {
     if (
       this.masterRampGain &&
-      this.masterRampGain.context !== Tone.getContext()
+      this.masterRampGain.node.context !== Tone.getContext()
     ) {
-      this.masterRampGain.dispose();
+      this.masterRampGain.node.dispose();
       this.masterRampGain = null;
       this.masterVolumeGain?.dispose();
       this.masterVolumeGain = null;
     }
     if (!this.masterRampGain) {
       this.masterVolumeGain = new Tone.Gain(1).toDestination();
-      this.masterRampGain = new Tone.Gain(0);
-      this.masterRampGain.connect(this.masterVolumeGain);
+      this.masterRampGain = { node: new Tone.Gain(0), target: 0 };
+      this.masterRampGain.node.connect(this.masterVolumeGain);
     }
     return this.masterRampGain;
   }
@@ -201,11 +202,11 @@ class MusicEngine {
    * @param masterRampGain - The shared ramp gain node to connect the player to.
    * @returns The player, now routed through the master chain.
    */
-  private wireStemToMaster(stem: Stem, masterRampGain: Tone.Gain): Tone.Player {
-    stem.rampGain.dispose();
-    stem.volumeGain.dispose();
+  private wireStemToMaster(stem: Stem, masterRampGain: GainControl): Tone.Player {
+    stem.rampGain.node.dispose();
+    stem.volumeGain.node.dispose();
     stem.player.disconnect();
-    stem.player.connect(masterRampGain);
+    stem.player.connect(masterRampGain.node);
     return stem.player;
   }
 

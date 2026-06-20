@@ -120,7 +120,9 @@ class AmbienceEngine {
   private updateAmbience(id: AmbienceId, targetGain: TargetGain): void {
     const stem = this.activeAmbiences.get(id)!;
     if (stem.rampGain.target !== targetGain)
-      audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
+      log.debug(`updating ambience ${id}`);
+
+    audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
   }
 
   private async activateAmbience(
@@ -128,6 +130,8 @@ class AmbienceEngine {
     targetGain: TargetGain,
     token: AbortController,
   ): Promise<void> {
+    log.debug(`activating ambience ${id}`);
+
     const ambience = await guardedAwait(
       fetch(`/api/ambience/${id}`).then<Ambience>((r) => r.json()),
       token,
