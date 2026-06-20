@@ -13,8 +13,9 @@
     sendSetAmbienceVolume,
   } from "$lib/services/transport";
   import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
+  import type { AmbienceId } from "$lib/types/state";
 
-  const { id }: { id: string } = $props();
+  const { id }: { id: AmbienceId } = $props();
 
   function volumeIcon(v: number) {
     if (v === 0) return VolumeX;
@@ -29,7 +30,8 @@
       nextIds.map((i) => ({
         id: i,
         label: appState.ambiences.labels[i] ?? null,
-        volume: appState.ambiences.targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
+        targetGain:
+          appState.ambiences.targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
       })),
     );
   }

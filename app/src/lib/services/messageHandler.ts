@@ -1,32 +1,37 @@
-import type { TransportMessage } from "$lib/types/message";
-import type { AmbienceAudioState, AmbienceWireEntry } from "$lib/types/state";
+import type { TransportMessage, AmbienceWireEntry } from "$lib/types/message";
+import type {
+  AmbienceAudioState,
+  AmbienceId,
+  TargetGain,
+  VolumeGain,
+} from "$lib/types/state";
 import { appState } from "$lib/state/appState.svelte";
 import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
 
 /**
  * Converts a wire ambience list to AmbienceAudioState.
- * Carries over any existing per-id volume overrides from prevVolumes so that
+ * Carries over any existing per-id volume overrides from prevVolumeGains so that
  * local slider positions survive ambience list changes (e.g. toggling a second
  * ambience on does not reset the first one's local volume).
  *
- * @param list       - Wire entries from the incoming message.
- * @param prevVolumes - The existing client-local volumes to preserve.
+ * @param list           - Wire entries from the incoming message.
+ * @param prevVolumeGains - The existing client-local volume gains to preserve.
  */
-function wireToAmbiences(
+function wireAmbienceMessageToState(
   list: AmbienceWireEntry[],
-  prevVolumes: Record<string, number>,
+  prevVolumeGains: Record<AmbienceId, VolumeGain>,
 ): AmbienceAudioState {
-  const activeIds: string[] = [];
-  const targetGains: Record<string, number> = {};
-  const volumes: Record<string, number> = {};
-  const labels: Record<string, string | null> = {};
-  for (const { id, targetGain: volume, label } of list) {
-    activeIds.push(id);
-    targetGains[id] = volume;
-    volumes[id] = prevVolumes[id] ?? 1.0; // preserve existing override, default new ids to unity
+  const ids: AmbienceId[] = [];
+  const targetGains: Record<AmbienceId, TargetGain> = {};
+  const volumeGains: Record<AmbienceId, VolumeGain> = {};
+  const labels: Record<AmbienceId, string | null> = {};
+  for (const { id, targetGain, label } of list) {
+    ids.push(id);
+    targetGains[id] = targetGain;
+    volumeGains[id] = prevVolumeGains[id] ?? 1.0; // preserve existing override, default new ids to unity
     labels[id] = label;
   }
-  return { ids: activeIds, targetGains, volumeGains: volumes, labels };
+  return { ids, targetGains, volumeGains, labels };
 }
 
 /**
@@ -35,14 +40,14 @@ function wireToAmbiences(
 export async function handleMessage(message: TransportMessage): Promise<void> {
   switch (message.type) {
     case "SET_SCENE": {
-      const { id: sceneId, label } = message.payload;
-      appState.scene = { id: sceneId, label };
+      const { id, label } = message.payload;
+      appState.scene = { id, label };
       break;
     }
 
     case "SET_AMBIENCES": {
-      appState.ambiences = wireToAmbiences(
-        message.payload.ambiences,
+      appState.ambiences = wireAmbienceMessageToState(
+        message.payload,
         appState.ambiences.volumeGains,
       );
       break;
@@ -55,14 +60,14 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SET_PLAYLIST": {
-      const { id, label, targetGain: volume } = message.payload;
+      const { id, label, targetGain } = message.payload;
       appState.playlists.id = id;
       appState.playlists.label = label;
-      appState.playlists.targetGain = volume;
+      appState.playlists.targetGain = targetGain;
       break;
     }
 
-    case "SET_MUSIC_VOLUME": {
+    case "SET_PLAYLIST_VOLUME": {
       appState.playlists.volumeGain = message.payload.volume;
       break;
     }
@@ -83,17 +88,17 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SYNC": {
-      const { scene, ambiences, playlists: music } = message.payload;
+      const { scene, ambiences, playlists } = message.payload;
       appState.scene = scene ? { id: scene.id, label: null } : null;
-      appState.ambiences = wireToAmbiences(
+      appState.ambiences = wireAmbienceMessageToState(
         ambiences ?? [],
         appState.ambiences.volumeGains,
       );
       appState.playlists = {
-        id: music?.id ?? null,
-        targetGain: music?.targetGain ?? DEFAULT_MUSIC_VOLUME,
+        id: playlists?.id ?? null,
+        targetGain: playlists?.targetGain ?? DEFAULT_MUSIC_VOLUME,
         volumeGain: appState.playlists.volumeGain,
-        label: music?.label ?? null,
+        label: playlists?.label ?? null,
       };
       break;
     }

@@ -3,6 +3,7 @@
   import { sendSetAmbiences } from "$lib/services/transport";
   import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
   import type { PageData } from "./$types";
+  import type { AmbienceId } from "$lib/types/state";
   import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
 
   let { data }: { data: PageData } = $props();
@@ -10,7 +11,7 @@
   /**
    * @param id - Ambience ID to check against active ambiences.
    */
-  function isActive(id: string): boolean {
+  function isActive(id: AmbienceId): boolean {
     return appState.ambiences.ids.includes(id);
   }
 
@@ -18,16 +19,18 @@
    * @param id - Ambience ID to toggle.
    * @param label - Display label for the ambience.
    */
-  function toggle(id: string, label: string): void {
+  function toggle(id: AmbienceId, label: string): void {
     const { ids: activeIds, targetGains, labels } = appState.ambiences;
+
     const next = isActive(id)
       ? activeIds.filter((i) => i !== id)
       : [...activeIds, id];
+
     sendSetAmbiences(
       next.map((i) => ({
         id: i,
         label: i === id ? label : (labels[i] ?? null),
-        volume: targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
+        targetGain: targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
       })),
     );
   }

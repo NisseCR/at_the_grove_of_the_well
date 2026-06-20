@@ -36,7 +36,12 @@
     >
     <button
       class="dismiss"
-      onclick={() => sendSetPlaylist(null)}
+      onclick={() =>
+        sendSetPlaylist({
+          id: null,
+          label: null,
+          targetGain: appState.playlists.targetGain,
+        })}
       aria-label="Stop music"
     >
       <X size={16} />

@@ -2,6 +2,7 @@
   import { appState } from "$lib/state/appState.svelte";
   import { sendSetPlaylist } from "$lib/services/transport";
   import type { PageData } from "./$types";
+  import type { PlaylistId } from "$lib/types/state";
   import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
   import ThumbnailTile from "$lib/components/assets/ThumbnailTile.svelte";
 
@@ -10,7 +11,7 @@
   /**
    * @param id - Playlist ID to look up thumbnail for.
    */
-  function thumbnailFor(id: string): string | undefined {
+  function thumbnailFor(id: PlaylistId): string | undefined {
     const p = data.playlists.find((p) => p.id === id);
     return p?.thumb_url ?? p?.url ?? undefined;
   }
@@ -18,19 +19,20 @@
   /**
    * @param id - Playlist ID to check against active music.
    */
-  function isActive(id: string): boolean {
+  function isActive(id: PlaylistId): boolean {
     return appState.playlists.id === id;
   }
 
   /**
    * @param id - Playlist ID to activate or deactivate.
    */
-  function onTileClick(id: string): void {
+  function onTileClick(id: PlaylistId): void {
+    const targetGain = appState.playlists.targetGain;
     if (isActive(id)) {
-      sendSetPlaylist(null, null);
+      sendSetPlaylist({ id: null, label: null, targetGain });
     } else {
       const label = data.playlists.find((p) => p.id === id)?.label ?? null;
-      sendSetPlaylist(id, label);
+      sendSetPlaylist({ id, label, targetGain });
     }
   }
 </script>

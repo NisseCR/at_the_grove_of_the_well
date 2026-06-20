@@ -34,10 +34,10 @@
 
   const localAudio: ReactiveAudioState = $state({
     ambiences: refsToAmbiences(null),
-    music: {
-      activeId: null,
+    playlists: {
+      id: null,
       targetGain: DEFAULT_MUSIC_VOLUME,
-      volume: 1.0,
+      volumeGain: 1.0,
       label: null,
     },
     resetAudioVersion: 0,

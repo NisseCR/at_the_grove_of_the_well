@@ -37,7 +37,7 @@ class AudioEngine {
     const now = Tone.now();
     gain.gain.cancelAndHoldAtTime(now);
     gain.gain.linearRampToValueAtTime(target, now + duration);
-    log.debug(`fade gain: ${gain.gain.value} -> ${target} over ${duration}s`);
+    log.debug(`fade gain: ${gain.gain.value.toFixed(2)} -> ${target.toFixed(2)} over ${duration}s`);
   }
 
   async closeAudioContext(): Promise<void> {
