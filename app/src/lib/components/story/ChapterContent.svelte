@@ -67,6 +67,20 @@
     text-indent: 0;
   }
 
+  .chapter-prose :global(.poem) {
+    margin: 2em 0;
+  }
+
+  .chapter-prose :global(.poem p) {
+    text-indent: 0;
+    text-align: left;
+  }
+
+  .chapter-prose :global(.poem p + p) {
+    text-indent: 0;
+    margin-top: 1.9em;
+  }
+
   .chapter-prose :global(hr) {
     border: none;
     text-align: center;

@@ -47,6 +47,7 @@ export interface InlineSpan {
 
 export type ChapterBlock =
   | { type: 'prose'; paragraphs: InlineSpan[][] }
+  | { type: 'poem'; stanzas: InlineSpan[][][] }
   | { type: 'divider' };
 
 /** One content block between two triggers (or the start/end of the chapter). */

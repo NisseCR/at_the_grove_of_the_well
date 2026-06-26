@@ -16,6 +16,22 @@
       {/each}
     </p>
   {/each}
+{:else if block.type === 'poem'}
+  <div class="poem" use:scrollReveal>
+    {#each block.stanzas as stanza}
+      <p class="stanza">
+        {#each stanza as line, i}
+          {#each line as span}
+            {#if span.bold && span.italic}<strong><em>{span.text}</em></strong
+            >{:else if span.bold}<strong>{span.text}</strong
+            >{:else if span.italic}<em>{span.text}</em
+            >{:else}{span.text}{/if}
+          {/each}
+          {#if i < stanza.length - 1}<br />{/if}
+        {/each}
+      </p>
+    {/each}
+  </div>
 {:else if block.type === 'divider'}
   <hr use:scrollReveal />
 {/if}
