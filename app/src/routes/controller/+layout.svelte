@@ -56,13 +56,6 @@
         >
           Ambiences
         </a>
-        <a
-          href="/controller/config"
-          class="tab"
-          class:active={tab === "config"}
-        >
-          Config
-        </a>
         <button
           class="tab audio-toggle"
           class:active={!panelCollapsed}
@@ -71,6 +64,13 @@
         >
           <AudioLines size={15} />
         </button>
+        <a
+          href="/controller/config"
+          class="tab"
+          class:active={tab === "config"}
+        >
+          Config
+        </a>
       </div>
     </div>
   </nav>
