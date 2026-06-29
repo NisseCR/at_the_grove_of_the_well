@@ -161,17 +161,21 @@
   }
 
   .chip-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--space-2);
-    align-content: flex-start;
     padding-inline: var(--space-6);
+    padding-bottom: var(--space-4);
   }
 
   .chip {
-    padding: var(--space-1) var(--space-3);
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding-inline: var(--space-3);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-wide);
+    text-align: left;
     color: var(--color-text-muted);
     background: var(--color-glass);
     backdrop-filter: blur(var(--blur-sm));
@@ -179,6 +183,8 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
     transition:
       color var(--ease-fast),
       border-color var(--ease-fast),
