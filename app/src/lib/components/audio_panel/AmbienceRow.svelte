@@ -12,7 +12,7 @@
     sendSetAmbiences,
     sendSetAmbienceVolume,
   } from "$lib/services/transport";
-  import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
+  import { DEFAULT_AMBIENCE_TARGET_GAIN } from "$lib/config/audio";
   import type { AmbienceId } from "$lib/types/state";
 
   const { id }: { id: AmbienceId } = $props();
@@ -30,8 +30,8 @@
       nextIds.map((i) => ({
         id: i,
         label: appState.ambiences.labels[i] ?? null,
-        targetGain:
-          appState.ambiences.targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
+        targetGain: appState.ambiences.targetGains[i] ?? DEFAULT_AMBIENCE_TARGET_GAIN,
+        volumeGain: appState.ambiences.volumeGains[i],
       })),
     );
   }

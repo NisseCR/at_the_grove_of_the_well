@@ -2,7 +2,8 @@ import * as Tone from "tone";
 import { audioEngine } from "$lib/engines/audioEngine";
 import type { GainControl, Stem } from "$lib/types/audio";
 import type { Playlist } from "$lib/types/music";
-import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
+import { DEFAULT_MUSIC_TARGET_GAIN, DEFAULT_MUSIC_VOLUME_GAIN } from "$lib/config/audio";
+import type { VolumeGain } from "$lib/types/state";
 
 const FADE_IN = 3.0;
 const FADE_OUT = 3.0;
@@ -35,7 +36,7 @@ class MusicEngine {
   private trackIndex = 0;
 
   /** Target gain for the current playlist. Set on transition(), used by fadeInMaster. */
-  private targetGain = DEFAULT_MUSIC_VOLUME;
+  private targetGain = DEFAULT_MUSIC_TARGET_GAIN;
 
   /**
    * Incremented every time transition() or reset() is called. Each async
@@ -47,16 +48,19 @@ class MusicEngine {
   // ─── Public API ────────────────────────────────────────────────────────────
 
   /**
-   * Switches to the given playlist at the given targetGain, or stops music if
-   * id is null. If the same playlist is already playing, fades masterRampGain
-   * to the new targetGain without restarting playback.
+   * Switches to the given playlist, or stops music if id is null. If the same
+   * playlist is already playing, fades masterRampGain to the new targetGain
+   * without restarting playback.
    *
    * @param id         - Playlist id to start, or null to stop music.
    * @param targetGain - Target ramp gain for the fade-in (0–1).
+   * @param volumeGain - Applied to masterVolumeGain after the playlist starts.
+   *                     Only affects newly started playlists; use setVolume() for live updates.
    */
   async transition(
     id: string | null,
-    targetGain = DEFAULT_MUSIC_VOLUME,
+    targetGain = DEFAULT_MUSIC_TARGET_GAIN,
+    volumeGain: VolumeGain = DEFAULT_MUSIC_VOLUME_GAIN,
   ): Promise<void> {
     this.targetGain = targetGain;
     const gen = ++this.generation;
@@ -85,6 +89,7 @@ class MusicEngine {
 
     this.playlist = playlist;
     await this.playTrack(gen, true);
+    if (gen === this.generation) this.setVolume(volumeGain);
   }
 
   /**

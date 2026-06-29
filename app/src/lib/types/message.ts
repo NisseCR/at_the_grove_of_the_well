@@ -15,12 +15,14 @@ export interface AmbienceWireEntry {
   id: AmbienceId;
   label: string | null;
   targetGain: TargetGain;
+  volumeGain?: VolumeGain;
 }
 
 export interface PlaylistWriteEntry {
   id: PlaylistId | null;
   label: string | null;
   targetGain: TargetGain;
+  volumeGain?: VolumeGain;
 }
 
 export type SceneMessage =

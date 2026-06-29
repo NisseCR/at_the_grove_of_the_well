@@ -1,2 +1,5 @@
-export const DEFAULT_MUSIC_VOLUME = 0.6;
-export const DEFAULT_AMBIENCE_VOLUME = 0.4;
+export const DEFAULT_MUSIC_TARGET_GAIN = 0.6;
+export const DEFAULT_AMBIENCE_TARGET_GAIN = 0.4;
+
+export const DEFAULT_MUSIC_VOLUME_GAIN = 1.0;
+export const DEFAULT_AMBIENCE_VOLUME_GAIN = 1.0;

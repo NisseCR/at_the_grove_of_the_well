@@ -1,10 +1,29 @@
+import asyncio
 import json
+from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/control")
 
 connected: set[WebSocket] = set()
+
+
+class BroadcastRequest(BaseModel):
+    messages: list[dict[str, Any]]
+
+
+@router.post("/broadcast")
+async def broadcast(request: BroadcastRequest):
+    for message in request.messages:
+        text = json.dumps(message)
+        for client in set(connected):
+            try:
+                await client.send_text(text)
+            except Exception:
+                connected.discard(client)
+    return {"ok": True}
 
 
 @router.websocket("/ws")

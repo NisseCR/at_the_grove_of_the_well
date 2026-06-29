@@ -6,29 +6,18 @@ import type {
   VolumeGain,
 } from "$lib/types/state";
 import { appState } from "$lib/state/appState.svelte";
-import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
+import { DEFAULT_MUSIC_TARGET_GAIN, DEFAULT_MUSIC_VOLUME_GAIN, DEFAULT_AMBIENCE_VOLUME_GAIN } from "$lib/config/audio";
 
-/**
- * Converts a wire ambience list to AmbienceAudioState.
- * Carries over any existing per-id volume overrides from prevVolumeGains so that
- * local slider positions survive ambience list changes (e.g. toggling a second
- * ambience on does not reset the first one's local volume).
- *
- * @param list           - Wire entries from the incoming message.
- * @param prevVolumeGains - The existing client-local volume gains to preserve.
- */
-function wireAmbienceMessageToState(
-  list: AmbienceWireEntry[],
-  prevVolumeGains: Record<AmbienceId, VolumeGain>,
-): AmbienceAudioState {
+/** Converts a wire ambience list to AmbienceAudioState. */
+function wireAmbienceMessageToState(list: AmbienceWireEntry[]): AmbienceAudioState {
   const ids: AmbienceId[] = [];
   const targetGains: Record<AmbienceId, TargetGain> = {};
   const volumeGains: Record<AmbienceId, VolumeGain> = {};
   const labels: Record<AmbienceId, string | null> = {};
-  for (const { id, targetGain, label } of list) {
+  for (const { id, targetGain, label, volumeGain } of list) {
     ids.push(id);
     targetGains[id] = targetGain;
-    volumeGains[id] = prevVolumeGains[id] ?? 1.0; // preserve existing override, default new ids to unity
+    volumeGains[id] = volumeGain ?? DEFAULT_AMBIENCE_VOLUME_GAIN;
     labels[id] = label;
   }
   return { ids, targetGains, volumeGains, labels };
@@ -46,10 +35,7 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SET_AMBIENCES": {
-      appState.ambiences = wireAmbienceMessageToState(
-        message.payload,
-        appState.ambiences.volumeGains,
-      );
+      appState.ambiences = wireAmbienceMessageToState(message.payload);
       break;
     }
 
@@ -90,14 +76,11 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     case "SYNC": {
       const { scene, ambiences, playlists } = message.payload;
       appState.scene = scene ? { id: scene.id, label: null } : null;
-      appState.ambiences = wireAmbienceMessageToState(
-        ambiences ?? [],
-        appState.ambiences.volumeGains,
-      );
+      appState.ambiences = wireAmbienceMessageToState(ambiences ?? []);
       appState.playlists = {
         id: playlists?.id ?? null,
-        targetGain: playlists?.targetGain ?? DEFAULT_MUSIC_VOLUME,
-        volumeGain: appState.playlists.volumeGain,
+        targetGain: playlists?.targetGain ?? DEFAULT_MUSIC_TARGET_GAIN,
+        volumeGain: playlists?.volumeGain ?? DEFAULT_MUSIC_VOLUME_GAIN,
         label: playlists?.label ?? null,
       };
       break;

@@ -1,10 +1,11 @@
 import * as Tone from "tone";
 import type { Stem } from "$lib/types/audio";
-import type { AmbienceId, TargetGain } from "$lib/types/state";
+import type { AmbienceId, TargetGain, VolumeGain } from "$lib/types/state";
 import { audioEngine } from "$lib/engines/audioEngine";
 import type { Ambience } from "$lib/types/ambience";
 import { guardedAwait } from "$lib/utils/guardedAwait";
 import { createLogger } from "$lib/utils/logger";
+import { DEFAULT_AMBIENCE_VOLUME_GAIN } from "$lib/config/audio";
 
 const log = createLogger("audio:ambience");
 
@@ -21,20 +22,31 @@ class AmbienceEngine {
   /**
    * Supersede any in-progress transitions by guarding between each async step so
    * a newer call cancels the pipeline cleanly.
+   *
+   * @param volumeGains - Per-id volume multipliers applied when a new stem is created.
+   *                      Does not affect already-active stems; use setVolume() for those.
    */
-  async transition(entryAmbiences: Map<AmbienceId, TargetGain>): Promise<void> {
+  async transition(
+    targetGains: Map<AmbienceId, TargetGain>,
+    volumeGains: Map<AmbienceId, VolumeGain>,
+  ): Promise<void> {
     const token = this.createToken();
 
     try {
       for (const id of this.activeAmbiences.keys()) {
-        if (!entryAmbiences.has(id)) {
+        if (!targetGains.has(id)) {
           this.deactivateAmbience(id);
         }
       }
 
-      for (const [id, targetGain] of entryAmbiences) {
+      for (const [id, targetGain] of targetGains) {
         if (!this.activeAmbiences.has(id)) {
-          this.activateAmbience(id, targetGain, token);
+          this.activateAmbience(
+            id,
+            targetGain,
+            volumeGains.get(id) ?? DEFAULT_AMBIENCE_VOLUME_GAIN,
+            token,
+          );
         } else {
           this.updateAmbience(id, targetGain);
         }
@@ -78,12 +90,16 @@ class AmbienceEngine {
    * Immediately stops all active stems, resets the AudioContext, then
    * re-activates via transition().
    *
-   * @param entries - Map of ambience id to targetGain to activate after the reset.
+   * @param targetGains  - Map of ambience id to targetGain to activate after the reset.
+   * @param volumeGains  - Map of ambience id to volumeGain to apply to new stems.
    */
-  async hardReset(entries: Map<AmbienceId, TargetGain>): Promise<void> {
+  async hardReset(
+    targetGains: Map<AmbienceId, TargetGain>,
+    volumeGains: Map<AmbienceId, VolumeGain>,
+  ): Promise<void> {
     this.reset();
     await audioEngine.refreshAudioContext();
-    await this.transition(entries);
+    await this.transition(targetGains, volumeGains);
   }
 
   // ─── Private ───────────────────────────────────────────────────────────────
@@ -121,13 +137,13 @@ class AmbienceEngine {
     const stem = this.activeAmbiences.get(id)!;
     if (stem.rampGain.target !== targetGain)
       log.debug(`updating ambience ${id}`);
-
     audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
   }
 
   private async activateAmbience(
     id: AmbienceId,
     targetGain: TargetGain,
+    volumeGain: VolumeGain,
     token: AbortController,
   ): Promise<void> {
     log.debug(`activating ambience ${id}`);
@@ -138,25 +154,28 @@ class AmbienceEngine {
     );
 
     await guardedAwait(
-      this.configureAmbienceStem(id, ambience.url!, targetGain, ambience.loop),
+      this.configureAmbienceStem(id, ambience.url!, targetGain, volumeGain, ambience.loop),
       token,
       () => this.deactivateAmbience(id),
     );
   }
 
   /**
-   * Starts a new stem for the given id and fades rampGain in to targetGain.
-   * Only called from transition() for ids not yet in the active map.
+   * Starts a new stem for the given id, applies volumeGain instantly, then fades
+   * rampGain in to targetGain. volumeGain is set before the fade so the stem
+   * plays at the correct level from the first audible sample.
    */
   private async configureAmbienceStem(
     id: AmbienceId,
     url: string,
     targetGain: TargetGain,
+    volumeGain: VolumeGain,
     loop = true,
   ): Promise<void> {
     const stem = await audioEngine.createStem(url);
     stem.player.loop = loop;
     stem.player.start();
+    stem.volumeGain.node.gain.setValueAtTime(volumeGain, Tone.now());
     this.activeAmbiences.set(id, stem);
     audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
   }

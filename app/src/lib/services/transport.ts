@@ -86,12 +86,11 @@ export function sendSetDebug(debug: boolean): void {
 export function sendSync(): void {
   const { scene, ambiences, playlists } = appState;
 
-  const sceneEntry = scene;
-
   const ambienceEntries: AmbienceWireEntry[] = ambiences.ids.map((id) => ({
     id,
     label: ambiences.labels[id] ?? null,
     targetGain: ambiences.targetGains[id],
+    volumeGain: ambiences.volumeGains[id],
   }));
 
   const playlistEntry: PlaylistWriteEntry | null = playlists.id
@@ -99,13 +98,14 @@ export function sendSync(): void {
         id: playlists.id,
         label: playlists.label,
         targetGain: playlists.targetGain,
+        volumeGain: playlists.volumeGain,
       }
     : null;
 
   send({
     type: "SYNC",
     payload: {
-      scene: sceneEntry,
+      scene,
       ambiences: ambienceEntries,
       playlists: playlistEntry,
     },

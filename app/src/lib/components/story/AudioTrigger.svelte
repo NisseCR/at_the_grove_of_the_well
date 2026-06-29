@@ -8,7 +8,7 @@
     AmbienceAudioState,
     ReactiveAudioState,
   } from "$lib/types/state";
-  import { DEFAULT_MUSIC_VOLUME } from "$lib/config/audio";
+  import { DEFAULT_MUSIC_TARGET_GAIN } from "$lib/config/audio";
   import AudioRenderer from "$lib/components/audio/AudioRenderer.svelte";
 
   let {
@@ -36,7 +36,7 @@
     ambiences: refsToAmbiences(null),
     playlists: {
       id: null,
-      targetGain: DEFAULT_MUSIC_VOLUME,
+      targetGain: DEFAULT_MUSIC_TARGET_GAIN,
       volumeGain: 1.0,
       label: null,
     },
@@ -61,7 +61,7 @@
         }
       : {
           id: null,
-          targetGain: DEFAULT_MUSIC_VOLUME,
+          targetGain: DEFAULT_MUSIC_TARGET_GAIN,
           volumeGain: 1.0,
           label: null,
         };

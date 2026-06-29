@@ -2,7 +2,7 @@
   import { Tabs } from "bits-ui";
   import { appState } from "$lib/state/appState.svelte";
   import { sendSetAmbiences } from "$lib/services/transport";
-  import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
+  import { DEFAULT_AMBIENCE_TARGET_GAIN } from "$lib/config/audio";
   import type { PageData } from "./$types";
   import type { AmbienceId } from "$lib/types/state";
 
@@ -13,7 +13,7 @@
   }
 
   function toggle(id: AmbienceId, label: string): void {
-    const { ids: activeIds, targetGains, labels } = appState.ambiences;
+    const { ids: activeIds, targetGains, volumeGains, labels } = appState.ambiences;
     const next = isActive(id)
       ? activeIds.filter((i) => i !== id)
       : [...activeIds, id];
@@ -21,7 +21,8 @@
       next.map((i) => ({
         id: i,
         label: i === id ? label : (labels[i] ?? null),
-        targetGain: targetGains[i] ?? DEFAULT_AMBIENCE_VOLUME,
+        targetGain: targetGains[i] ?? DEFAULT_AMBIENCE_TARGET_GAIN,
+        volumeGain: volumeGains[i],
       })),
     );
   }

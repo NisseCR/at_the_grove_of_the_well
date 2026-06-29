@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
   import { page } from "$app/state";
-  import { AudioLines } from "@lucide/svelte";
+  import { AudioLines, Link, Check } from "@lucide/svelte";
   import AudioPanel from "$lib/components/audio_panel/AudioPanel.svelte";
   import { appState } from "$lib/state/appState.svelte";
   import { connect, sendSync } from "$lib/services/transport";
@@ -9,6 +9,36 @@
   const { children } = $props();
 
   let panelCollapsed = $state(true);
+  let copied = $state(false);
+
+  function copyPresetUrl(): void {
+    const parts: string[] = [];
+
+    if (appState.scene?.id) {
+      parts.push(`scene=${appState.scene.id}`);
+    }
+
+    if (appState.playlists.id) {
+      const vol = Math.round(appState.playlists.volumeGain * 100) / 100;
+      parts.push(`playlist=${appState.playlists.id}:${vol}`);
+    }
+
+    if (appState.ambiences.ids.length > 0) {
+      const entries = appState.ambiences.ids.map((id) => {
+        const vol =
+          Math.round((appState.ambiences.volumeGains[id] ?? 1.0) * 100) / 100;
+        return `${id}:${vol}`;
+      });
+      parts.push(`ambiences=${entries.join(",")}`);
+    }
+
+    const url = `${window.location.origin}/api/admin/apply?${parts.join("&")}`;
+    navigator.clipboard.writeText(url);
+    copied = true;
+    setTimeout(() => {
+      copied = false;
+    }, 2000);
+  }
 
   onMount(() => connect());
   const tab = $derived(page.url.pathname.split("/").at(2) ?? "");
@@ -63,6 +93,17 @@
           aria-label="Toggle audio panel"
         >
           <AudioLines size={15} />
+        </button>
+        <button
+          class="tab preset-copy"
+          onclick={copyPresetUrl}
+          aria-label="Copy preset URL"
+        >
+          {#if copied}
+            <Check size={15} />
+          {:else}
+            <Link size={15} />
+          {/if}
         </button>
         <a
           href="/controller/config"
@@ -208,7 +249,8 @@
     }
   }
 
-  .audio-toggle {
+  .audio-toggle,
+  .preset-copy {
     display: flex;
     align-items: center;
   }
