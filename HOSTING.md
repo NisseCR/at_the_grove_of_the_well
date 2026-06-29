@@ -82,7 +82,7 @@ Static assets are served by nginx with `Cache-Control: public, immutable` and a 
 If you reprocess an audio file (resample, normalise) and redeploy it at the same path, **manually purge the Cloudflare cache** after deploying:
 
 1. Cloudflare Dashboard → your domain → **Caching → Purge Cache**
-2. Choose **Custom Purge** and enter the affected file URL(s), e.g. `https://grove.paracosm-vtt.com/static/assets/audio/ambience/rain.ogg`
+2. Choose **Custom Purge** and enter the affected file URL(s), e.g. `https://grove.paracosm-vtt.com/ambiences/02-precipitation/rain.webm`
 3. Or choose **Purge Everything** to clear all cached assets at once
 
 Players will then fetch the updated file on their next request.
