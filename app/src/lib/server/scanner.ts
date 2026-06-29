@@ -118,29 +118,64 @@ async function listR2Keys(client: S3Client): Promise<string[]> {
 // ---------------------------------------------------------------------------
 
 /** Build ambience categories and a flat ambience list from R2 keys. */
-function scanAmbiences(keys: string[]): {
-  categories: AmbienceCategory[];
-  ambiences: Ambience[];
-} {
-  const cats = new Map<string, { src: string; thumb_src: string | null }>();
-  const ambiences = new Map<string, Ambience>();
-  const catAmbs = new Map<string, string[]>();
+async function scanAmbiences(
+  keys: string[],
+  client: S3Client,
+): Promise<{ categories: AmbienceCategory[]; ambiences: Ambience[] }> {
+  const cats = new Map<
+    string,
+    { src: string; thumb_src: string | null; hasSettings: boolean }
+  >();
+  const catAmbs = new Map<string, { slug: string; key: string }[]>();
 
   for (const key of keys) {
     const parts = key.split("/");
     if (parts.length !== 3 || parts[0] !== "ambiences") continue;
     const [, catSlug, filename] = parts;
 
-    if (!cats.has(catSlug)) cats.set(catSlug, { src: "", thumb_src: null });
+    if (!cats.has(catSlug))
+      cats.set(catSlug, { src: "", thumb_src: null, hasSettings: false });
 
     if (filename === "cover.webp") {
       cats.get(catSlug)!.src = key;
     } else if (filename === "cover.thumb.webp") {
       cats.get(catSlug)!.thumb_src = key;
+    } else if (filename === "settings.json") {
+      cats.get(catSlug)!.hasSettings = true;
     } else {
       const ambSlug = audioStem(filename);
       if (!ambSlug) continue;
-      const id = `${toBase(catSlug)}.${ambSlug}`;
+      if (!catAmbs.has(catSlug)) catAmbs.set(catSlug, []);
+      catAmbs.get(catSlug)!.push({ slug: ambSlug, key });
+    }
+  }
+
+  const catSettings = new Map<string, { loop: boolean }>();
+  for (const [catSlug, meta] of cats) {
+    if (!meta.hasSettings) continue;
+    try {
+      const res = await client.send(
+        new GetObjectCommand({
+          Bucket: process.env.R2_BUCKET,
+          Key: `ambiences/${catSlug}/settings.json`,
+        }),
+      );
+      const body = await res.Body?.transformToString();
+      if (body) {
+        const parsed = JSON.parse(body) as { loop?: boolean };
+        catSettings.set(catSlug, { loop: parsed.loop ?? true });
+      }
+    } catch (err) {
+      console.warn(`Skipped ambience settings for ${catSlug}:`, err);
+    }
+  }
+
+  const ambiences = new Map<string, Ambience>();
+  for (const [catSlug, entries] of catAmbs) {
+    const catBase = toBase(catSlug);
+    const loop = catSettings.get(catSlug)?.loop ?? true;
+    for (const { slug: ambSlug, key } of entries) {
+      const id = `${catBase}.${ambSlug}`;
       if (ambiences.has(id)) {
         console.warn(
           `Duplicate ambience '${ambSlug}' in '${catSlug}' — skipping`,
@@ -150,12 +185,10 @@ function scanAmbiences(keys: string[]): {
       ambiences.set(id, {
         id,
         label: toLabel(ambSlug),
-        loop: true,
+        loop,
         src: key,
         url: assetUrl(key),
       });
-      if (!catAmbs.has(catSlug)) catAmbs.set(catSlug, []);
-      catAmbs.get(catSlug)!.push(ambSlug);
     }
   }
 
@@ -164,10 +197,11 @@ function scanAmbiences(keys: string[]): {
     .map(([catSlug, meta]) => {
       const catBase = toBase(catSlug);
       const entries: AmbienceCategoryEntry[] = (catAmbs.get(catSlug) ?? [])
+        .map(({ slug }) => slug)
         .sort()
         .map((slug) => ({ id: `${catBase}.${slug}`, label: toLabel(slug) }));
       return {
-        id: toBase(catSlug),
+        id: catBase,
         label: toLabel(catSlug),
         src: meta.src,
         thumb_src: meta.thumb_src,
@@ -428,7 +462,7 @@ export async function scan(): Promise<AppData> {
   const keys = await listR2Keys(client);
   console.log(`Found ${keys.length} objects in R2`);
 
-  const { categories: ambienceCategories, ambiences } = scanAmbiences(keys);
+  const { categories: ambienceCategories, ambiences } = await scanAmbiences(keys, client);
   const { categories: playlistCategories, playlists } = scanPlaylists(keys);
   const { categories: sceneCategories, scenes } = await scanScenes(
     keys,
