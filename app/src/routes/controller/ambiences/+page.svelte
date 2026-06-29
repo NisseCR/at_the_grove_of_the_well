@@ -41,7 +41,15 @@
   </Tabs.List>
 
   {#each data.categories as category}
+    {@const bannerSrc = category.thumb_url ?? category.url ?? null}
     <Tabs.Content value={category.id} class="chip-panel">
+      <div
+        class="panel-banner"
+        class:has-image={!!bannerSrc}
+        style={bannerSrc ? `--banner-src: url('${bannerSrc}')` : ""}
+      >
+        <span class="banner-label">{category.label}</span>
+      </div>
       <div class="chip-grid">
         {#each category.ambiences as entry}
           <button
@@ -108,12 +116,48 @@
   :global(.chip-panel) {
     flex: 1;
     overflow-y: auto;
-    padding-left: var(--space-6);
-    padding-block: var(--space-1);
   }
 
   :global(.chip-panel[hidden]) {
     display: none;
+  }
+
+  .panel-banner {
+    position: relative;
+    height: 88px;
+    margin: var(--space-4) var(--space-6) var(--space-4);
+    overflow: hidden;
+    background: var(--color-glass);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .panel-banner.has-image::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to top, rgba(8, 6, 14, 0.85) 0%, transparent 60%),
+      var(--banner-src);
+    background-size: cover;
+    background-position: center;
+    filter: saturate(var(--image-saturation));
+  }
+
+  .banner-label {
+    position: absolute;
+    bottom: var(--space-1);
+    left: var(--space-2);
+    right: var(--space-2);
+    z-index: 1;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    text-transform: capitalize;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .chip-grid {
@@ -121,6 +165,7 @@
     flex-wrap: wrap;
     gap: var(--space-2);
     align-content: flex-start;
+    padding-inline: var(--space-6);
   }
 
   .chip {
