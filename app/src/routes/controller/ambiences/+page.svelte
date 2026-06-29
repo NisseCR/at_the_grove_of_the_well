@@ -1,31 +1,22 @@
 <script lang="ts">
+  import { Tabs } from "bits-ui";
   import { appState } from "$lib/state/appState.svelte";
   import { sendSetAmbiences } from "$lib/services/transport";
   import { DEFAULT_AMBIENCE_VOLUME } from "$lib/config/audio";
   import type { PageData } from "./$types";
   import type { AmbienceId } from "$lib/types/state";
-  import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
 
   let { data }: { data: PageData } = $props();
 
-  /**
-   * @param id - Ambience ID to check against active ambiences.
-   */
   function isActive(id: AmbienceId): boolean {
     return appState.ambiences.ids.includes(id);
   }
 
-  /**
-   * @param id - Ambience ID to toggle.
-   * @param label - Display label for the ambience.
-   */
   function toggle(id: AmbienceId, label: string): void {
     const { ids: activeIds, targetGains, labels } = appState.ambiences;
-
     const next = isActive(id)
       ? activeIds.filter((i) => i !== id)
       : [...activeIds, id];
-
     sendSetAmbiences(
       next.map((i) => ({
         id: i,
@@ -36,49 +27,105 @@
   }
 </script>
 
-<div class="categories">
+<Tabs.Root
+  value={data.categories[0]?.id}
+  orientation="vertical"
+  class="ambience-tabs"
+>
+  <Tabs.List class="category-list">
+    {#each data.categories as category}
+      <Tabs.Trigger value={category.id} class="category-trigger">
+        {category.label}
+      </Tabs.Trigger>
+    {/each}
+  </Tabs.List>
+
   {#each data.categories as category}
-    <div class="category">
-      <CategoryHeader label={category.label} />
-      <div class="item-list">
+    <Tabs.Content value={category.id} class="chip-panel">
+      <div class="chip-grid">
         {#each category.ambiences as entry}
           <button
-            class="item-row"
+            class="chip"
             class:active={isActive(entry.id)}
-            onclick={() =>
-              toggle(entry.id, `${category.label} / ${entry.label}`)}
+            onclick={() => toggle(entry.id, `${category.label} / ${entry.label}`)}
           >
             {entry.label}
           </button>
         {/each}
       </div>
-    </div>
+    </Tabs.Content>
   {/each}
-</div>
+</Tabs.Root>
 
 <style>
-  .categories {
+  :global(.ambience-tabs) {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
+    height: 100%;
   }
 
-  .category {
+  :global(.category-list) {
     display: flex;
     flex-direction: column;
+    width: 148px;
+    flex-shrink: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-right: 1px solid var(--color-border);
+    padding-block: var(--space-1);
   }
 
-  .item-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .item-row {
+  :global(.category-trigger) {
     display: block;
+    width: 100%;
     text-align: left;
     padding: var(--space-2) var(--space-3);
+    font-family: var(--font-display);
     font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    text-transform: capitalize;
+    color: var(--color-text-faint);
+    background: none;
+    border: none;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition:
+      color var(--ease-fast),
+      border-color var(--ease-fast);
+  }
+
+  :global(.category-trigger:hover) {
+    color: var(--color-text-muted);
+  }
+
+  :global(.category-trigger[data-state="active"]) {
+    color: var(--color-accent);
+    border-left-color: var(--color-accent);
+  }
+
+  :global(.chip-panel) {
+    flex: 1;
+    overflow-y: auto;
+    padding-left: var(--space-6);
+    padding-block: var(--space-1);
+  }
+
+  :global(.chip-panel[hidden]) {
+    display: none;
+  }
+
+  .chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-content: flex-start;
+  }
+
+  .chip {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-xs);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
     background: var(--color-glass);
@@ -86,19 +133,20 @@
     -webkit-backdrop-filter: blur(var(--blur-sm));
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
+    cursor: pointer;
     transition:
       color var(--ease-fast),
       border-color var(--ease-fast),
       background var(--ease-fast);
   }
 
-  .item-row:hover {
+  .chip:hover {
     color: var(--color-text);
     background: var(--color-glass-hover);
     border-color: var(--color-border-hover);
   }
 
-  .item-row.active {
+  .chip.active {
     color: var(--color-accent);
     border-color: var(--color-border-active);
   }
