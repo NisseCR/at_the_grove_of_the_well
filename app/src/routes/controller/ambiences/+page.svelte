@@ -39,10 +39,7 @@
 <div class="categories">
   {#each data.categories as category}
     <div class="category">
-      <CategoryHeader
-        label={category.label}
-        src={category.thumb_url ?? category.url}
-      />
+      <CategoryHeader label={category.label} />
       <div class="item-list">
         {#each category.ambiences as entry}
           <button
