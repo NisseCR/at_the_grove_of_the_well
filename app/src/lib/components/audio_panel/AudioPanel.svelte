@@ -44,14 +44,19 @@
 
 <style>
   .audio-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
     width: 260px;
-    flex-shrink: 0;
-    border-left: 1px solid var(--color-border);
+    background: rgba(8, 6, 14, 0.97);
+    backdrop-filter: blur(var(--blur-md));
+    -webkit-backdrop-filter: blur(var(--blur-md));
     display: flex;
     flex-direction: column;
     overflow: hidden;
     transition: width var(--ease-base);
-    z-index: 1;
   }
 
   .audio-panel.collapsed {
@@ -64,7 +69,6 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-4);
-    padding-bottom: 0;
     opacity: 1;
     transition: opacity var(--ease-fast);
   }
@@ -85,6 +89,8 @@
   .reset-btn {
     display: flex;
     align-items: center;
+    padding: var(--space-3);
+    margin: calc(-1 * var(--space-3));
     color: var(--color-text-faint);
     transition: color var(--ease-fast);
   }
@@ -100,7 +106,7 @@
     padding: var(--space-4);
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-6);
     opacity: 1;
     transition: opacity var(--ease-fast);
   }
@@ -117,7 +123,7 @@
   }
 
   .section-label {
-    font-size: var(--text-xs);
+    font-size: var(--text-sm);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
     color: var(--color-text-muted);
@@ -125,43 +131,8 @@
   }
 
   .empty {
-    font-size: var(--text-xs);
+    font-size: var(--text-sm);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-faint);
-  }
-
-  @media (max-width: 640px) {
-    .audio-panel {
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      z-index: 10;
-      background: rgba(8, 6, 14, 0.97);
-      backdrop-filter: blur(var(--blur-md));
-      -webkit-backdrop-filter: blur(var(--blur-md));
-    }
-
-    .reset-btn {
-      padding: var(--space-3);
-      margin: calc(-1 * var(--space-3));
-    }
-
-    .panel-header {
-      padding: var(--space-4);
-    }
-
-    .panel-body {
-      padding: var(--space-4);
-      gap: var(--space-6);
-    }
-
-    .section-label {
-      font-size: var(--text-sm);
-    }
-
-    .empty {
-      font-size: var(--text-sm);
-    }
   }
 </style>
