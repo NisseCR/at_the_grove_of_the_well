@@ -3,10 +3,38 @@
   import { appState } from "$lib/state/appState.svelte";
   import { sendSetAmbiences } from "$lib/services/transport";
   import { DEFAULT_AMBIENCE_TARGET_GAIN } from "$lib/config/audio";
+  import SearchBar from "$lib/components/assets/SearchBar.svelte";
   import type { PageData } from "./$types";
   import type { AmbienceId } from "$lib/types/state";
 
   let { data }: { data: PageData } = $props();
+
+  let searchQuery = $state("");
+  let selectedTab = $state(data.categories[0]?.id ?? "");
+
+  const normalizedQuery = $derived(searchQuery.trim().toLowerCase());
+
+  function matchesQuery(label: string): boolean {
+    return label.toLowerCase().includes(normalizedQuery);
+  }
+
+  /** Categories filtered to those with at least one match, with non-matching ambiences removed. Passthrough when no query is active. */
+  const visibleCategories = $derived(
+    normalizedQuery
+      ? data.categories
+          .map((c) => ({ ...c, ambiences: c.ambiences.filter((a) => matchesQuery(a.label)) }))
+          .filter((c) => c.ambiences.length > 0)
+      : data.categories,
+  );
+
+  /** Selects the first visible category when the currently selected tab is filtered out. */
+  $effect(() => {
+    if (!normalizedQuery) return;
+    const selectedIsVisible = visibleCategories.some((c) => c.id === selectedTab);
+    if (!selectedIsVisible && visibleCategories.length > 0) {
+      selectedTab = visibleCategories[0].id;
+    }
+  });
 
   function isActive(id: AmbienceId): boolean {
     return appState.ambiences.ids.includes(id);
@@ -28,48 +56,56 @@
   }
 </script>
 
-<Tabs.Root
-  value={data.categories[0]?.id}
-  orientation="vertical"
-  class="ambience-tabs"
->
-  <Tabs.List class="category-list">
-    {#each data.categories as category}
-      <Tabs.Trigger value={category.id} class="category-trigger">
-        {category.label}
-      </Tabs.Trigger>
-    {/each}
-  </Tabs.List>
+<div class="ambiences-page">
+  <SearchBar bind:value={searchQuery} placeholder="Search ambiences..." />
 
-  {#each data.categories as category}
-    {@const bannerSrc = category.thumb_url ?? category.url ?? null}
-    <Tabs.Content value={category.id} class="chip-panel">
-      <div
-        class="panel-banner"
-        class:has-image={!!bannerSrc}
-        style={bannerSrc ? `--banner-src: url('${bannerSrc}')` : ""}
-      >
-        <span class="banner-label">{category.label}</span>
-      </div>
-      <div class="chip-grid">
-        {#each category.ambiences as entry}
-          <button
-            class="chip"
-            class:active={isActive(entry.id)}
-            onclick={() => toggle(entry.id, `${category.label} / ${entry.label}`)}
-          >
-            {entry.label}
-          </button>
-        {/each}
-      </div>
-    </Tabs.Content>
-  {/each}
-</Tabs.Root>
+  <Tabs.Root bind:value={selectedTab} orientation="vertical" class="ambience-tabs">
+    <Tabs.List class="category-list">
+      {#each visibleCategories as category}
+        <Tabs.Trigger value={category.id} class="category-trigger">
+          {category.label}
+        </Tabs.Trigger>
+      {/each}
+    </Tabs.List>
+
+    {#each visibleCategories as category}
+      {@const bannerSrc = category.thumb_url ?? category.url ?? null}
+      <Tabs.Content value={category.id} class="chip-panel">
+        <div
+          class="panel-banner"
+          class:has-image={!!bannerSrc}
+          style={bannerSrc ? `--banner-src: url('${bannerSrc}')` : ""}
+        >
+          <span class="banner-label">{category.label}</span>
+        </div>
+        <div class="chip-grid">
+          {#each category.ambiences as entry}
+            <button
+              class="chip"
+              class:active={isActive(entry.id)}
+              onclick={() => toggle(entry.id, `${category.label} / ${entry.label}`)}
+            >
+              {entry.label}
+            </button>
+          {/each}
+        </div>
+      </Tabs.Content>
+    {/each}
+  </Tabs.Root>
+</div>
 
 <style>
-  :global(.ambience-tabs) {
+  .ambiences-page {
     display: flex;
+    flex-direction: column;
     height: 100%;
+    gap: var(--space-3);
+  }
+
+  :global(.ambience-tabs) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
   }
 
   :global(.category-list) {
