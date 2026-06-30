@@ -18,11 +18,15 @@
     return label.toLowerCase().includes(normalizedQuery);
   }
 
-  /** Categories filtered to those with at least one match, with non-matching ambiences removed. Passthrough when no query is active. */
+  /** Categories filtered to those with at least one match, with non-matching ambiences removed. A category name match reveals all its ambiences. Passthrough when no query is active. */
   const visibleCategories = $derived(
     normalizedQuery
       ? data.categories
-          .map((c) => ({ ...c, ambiences: c.ambiences.filter((a) => matchesQuery(a.label)) }))
+          .map((c) =>
+            matchesQuery(c.label)
+              ? c
+              : { ...c, ambiences: c.ambiences.filter((a) => matchesQuery(a.label)) },
+          )
           .filter((c) => c.ambiences.length > 0)
       : data.categories,
   );
@@ -124,7 +128,7 @@
     width: 100%;
     flex-shrink: 0;
     text-align: left;
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-1) var(--space-3);
     font-family: var(--font-display);
     font-size: var(--text-sm);
     letter-spacing: var(--tracking-wide);

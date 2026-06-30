@@ -17,11 +17,15 @@
     return label.toLowerCase().includes(normalizedQuery);
   }
 
-  /** Categories filtered to those with at least one match, with non-matching scenes removed. Passthrough when no query is active. */
+  /** Categories filtered to those with at least one match, with non-matching scenes removed. A category name match reveals all its scenes. Passthrough when no query is active. */
   const visibleCategories = $derived(
     normalizedQuery
       ? data.categories
-          .map((c) => ({ ...c, scenes: c.scenes.filter((s) => matchesQuery(s.label)) }))
+          .map((c) =>
+            matchesQuery(c.label)
+              ? c
+              : { ...c, scenes: c.scenes.filter((s) => matchesQuery(s.label)) },
+          )
           .filter((c) => c.scenes.length > 0)
       : data.categories,
   );

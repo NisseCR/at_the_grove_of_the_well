@@ -17,11 +17,15 @@
     return label.toLowerCase().includes(normalizedQuery);
   }
 
-  /** Categories filtered to those with at least one match, with non-matching playlists removed. Passthrough when no query is active. */
+  /** Categories filtered to those with at least one match, with non-matching playlists removed. A category name match reveals all its playlists. Passthrough when no query is active. */
   const visibleCategories = $derived(
     normalizedQuery
       ? data.categories
-          .map((c) => ({ ...c, playlists: c.playlists.filter((p) => matchesQuery(p.label)) }))
+          .map((c) =>
+            matchesQuery(c.label)
+              ? c
+              : { ...c, playlists: c.playlists.filter((p) => matchesQuery(p.label)) },
+          )
           .filter((c) => c.playlists.length > 0)
       : data.categories,
   );
