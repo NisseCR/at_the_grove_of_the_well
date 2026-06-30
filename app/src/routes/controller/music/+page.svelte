@@ -1,31 +1,40 @@
 <script lang="ts">
   import { appState } from "$lib/state/appState.svelte";
   import { sendSetPlaylist } from "$lib/services/transport";
-  import type { PageData } from "./$types";
-  import type { PlaylistId } from "$lib/types/state";
+  import SearchBar from "$lib/components/assets/SearchBar.svelte";
   import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
   import ThumbnailTile from "$lib/components/assets/ThumbnailTile.svelte";
+  import type { PageData } from "./$types";
+  import type { PlaylistId } from "$lib/types/state";
 
   let { data }: { data: PageData } = $props();
 
-  /**
-   * @param id - Playlist ID to look up thumbnail for.
-   */
+  let searchQuery = $state("");
+
+  const normalizedQuery = $derived(searchQuery.trim().toLowerCase());
+
+  function matchesQuery(label: string): boolean {
+    return label.toLowerCase().includes(normalizedQuery);
+  }
+
+  /** Categories filtered to those with at least one match, with non-matching playlists removed. Passthrough when no query is active. */
+  const visibleCategories = $derived(
+    normalizedQuery
+      ? data.categories
+          .map((c) => ({ ...c, playlists: c.playlists.filter((p) => matchesQuery(p.label)) }))
+          .filter((c) => c.playlists.length > 0)
+      : data.categories,
+  );
+
   function thumbnailFor(id: PlaylistId): string | undefined {
     const p = data.playlists.find((p) => p.id === id);
     return p?.thumb_url ?? p?.url ?? undefined;
   }
 
-  /**
-   * @param id - Playlist ID to check against active music.
-   */
   function isActive(id: PlaylistId): boolean {
     return appState.playlists.id === id;
   }
 
-  /**
-   * @param id - Playlist ID to activate or deactivate.
-   */
   function onTileClick(id: PlaylistId): void {
     const targetGain = appState.playlists.targetGain;
     if (isActive(id)) {
@@ -37,25 +46,35 @@
   }
 </script>
 
-<div class="categories">
-  {#each data.categories as category}
-    <div class="category">
-      <CategoryHeader label={category.label} />
-      <div class="grid">
-        {#each category.playlists as entry}
-          <ThumbnailTile
-            label={entry.label}
-            src={thumbnailFor(entry.id)}
-            active={isActive(entry.id)}
-            onclick={() => onTileClick(entry.id)}
-          />
-        {/each}
+<div class="music-page">
+  <SearchBar bind:value={searchQuery} placeholder="Search playlists..." />
+
+  <div class="categories">
+    {#each visibleCategories as category}
+      <div class="category">
+        <CategoryHeader label={category.label} />
+        <div class="grid">
+          {#each category.playlists as entry}
+            <ThumbnailTile
+              label={entry.label}
+              src={thumbnailFor(entry.id)}
+              active={isActive(entry.id)}
+              onclick={() => onTileClick(entry.id)}
+            />
+          {/each}
+        </div>
       </div>
-    </div>
-  {/each}
+    {/each}
+  </div>
 </div>
 
 <style>
+  .music-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
   .categories {
     display: flex;
     flex-direction: column;

@@ -1,48 +1,70 @@
 <script lang="ts">
   import { appState } from "$lib/state/appState.svelte";
   import { sendSetScene } from "$lib/services/transport";
-  import type { PageData } from "./$types";
-  import type { SceneId } from "$lib/types/state";
+  import SearchBar from "$lib/components/assets/SearchBar.svelte";
   import CategoryHeader from "$lib/components/assets/CategoryHeader.svelte";
   import ThumbnailTile from "$lib/components/assets/ThumbnailTile.svelte";
+  import type { PageData } from "./$types";
+  import type { SceneId } from "$lib/types/state";
 
   let { data }: { data: PageData } = $props();
 
-  /**
-   * @param id - Scene ID to look up thumbnail for.
-   */
+  let searchQuery = $state("");
+
+  const normalizedQuery = $derived(searchQuery.trim().toLowerCase());
+
+  function matchesQuery(label: string): boolean {
+    return label.toLowerCase().includes(normalizedQuery);
+  }
+
+  /** Categories filtered to those with at least one match, with non-matching scenes removed. Passthrough when no query is active. */
+  const visibleCategories = $derived(
+    normalizedQuery
+      ? data.categories
+          .map((c) => ({ ...c, scenes: c.scenes.filter((s) => matchesQuery(s.label)) }))
+          .filter((c) => c.scenes.length > 0)
+      : data.categories,
+  );
+
   function thumbnailFor(id: SceneId): string | undefined {
     const bg = data.scenes.find((s) => s.id === id)?.background;
     return bg?.thumb_url ?? bg?.url ?? undefined;
   }
 
-  /**
-   * @param id - Scene ID to check against active scene.
-   */
   function isActive(id: SceneId): boolean {
     return appState.scene?.id === id;
   }
 </script>
 
-<div class="categories">
-  {#each data.categories as category}
-    <div class="category">
-      <CategoryHeader label={category.label} />
-      <div class="grid">
-        {#each category.scenes as entry}
-          <ThumbnailTile
-            label={entry.label}
-            src={thumbnailFor(entry.id)}
-            active={isActive(entry.id)}
-            onclick={() => sendSetScene({ id: entry.id, label: entry.label })}
-          />
-        {/each}
+<div class="scenes-page">
+  <SearchBar bind:value={searchQuery} placeholder="Search scenes..." />
+
+  <div class="categories">
+    {#each visibleCategories as category}
+      <div class="category">
+        <CategoryHeader label={category.label} />
+        <div class="grid">
+          {#each category.scenes as entry}
+            <ThumbnailTile
+              label={entry.label}
+              src={thumbnailFor(entry.id)}
+              active={isActive(entry.id)}
+              onclick={() => sendSetScene({ id: entry.id, label: entry.label })}
+            />
+          {/each}
+        </div>
       </div>
-    </div>
-  {/each}
+    {/each}
+  </div>
 </div>
 
 <style>
+  .scenes-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
   .categories {
     display: flex;
     flex-direction: column;
