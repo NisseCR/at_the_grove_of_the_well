@@ -122,6 +122,7 @@
   :global(.category-trigger) {
     display: block;
     width: 100%;
+    flex-shrink: 0;
     text-align: left;
     padding: var(--space-2) var(--space-3);
     font-family: var(--font-display);
