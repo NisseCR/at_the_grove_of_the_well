@@ -65,53 +65,33 @@
 <div class="controller">
   <div class="bg"></div>
 
-  <nav class="tabs">
-    <div class="tabs-inner">
-      <h1 class="project-title">At the Grove of the Well</h1>
-      <div class="tab-row">
-        <a
-          href="/controller/scenes"
-          class="tab"
-          class:active={tab === "scenes"}
-        >
-          Scenes
-        </a>
-        <a href="/controller/music" class="tab" class:active={tab === "music"}>
-          Music
-        </a>
-        <a
-          href="/controller/ambiences"
-          class="tab"
-          class:active={tab === "ambiences"}
-        >
-          Ambiences
-        </a>
+  <nav class="nav">
+    <div class="nav-inner">
+      <h1 class="nav-title">At the Grove of the Well</h1>
+
+      <div class="nav-tabs">
+        <a href="/controller/scenes" class="tab" class:active={tab === "scenes"}>Scenes</a>
+        <a href="/controller/music" class="tab" class:active={tab === "music"}>Music</a>
+        <a href="/controller/ambiences" class="tab" class:active={tab === "ambiences"}>Ambiences</a>
+        <a href="/controller/config" class="tab" class:active={tab === "config"}>Config</a>
+      </div>
+
+      <div class="nav-actions">
         <button
-          class="tab audio-toggle"
+          class="action-btn"
           class:active={!panelCollapsed}
           onclick={() => (panelCollapsed = !panelCollapsed)}
           aria-label="Toggle audio panel"
         >
           <AudioLines size={15} />
         </button>
-        <button
-          class="tab preset-copy"
-          onclick={copyPresetUrl}
-          aria-label="Copy preset URL"
-        >
+        <button class="action-btn" onclick={copyPresetUrl} aria-label="Copy preset URL">
           {#if copied}
             <Check size={15} />
           {:else}
             <Link size={15} />
           {/if}
         </button>
-        <a
-          href="/controller/config"
-          class="tab"
-          class:active={tab === "config"}
-        >
-          Config
-        </a>
       </div>
     </div>
   </nav>
@@ -159,7 +139,7 @@
     overflow: hidden;
   }
 
-  .tabs {
+  .nav {
     position: relative;
     z-index: 1;
     background: rgba(8, 6, 14, 0.75);
@@ -169,40 +149,55 @@
     padding-inline: var(--space-6);
   }
 
-  .tabs-inner {
+  .nav-inner {
     max-width: var(--content-max-width);
     margin-inline: auto;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-top: var(--space-4);
+    align-items: stretch;
+    height: 52px;
   }
 
-  .project-title {
+  .nav-title {
+    display: flex;
+    align-items: center;
     font-family: var(--font-display);
-    font-size: var(--text-xl);
+    font-size: var(--text-base);
     font-weight: normal;
     font-style: italic;
     letter-spacing: var(--tracking-wide);
     color: var(--color-text);
-    padding-bottom: var(--space-3);
+    padding-right: var(--space-6);
+    white-space: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
-  .tab-row {
+  .nav-tabs {
+    flex: 1;
     display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
     gap: var(--space-1);
+    padding-left: var(--space-4);
   }
 
   .tab {
+    display: flex;
+    align-items: center;
     font-family: var(--font-display);
     font-size: var(--text-base);
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
     text-decoration: none;
-    padding: var(--space-2) var(--space-3);
-    padding-bottom: var(--space-3);
+    padding-inline: var(--space-3);
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
+    white-space: nowrap;
     transition:
       color var(--ease-fast),
       border-color var(--ease-fast);
@@ -217,11 +212,34 @@
     border-bottom-color: var(--color-accent);
   }
 
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    color: var(--color-text-faint);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition:
+      color var(--ease-fast),
+      background var(--ease-fast);
+  }
+
+  .action-btn:hover {
+    color: var(--color-text);
+  }
+
+  .action-btn.active {
+    color: var(--color-accent);
+  }
+
   .content {
     flex: 1;
     overflow-y: auto;
     padding: var(--space-6);
-    padding-top: var(--space-10);
   }
 
   .content :global(> *) {
@@ -234,6 +252,22 @@
   }
 
   @media (max-width: 640px) {
+    .nav {
+      padding-inline: var(--space-3);
+    }
+
+    .nav-title {
+      display: none;
+    }
+
+    .nav-tabs {
+      justify-content: flex-start;
+    }
+
+    .nav-actions {
+      padding-left: var(--space-2);
+    }
+
     .panel-backdrop {
       display: block;
       position: absolute;
@@ -241,17 +275,5 @@
       z-index: 5;
       background: rgba(0, 0, 0, 0.4);
     }
-
-    .project-title {
-      font-size: var(--text-base);
-      font-style: normal;
-      padding-bottom: var(--space-2);
-    }
-  }
-
-  .audio-toggle,
-  .preset-copy {
-    display: flex;
-    align-items: center;
   }
 </style>
