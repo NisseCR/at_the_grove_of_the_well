@@ -120,7 +120,7 @@
 
 <style>
   .wheel-zone {
-    position: fixed;
+    position: absolute;
     bottom: 0;
     right: 0;
     z-index: 50;

@@ -16,7 +16,7 @@
 
 <style>
   .debug {
-    position: fixed;
+    position: absolute;
     bottom: 1rem;
     right: 1rem;
     display: flex;
