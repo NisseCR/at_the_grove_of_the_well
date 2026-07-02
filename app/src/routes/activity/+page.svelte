@@ -18,9 +18,10 @@
   onMount(async () => {
     const sdk = new DiscordSDK(PUBLIC_DISCORD_CLIENT_ID);
     await sdk.ready();
-    patchUrlMappings([
-      { prefix: "/r2", target: new URL(PUBLIC_ASSETS_BASE).host },
-    ]);
+    patchUrlMappings(
+      [{ prefix: "/r2", target: new URL(PUBLIC_ASSETS_BASE).host }],
+      { patchSrcAttributes: true },
+    );
     connect();
   });
 
