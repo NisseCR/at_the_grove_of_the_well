@@ -66,13 +66,14 @@ class MusicEngine {
     volumeGain: VolumeGain = DEFAULT_MUSIC_VOLUME_GAIN,
   ): Promise<void> {
     this.targetGain = targetGain;
-    const gen = ++this.generation;
 
     if (id !== null && this.playlist?.id === id && this.masterRampGain) {
       if (this.masterRampGain.target !== targetGain)
         audioEngine.fadeGainTo(this.masterRampGain, targetGain, FADE_IN);
       return;
     }
+
+    const gen = ++this.generation;
 
     if (this.playlist && this.masterRampGain) {
       await this.fadeOutCurrent();
