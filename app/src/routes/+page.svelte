@@ -25,6 +25,8 @@
         <span class="card-desc">Control scenes, ambiences and music</span>
       </a>
     </nav>
+
+    <a href="/activity/audio-test" class="dev-link">Discord activity audio test</a>
   </div>
 </div>
 
@@ -107,6 +109,18 @@
 
   .card-desc {
     font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .dev-link {
+    font-size: var(--text-xs);
+    color: var(--color-text-faint);
+    text-decoration: none;
+    letter-spacing: var(--tracking-wide);
+    transition: color var(--ease-fast);
+  }
+
+  .dev-link:hover {
     color: var(--color-text-muted);
   }
 
