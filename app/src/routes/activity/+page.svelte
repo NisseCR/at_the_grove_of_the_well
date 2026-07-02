@@ -35,11 +35,11 @@
   });
 </script>
 
-{#if !appState.renderReady}
-  <StoryGate onunlock={unlock} title="At the Grove of the Well" />
-{:else}
-  <div class="player">
-    <div class="stage">
+<div class="player">
+  <div class="stage">
+    {#if !appState.renderReady}
+      <StoryGate onunlock={unlock} title="At the Grove of the Well" />
+    {:else}
       <AudioRenderer state={appState} />
       <SceneRenderer
         slotState={sceneState}
@@ -47,9 +47,9 @@
       />
       <VolumeOverlay />
       {#if appState.debug}<DebugOverlay />{/if}
-    </div>
+    {/if}
   </div>
-{/if}
+</div>
 
 <style>
   .player {
@@ -67,5 +67,6 @@
     width: min(100vw, calc(100vh * 16 / 9));
     background: var(--color-bg);
     overflow: hidden;
+    border-radius: 8px;
   }
 </style>
