@@ -39,13 +39,15 @@
   <StoryGate onunlock={unlock} title="At the Grove of the Well" />
 {:else}
   <div class="player">
-    <AudioRenderer state={appState} />
-    <SceneRenderer
-      slotState={sceneState}
-      requestedSceneId={appState.scene?.id ?? null}
-    />
-    <VolumeOverlay />
-    {#if appState.debug}<DebugOverlay />{/if}
+    <div class="stage">
+      <AudioRenderer state={appState} />
+      <SceneRenderer
+        slotState={sceneState}
+        requestedSceneId={appState.scene?.id ?? null}
+      />
+      <VolumeOverlay />
+      {#if appState.debug}<DebugOverlay />{/if}
+    </div>
   </div>
 {/if}
 
@@ -53,6 +55,16 @@
   .player {
     position: fixed;
     inset: 0;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: min(100vw, calc(100vh * 16 / 9));
     background: var(--color-bg);
     overflow: hidden;
   }
