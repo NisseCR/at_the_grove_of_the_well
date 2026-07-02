@@ -1,20 +1,28 @@
 <script lang="ts">
   import * as Tone from "tone";
   import { onMount, onDestroy } from "svelte";
+  import { DiscordSDK, patchUrlMappings } from "@discord/embedded-app-sdk";
+  import {
+    PUBLIC_DISCORD_CLIENT_ID,
+    PUBLIC_ASSETS_BASE,
+  } from "$env/static/public";
   import { connect } from "$lib/services/transport";
   import SceneRenderer from "$lib/components/scene/SceneRenderer.svelte";
   import StoryGate from "$lib/components/scene/StoryGate.svelte";
   import AudioRenderer from "$lib/components/audio/AudioRenderer.svelte";
-  import DebugOverlay from "$lib/components/player/DebugOverlay.svelte";
   import VolumeOverlay from "$lib/components/player/VolumeOverlay.svelte";
+  import DebugOverlay from "$lib/components/player/DebugOverlay.svelte";
   import { appState } from "$lib/state/appState.svelte";
   import { sceneState } from "$lib/state/sceneState.svelte";
 
-  /**
-   * Called by StoryGate after its fade animation completes. Starts Tone.js
-   * and sets renderReady — AudioReactor and SceneRenderer mount from here.
-   */
-  onMount(() => connect());
+  onMount(async () => {
+    const sdk = new DiscordSDK(PUBLIC_DISCORD_CLIENT_ID);
+    await sdk.ready();
+    patchUrlMappings([
+      { prefix: "/r2", target: new URL(PUBLIC_ASSETS_BASE).host },
+    ]);
+    connect();
+  });
 
   async function unlock(): Promise<void> {
     await Tone.start();
