@@ -75,7 +75,9 @@ class SceneEngine {
     state: SceneSlotState,
   ): Promise<Scene> {
     state.isTransitioning = true;
-    const config = await fetch(`/api/scene/${sceneId}`).then<Scene>(r => r.json());
+    const config = await fetch(`/api/scene/${sceneId}`).then<Scene>((r) =>
+      r.json(),
+    );
     state.next = config;
     return config;
   }
@@ -83,7 +85,9 @@ class SceneEngine {
   private async waitForDOMLoad(container: HTMLElement | null): Promise<void> {
     if (!container) return Promise.resolve();
 
-    const imgs = Array.from(container.querySelectorAll<HTMLImageElement>("img"));
+    const imgs = Array.from(
+      container.querySelectorAll<HTMLImageElement>("img"),
+    );
     const videos = Array.from(
       container.querySelectorAll<HTMLVideoElement>("video"),
     );

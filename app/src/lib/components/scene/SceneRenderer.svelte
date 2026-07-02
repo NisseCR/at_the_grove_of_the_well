@@ -25,7 +25,12 @@
   $effect(() => {
     if (requestedSceneId) {
       sceneEngine
-        .transitionScene(requestedSceneId, () => currentContainer, () => nextContainer, slotState)
+        .transitionScene(
+          requestedSceneId,
+          () => currentContainer,
+          () => nextContainer,
+          slotState,
+        )
         .catch(() => toast.error("Scene failed to load"));
     }
   });
