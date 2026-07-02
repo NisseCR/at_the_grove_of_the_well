@@ -14,6 +14,7 @@ services:
       context: ./app
       args:
         PUBLIC_ASSETS_BASE: ${PUBLIC_ASSETS_BASE}
+        PUBLIC_DISCORD_CLIENT_ID: ${PUBLIC_DISCORD_CLIENT_ID}
     env_file: .env
     depends_on:
       - ws-relay
