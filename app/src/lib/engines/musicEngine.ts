@@ -4,6 +4,9 @@ import type { GainControl, Stem } from "$lib/types/audio";
 import type { Playlist } from "$lib/types/music";
 import { DEFAULT_MUSIC_TARGET_GAIN, DEFAULT_MUSIC_VOLUME_GAIN } from "$lib/config/audio";
 import type { VolumeGain } from "$lib/types/state";
+import { createLogger } from "$lib/utils/logger";
+
+const log = createLogger("audio:music");
 
 const FADE_IN = 3.0;
 const FADE_OUT = 3.0;
@@ -146,6 +149,7 @@ class MusicEngine {
     if (!this.playlist) return;
 
     const track = this.playlist.tracks[this.trackIndex];
+    log.debug(`loading track [${this.trackIndex}]: ${track.url}`);
 
     const stem = await audioEngine.createStem(track.url!);
     if (gen !== this.generation) {
@@ -226,14 +230,28 @@ class MusicEngine {
    * @param player - The player to register the callback on.
    */
   private registerAdvance(gen: number, player: Tone.Player): void {
-    player.onstop = () => {
+    player.onstop = async () => {
       if (gen !== this.generation || !this.playlist || this.player !== player)
         return;
       this.player = null;
       player.dispose();
       this.trackIndex = (this.trackIndex + 1) % this.playlist.tracks.length;
-      this.playTrack(gen, false);
+      log.debug(`advancing to track [${this.trackIndex}]`);
+      try {
+        await this.resumeContext();
+        await this.playTrack(gen, false);
+      } catch (e) {
+        log.error("auto-advance failed:", e);
+      }
     };
+  }
+
+  private async resumeContext(): Promise<void> {
+    const state = Tone.getContext().state;
+    if (state !== "running") {
+      log.warn(`AudioContext is "${state}" — resuming`);
+      await Tone.start();
+    }
   }
 
   /**
