@@ -14,15 +14,7 @@
   } = $props();
 
   let currentContainer: HTMLElement | null = $state(null);
-  let isMobile = $state(false);
-
-  $effect(() => {
-    const mq = window.matchMedia("(max-width: 768px)");
-    isMobile = mq.matches;
-    const handler = (e: MediaQueryListEvent) => (isMobile = e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  });
+  let nextContainer: HTMLElement | null = $state(null);
 
   onDestroy(() => {
     slotState.current = null;
@@ -33,7 +25,7 @@
   $effect(() => {
     if (requestedSceneId) {
       sceneEngine
-        .transitionScene(requestedSceneId, () => currentContainer, slotState)
+        .transitionScene(requestedSceneId, () => currentContainer, () => nextContainer, slotState)
         .catch(() => toast.error("Scene failed to load"));
     }
   });
@@ -49,14 +41,21 @@
   }
 </script>
 
+{#if slotState.next}
+  <div class="scene-slot" style="opacity: 0" bind:this={nextContainer}>
+    <SceneAsset asset={slotState.next.background} zIndex={0} />
+    {#each sortedLayers(slotState.next) as layer (layer.id)}
+      <SceneAsset asset={layer} zIndex={layer.order + 1} />
+    {/each}
+  </div>
+{/if}
+
 {#if slotState.current}
   <div class="scene-slot" bind:this={currentContainer}>
     <SceneAsset asset={slotState.current.background} zIndex={0} />
-    {#if !isMobile}
-      {#each sortedLayers(slotState.current) as layer (layer.id)}
-        <SceneAsset asset={layer} zIndex={layer.order + 1} />
-      {/each}
-    {/if}
+    {#each sortedLayers(slotState.current) as layer (layer.id)}
+      <SceneAsset asset={layer} zIndex={layer.order + 1} />
+    {/each}
   </div>
 {/if}
 

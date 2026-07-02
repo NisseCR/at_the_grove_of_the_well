@@ -26,16 +26,15 @@ class SceneEngine {
   async transitionScene(
     sceneId: string,
     getCurrent: () => HTMLElement | null,
+    getNext: () => HTMLElement | null,
     state: SceneSlotState,
   ): Promise<void> {
     const token = this.createToken();
 
     try {
-      const config = await guardedAwait(
-        this.fetchNextScene(sceneId, state),
-        token,
-      );
-      await guardedAwait(this.preload(config), token);
+      await guardedAwait(this.fetchNextScene(sceneId, state), token);
+      await guardedAwait(tick(), token);
+      await guardedAwait(this.waitForDOMLoad(getNext()), token);
       await guardedAwait(this.transitionOut(getCurrent()), token);
       await guardedAwait(this.swapSceneSlots(state), token);
       await this.transitionIn(getCurrent());
@@ -81,65 +80,33 @@ class SceneEngine {
     return config;
   }
 
-  /**
-   * Preload all media assets in the incoming scene so they are ready
-   * before the transition begins. Errors are swallowed per asset so a
-   * single missing file does not block the transition.
-   *
-   * @param config - The scene config whose assets should be preloaded.
-   */
-  private async preload(config: Scene): Promise<void> {
-    const sources = [
-      config.background.url!,
-      ...config.layers.map((l) => l.url!),
-    ];
-    await Promise.all(sources.map((source) => this.preloadAsset(source)));
-  }
+  private async waitForDOMLoad(container: HTMLElement | null): Promise<void> {
+    if (!container) return Promise.resolve();
 
-  /**
-   * Route a single asset source to the appropriate preload method based
-   * on its file extension.
-   *
-   * @param source - The asset URL to preload.
-   * @returns A promise that resolves when the asset is ready.
-   */
-  private preloadAsset(source: string): Promise<void> {
-    return source.endsWith(".webm") || source.endsWith(".mp4")
-      ? this.preloadVideo(source)
-      : this.preloadImage(source);
-  }
+    const imgs = Array.from(container.querySelectorAll<HTMLImageElement>("img"));
+    const videos = Array.from(
+      container.querySelectorAll<HTMLVideoElement>("video"),
+    );
 
-  /**
-   * Preload a video asset by creating an off-screen video element and
-   * waiting for it to be ready to play.
-   *
-   * @param src - The video URL to preload.
-   * @returns A promise that resolves when the video can play through.
-   */
-  private preloadVideo(src: string): Promise<void> {
-    return new Promise((resolve) => {
-      const video = document.createElement("video");
-      video.src = src;
-      video.oncanplaythrough = () => resolve();
-      video.onerror = () => resolve();
-      video.load();
-    });
-  }
+    const imgPromises = imgs.map((img) =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+          }),
+    );
 
-  /**
-   * Preload an image asset by creating an off-screen Image element and
-   * waiting for it to load.
-   *
-   * @param src - The image URL to preload.
-   * @returns A promise that resolves when the image has loaded.
-   */
-  private preloadImage(src: string): Promise<void> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-    });
+    const videoPromises = videos.map((video) =>
+      video.readyState >= 3
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            video.oncanplay = () => resolve();
+            video.onerror = () => resolve();
+          }),
+    );
+
+    await Promise.all([...imgPromises, ...videoPromises]);
   }
 
   /**
