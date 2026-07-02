@@ -25,7 +25,7 @@
           ),
         ),
       ]);
-      patchUrlMappings([{ prefix: "/r2", target: PUBLIC_ASSETS_BASE }]);
+      patchUrlMappings([{ prefix: "/r2", target: new URL(PUBLIC_ASSETS_BASE).host }]);
       sdkReady = true;
       append("✓ SDK ready — URL mappings patched");
     } catch (e) {
