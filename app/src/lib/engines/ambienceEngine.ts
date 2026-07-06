@@ -135,8 +135,9 @@ class AmbienceEngine {
 
   private updateAmbience(id: AmbienceId, targetGain: TargetGain): void {
     const stem = this.activeAmbiences.get(id)!;
-    if (stem.rampGain.target !== targetGain)
-      log.debug(`updating ambience ${id}`);
+    if (stem.rampGain.target === targetGain) return;
+
+    log.debug(`updating ambience ${id}`);
     audioEngine.fadeGainTo(stem.rampGain, targetGain, FADE_IN);
   }
 

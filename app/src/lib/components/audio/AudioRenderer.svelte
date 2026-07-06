@@ -53,22 +53,32 @@
       ambienceEngine.setVolume(id, volume);
   });
 
-  // Fires when activeId or targetGain change — covers playlist swaps and
-  // cinematic volume transitions from SET_MUSIC_VOLUME.
-  // volumeGain is read untracked so slider moves don't retrigger transitions.
+  // Distinguishes a playlist switch (id or targetGain changed — routed through
+  // transition(), which applies volumeGain itself only once the new track
+  // takes over) from a live volume tweak against the still-playing track
+  // (applied instantly via setVolume()). Without this split, a volumeGain
+  // bundled into the same update as an id change (e.g. from the /apply route)
+  // would slam the outgoing track's volume mid-fade instead of waiting for
+  // the incoming track to start.
+  let prevPlaylistId: string | null = null;
+  let prevPlaylistTargetGain: TargetGain | null = null;
+
   $effect(() => {
     const id = state.playlists.id;
     const targetGain = state.playlists.targetGain;
-    const volumeGain = untrack(() => state.playlists.volumeGain);
+    const volumeGain = state.playlists.volumeGain;
 
-    musicEngine
-      .transition(id, targetGain, volumeGain)
-      .catch(() => toast.error("Music failed to load"));
-  });
+    const switching = id !== prevPlaylistId || targetGain !== prevPlaylistTargetGain;
+    prevPlaylistId = id;
+    prevPlaylistTargetGain = targetGain;
 
-  // Fires only on slider mutations — sets masterVolumeGain instantly.
-  $effect(() => {
-    musicEngine.setVolume(state.playlists.volumeGain);
+    if (switching) {
+      musicEngine
+        .transition(id, targetGain, volumeGain)
+        .catch(() => toast.error("Music failed to load"));
+    } else {
+      musicEngine.setVolume(volumeGain);
+    }
   });
 
   // Reset audio: version counter acts as an event signal. Starts at 0 so
