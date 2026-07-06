@@ -7,6 +7,7 @@
   import AudioRenderer from "$lib/components/audio/AudioRenderer.svelte";
   import DebugOverlay from "$lib/components/player/DebugOverlay.svelte";
   import VolumeOverlay from "$lib/components/player/VolumeOverlay.svelte";
+  import HandoutOverlay from "$lib/components/player/HandoutOverlay.svelte";
   import { appState } from "$lib/state/appState.svelte";
   import { sceneState } from "$lib/state/sceneState.svelte";
 
@@ -35,6 +36,7 @@
       slotState={sceneState}
       requestedSceneId={appState.scene?.id ?? null}
     />
+    <HandoutOverlay />
     <VolumeOverlay />
     {#if appState.debug}<DebugOverlay />{/if}
   </div>

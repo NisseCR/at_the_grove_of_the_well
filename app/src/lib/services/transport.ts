@@ -1,6 +1,7 @@
 import type {
   TransportMessage,
   SceneWireEntry,
+  HandoutWireEntry,
   AmbienceWireEntry,
   PlaylistWriteEntry,
 } from "$lib/types/message";
@@ -56,6 +57,10 @@ export function sendSetScene(scene: SceneWireEntry): void {
   send({ type: "SET_SCENE", payload: scene });
 }
 
+export function sendSetHandout(handout: HandoutWireEntry | null): void {
+  send({ type: "SET_HANDOUT", payload: handout });
+}
+
 export function sendSetAmbiences(ambiences: AmbienceWireEntry[]): void {
   send({ type: "SET_AMBIENCES", payload: ambiences });
 }
@@ -84,7 +89,7 @@ export function sendSetDebug(debug: boolean): void {
 }
 
 export function sendSync(): void {
-  const { scene, ambiences, playlists } = appState;
+  const { scene, handout, ambiences, playlists } = appState;
 
   const ambienceEntries: AmbienceWireEntry[] = ambiences.ids.map((id) => ({
     id,
@@ -106,6 +111,7 @@ export function sendSync(): void {
     type: "SYNC",
     payload: {
       scene,
+      handout,
       ambiences: ambienceEntries,
       playlists: playlistEntry,
     },

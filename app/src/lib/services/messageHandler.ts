@@ -34,6 +34,11 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
       break;
     }
 
+    case "SET_HANDOUT": {
+      appState.handout = message.payload;
+      break;
+    }
+
     case "SET_AMBIENCES": {
       appState.ambiences = wireAmbienceMessageToState(message.payload);
       break;
@@ -74,8 +79,9 @@ export async function handleMessage(message: TransportMessage): Promise<void> {
     }
 
     case "SYNC": {
-      const { scene, ambiences, playlists } = message.payload;
+      const { scene, handout, ambiences, playlists } = message.payload;
       appState.scene = scene ? { id: scene.id, label: null } : null;
+      appState.handout = handout ?? null;
       appState.ambiences = wireAmbienceMessageToState(ambiences ?? []);
       appState.playlists = {
         id: playlists?.id ?? null,

@@ -1,5 +1,6 @@
 import type {
   SceneId,
+  HandoutId,
   AmbienceId,
   PlaylistId,
   TargetGain,
@@ -9,6 +10,12 @@ import type {
 export interface SceneWireEntry {
   id: SceneId;
   label: string | null;
+}
+
+export interface HandoutWireEntry {
+  id: HandoutId;
+  label: string | null;
+  url: string;
 }
 
 export interface AmbienceWireEntry {
@@ -29,6 +36,11 @@ export type SceneMessage =
   | { type: "SET_SCENE"; payload: SceneWireEntry }
   | { type: "SYNC_SCENE"; payload: { id: SceneId | null } };
 
+export type HandoutMessage = {
+  type: "SET_HANDOUT";
+  payload: HandoutWireEntry | null;
+};
+
 export type AmbienceMessage =
   | { type: "SET_AMBIENCES"; payload: AmbienceWireEntry[] }
   | {
@@ -44,6 +56,7 @@ export type SyncMessage = {
   type: "SYNC";
   payload: {
     scene: { id: SceneId } | null;
+    handout: HandoutWireEntry | null;
     ambiences: AmbienceWireEntry[] | null;
     playlists: PlaylistWriteEntry | null;
   };
@@ -51,6 +64,7 @@ export type SyncMessage = {
 
 export type TransportMessage =
   | SceneMessage
+  | HandoutMessage
   | AmbienceMessage
   | PlaylistMessage
   | SyncMessage

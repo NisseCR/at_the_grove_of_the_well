@@ -45,6 +45,7 @@ function buildSyncMessage(
     type: "SYNC",
     payload: {
       scene: sceneId ? { id: sceneId } : null,
+      handout: null,
       ambiences: ambiences.map(({ id, volume }) => ({
         id,
         label: null,

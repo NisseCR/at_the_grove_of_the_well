@@ -6,6 +6,8 @@ import type { AppData } from '$lib/types/appData';
 const empty: AppData = {
   ambience_categories: [],
   ambiences: [],
+  handout_categories: [],
+  handouts: [],
   playlist_categories: [],
   playlists: [],
   scene_categories: [],

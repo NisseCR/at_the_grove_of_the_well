@@ -13,6 +13,7 @@ export interface ActiveScene {
 export interface ActiveHandout {
   id: HandoutId;
   label: string | null;
+  url: string;
 }
 
 export interface AmbienceAudioState {

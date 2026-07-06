@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
   import { page } from "$app/state";
-  import { AudioLines, Link, Check } from "@lucide/svelte";
+  import { AudioLines, Link, Check, Cog } from "@lucide/svelte";
   import AudioPanel from "$lib/components/audio_panel/AudioPanel.svelte";
   import { appState } from "$lib/state/appState.svelte";
   import { connect, sendSync } from "$lib/services/transport";
@@ -53,6 +53,7 @@
     untrack(() => {
       if (
         !appState.scene &&
+        !appState.handout &&
         appState.ambiences.ids.length === 0 &&
         !appState.playlists.id
       )
@@ -71,9 +72,9 @@
 
       <div class="nav-tabs">
         <a href="/controller/scenes" class="tab" class:active={tab === "scenes"}>Scenes</a>
+        <a href="/controller/handouts" class="tab" class:active={tab === "handouts"}>Handouts</a>
         <a href="/controller/music" class="tab" class:active={tab === "music"}>Music</a>
         <a href="/controller/ambiences" class="tab" class:active={tab === "ambiences"}>Ambiences</a>
-        <a href="/controller/config" class="tab" class:active={tab === "config"}>Config</a>
       </div>
 
       <div class="nav-actions">
@@ -92,6 +93,14 @@
             <Link size={15} />
           {/if}
         </button>
+        <a
+          href="/controller/config"
+          class="action-btn"
+          class:active={tab === "config"}
+          aria-label="Config"
+        >
+          <Cog size={15} />
+        </a>
       </div>
     </div>
   </nav>
@@ -194,7 +203,7 @@
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-muted);
     text-decoration: none;
-    padding-inline: var(--space-3);
+    padding-inline: var(--space-2);
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
     white-space: nowrap;
@@ -223,6 +232,7 @@
     color: var(--color-text-faint);
     cursor: pointer;
     border-radius: var(--radius-sm);
+    text-decoration: none;
     transition:
       color var(--ease-fast),
       background var(--ease-fast);

@@ -10,6 +10,9 @@
  *   playlists/{category-slug}/{playlist-slug}/cover.webp
  *   playlists/{category-slug}/{playlist-slug}/cover.thumb.webp
  *
+ *   handouts/{category-slug}/{handout-slug}.webp
+ *   handouts/{category-slug}/{handout-slug}.thumb.webp
+ *
  *   scenes/{category-slug}/{scene-slug}.json
  *
  * Slugs (filename stems) are used as stable entity IDs and must be globally
@@ -27,6 +30,11 @@ import type {
   AmbienceCategory,
   AmbienceCategoryEntry,
 } from "$lib/types/ambience";
+import type {
+  Handout,
+  HandoutCategory,
+  HandoutCategoryEntry,
+} from "$lib/types/handout";
 import type {
   MusicTrack,
   Playlist,
@@ -213,6 +221,82 @@ async function scanAmbiences(
     });
 
   return { categories, ambiences: [...ambiences.values()] };
+}
+
+// ---------------------------------------------------------------------------
+// Handouts
+// ---------------------------------------------------------------------------
+
+/** Build handout categories and a flat handout list from R2 keys. */
+function scanHandouts(
+  keys: string[],
+): { categories: HandoutCategory[]; handouts: Handout[] } {
+  const catSlugs = new Set<string>();
+  const catItems = new Map<string, { slug: string }[]>();
+  const items = new Map<
+    string,
+    { catSlug: string; slug: string; src: string; thumb_src: string | null }
+  >();
+
+  for (const key of keys) {
+    const parts = key.split("/");
+    if (parts.length !== 3 || parts[0] !== "handouts") continue;
+    const [, catSlug, filename] = parts;
+
+    catSlugs.add(catSlug);
+
+    let slug: string | null = null;
+    let isThumb = false;
+    if (filename.endsWith(".thumb.webp")) {
+      slug = filename.slice(0, -".thumb.webp".length);
+      isThumb = true;
+    } else if (filename.endsWith(".webp")) {
+      slug = filename.slice(0, -".webp".length);
+    }
+    if (!slug) continue;
+
+    const itemKey = `${catSlug}/${slug}`;
+    if (!items.has(itemKey)) {
+      items.set(itemKey, { catSlug, slug, src: "", thumb_src: null });
+      if (!catItems.has(catSlug)) catItems.set(catSlug, []);
+      catItems.get(catSlug)!.push({ slug });
+    }
+    const item = items.get(itemKey)!;
+    if (isThumb) item.thumb_src = key;
+    else item.src = key;
+  }
+
+  const handouts: Handout[] = [...items.values()].map(
+    ({ catSlug, slug, src, thumb_src }) => {
+      const catBase = toBase(catSlug);
+      return {
+        id: `${catBase}.${slug}`,
+        label: toLabel(slug),
+        src,
+        thumb_src,
+        url: assetUrl(src),
+        thumb_url: thumb_src ? assetUrl(thumb_src) : null,
+      };
+    },
+  );
+
+  const categories: HandoutCategory[] = [...catSlugs]
+    .sort((a, b) => toOrder(a) - toOrder(b))
+    .map((catSlug) => {
+      const catBase = toBase(catSlug);
+      const entries: HandoutCategoryEntry[] = (catItems.get(catSlug) ?? [])
+        .map(({ slug }) => slug)
+        .sort()
+        .map((slug) => ({ id: `${catBase}.${slug}`, label: toLabel(slug) }));
+      return {
+        id: catBase,
+        label: toLabel(catSlug),
+        order: toOrder(catSlug),
+        handouts: entries,
+      };
+    });
+
+  return { categories, handouts };
 }
 
 // ---------------------------------------------------------------------------
@@ -463,6 +547,7 @@ export async function scan(): Promise<AppData> {
   console.log(`Found ${keys.length} objects in R2`);
 
   const { categories: ambienceCategories, ambiences } = await scanAmbiences(keys, client);
+  const { categories: handoutCategories, handouts } = scanHandouts(keys);
   const { categories: playlistCategories, playlists } = scanPlaylists(keys);
   const { categories: sceneCategories, scenes } = await scanScenes(
     keys,
@@ -473,6 +558,7 @@ export async function scan(): Promise<AppData> {
   const chapterCount = Object.keys(chapters).length;
   console.log(
     `Scan complete — ${ambienceCategories.length} ambience categories, ${ambiences.length} ambiences, ` +
+      `${handoutCategories.length} handout categories, ${handouts.length} handouts, ` +
       `${playlistCategories.length} playlist categories, ${playlists.length} playlists, ` +
       `${sceneCategories.length} scene categories, ${scenes.length} scenes, ` +
       `${stories.length} stories, ${chapterCount} chapters`,
@@ -481,6 +567,8 @@ export async function scan(): Promise<AppData> {
   return {
     ambience_categories: ambienceCategories,
     ambiences,
+    handout_categories: handoutCategories,
+    handouts,
     playlist_categories: playlistCategories,
     playlists,
     scene_categories: sceneCategories,
