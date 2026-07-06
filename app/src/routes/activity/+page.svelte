@@ -14,6 +14,7 @@
   import DebugOverlay from "$lib/components/player/DebugOverlay.svelte";
   import { appState } from "$lib/state/appState.svelte";
   import { sceneState } from "$lib/state/sceneState.svelte";
+  import HandoutOverlay from "$lib/components/player/HandoutOverlay.svelte";
 
   onMount(async () => {
     const sdk = new DiscordSDK(PUBLIC_DISCORD_CLIENT_ID);
@@ -45,6 +46,7 @@
         slotState={sceneState}
         requestedSceneId={appState.scene?.id ?? null}
       />
+      <HandoutOverlay />
       <VolumeOverlay />
       {#if appState.debug}<DebugOverlay />{/if}
     {/if}
