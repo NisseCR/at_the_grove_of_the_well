@@ -71,10 +71,22 @@
       <h1 class="nav-title">At the Grove of the Well</h1>
 
       <div class="nav-tabs">
-        <a href="/controller/scenes" class="tab" class:active={tab === "scenes"}>Scenes</a>
-        <a href="/controller/handouts" class="tab" class:active={tab === "handouts"}>Handouts</a>
-        <a href="/controller/music" class="tab" class:active={tab === "music"}>Music</a>
-        <a href="/controller/ambiences" class="tab" class:active={tab === "ambiences"}>Ambiences</a>
+        <a href="/controller/scenes" class="tab" class:active={tab === "scenes"}
+          >Scenes</a
+        >
+        <a href="/controller/music" class="tab" class:active={tab === "music"}
+          >Music</a
+        >
+        <a
+          href="/controller/ambiences"
+          class="tab"
+          class:active={tab === "ambiences"}>Ambiences</a
+        >
+        <a
+          href="/controller/handouts"
+          class="tab"
+          class:active={tab === "handouts"}>Handouts</a
+        >
       </div>
 
       <div class="nav-actions">
@@ -86,7 +98,11 @@
         >
           <AudioLines size={15} />
         </button>
-        <button class="action-btn" onclick={copyPresetUrl} aria-label="Copy preset URL">
+        <button
+          class="action-btn"
+          onclick={copyPresetUrl}
+          aria-label="Copy preset URL"
+        >
           {#if copied}
             <Check size={15} />
           {:else}
